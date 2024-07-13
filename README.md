@@ -13,7 +13,7 @@ Welcome to my 3D Computer Game Project, which serves as a experimenting/learning
 - [Current Features](#current-features)
 - [Development Issues](#development-issues)
 - [External Libraries](#external-libraries)
-- [Detailed Documentation](ReadMe_Doc/Documentation.md)
+- [Detailed Documentation](ReadMe_Docs/Documentation.md)
 
 ## Goals
 ### Primary Goals
@@ -36,13 +36,16 @@ Includes:
 ## Current Features
 Implemented foundation game architecture and basic 3D renderer (model-view-projection and basic lighting) with OpenGL:
 - Intergrated foundational game architecture components such as Game Loop, GameObject and Rendering pipeline.
-- [Mesh construction](ReadMe_Doc/Documentation.md#mesh-construction)
-  - [Square](ReadMe_Doc/Documentation.md#square-mesh)
-  - [Cube](ReadMe_Doc/Documentation.md#cube-mesh)
-  - [Sphere](ReadMe_Doc/Documentation.md#sphere-mesh)
+- [Mesh construction](ReadMe_Docs/Documentation.md#mesh-construction)
+  - [Square](ReadMe_Docs/Documentation.md#square-mesh)
+  - [Cube](ReadMe_Docs/Documentation.md#cube-mesh)
+  - [Sphere](ReadMe_Docs/Documentation.md#sphere-mesh)
 - Camera/View (model-view-projection).
-- [Lighting (Ambient + Diffuse)](ReadMe_Doc/Documentation.md#lighting).
-- [Light Source (Directional, [Point](ReadMe_Doc/Documentation.md#point-light), Spot)](ReadMe_Doc/Documentation.md#light-source)
+- [Lighting (Ambient + Diffuse)](ReadMe_Docs/Documentation.md#lighting).
+- [Light Source](ReadMe_Docs/Documentation.md#light-source)
+  - Directional
+  - [Point](ReadMe_Docs/Documentation.md#point-light)
+  - [Spot](ReadMe_Docs/Documentation.md#spot-light)
 - UI (for dev debugging/scenario setup)
   - Program/Objects stats.
   - Gameobject scrolling, properites modification, deletion.
@@ -51,15 +54,15 @@ Implemented foundation game architecture and basic 3D renderer (model-view-proje
 
 ## Development Issues
 Issues encounted during development:
-- [Triangle winding](ReadMe_Doc/DevelopmentIssues.md#triangle-winding)
-- [Mesh Normals](ReadMe_Doc/DevelopmentIssues.md#mesh-normals)
-- [Cube Mesh texturing](ReadMe_Doc/DevelopmentIssues.md#cube-mesh-texturing)Cube Mesh Texturing
+- [Triangle winding](ReadMe_Docs/DevelopmentIssues.md#triangle-winding)
+- [Mesh Normals](ReadMe_Docs/DevelopmentIssues.md#mesh-normals)
+- [Cube Mesh texturing](ReadMe_Docs/DevelopmentIssues.md#cube-mesh-texturing)Cube Mesh Texturing
 - 
-For more detailed information, please refer to the [Development Issue](ReadMe_Doc/DevelopmentIssues.md)
+For more detailed information, please refer to the [Development Issue](ReadMe_Docs/DevelopmentIssues.md)
 
 ## External Libraries
 Current libaries in use: GLM, GLEW, GLFW, stb-image.
 
   
 ## Documentation 
-For more detailed information, please refer to the [Detailed Documentation](ReadMe_Doc/Documentation.md)
+For more detailed information, please refer to the [Detailed Documentation](ReadMe_Docs/Documentation.md)
