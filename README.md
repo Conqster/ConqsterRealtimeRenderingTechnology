@@ -36,13 +36,13 @@ Includes:
 ## Current Features
 Implemented foundation game architecture and basic 3D renderer (model-view-projection and basic lighting) with OpenGL:
 - Intergrated foundational game architecture components such as Game Loop, GameObject and Rendering pipeline.
-- [Mesh construction](#mesh-construction)
-  - [Square](#square-mesh)
-  - Cube.
-  - Sphere.
+- [Mesh construction](ReadMe_Doc/Documentation.md#mesh-construction)
+  - [Square](ReadMe_Doc/Documentation.md#square-mesh)
+  - [Cube](ReadMe_Doc/Documentation.md#cube-mesh)
+  - [Sphere](ReadMe_Doc/Documentation.md#sphere-mesh)
 - Camera/View (model-view-projection).
-- Lighting (Ambient + Diffuse).
-- Light Source (Directional, Point, Spot).
+- [Lighting (Ambient + Diffuse)](ReadMe_Doc/Documentation.md#lighting).
+- [Light Source (Directional, [Point](ReadMe_Doc/Documentation.md#point-light), Spot)](ReadMe_Doc/Documentation.md#light-source)
 - UI (for dev debugging/scenario setup)
   - Program/Objects stats.
   - Gameobject scrolling, properites modification, deletion.
@@ -51,11 +51,11 @@ Implemented foundation game architecture and basic 3D renderer (model-view-proje
 
 ## Development Issues
 Issues encounted during development:
-- Triangle winding.
-- Mesh Normals.
-- Cube Mesh texturing.
+- [Triangle winding](ReadMe_Doc/DevelopmentIssues.md#triangle-winding)
+- [Mesh Normals](ReadMe_Doc/DevelopmentIssues.md#mesh-normals)
+- [Cube Mesh texturing](ReadMe_Doc/DevelopmentIssues.md#cube-mesh-texturing)Cube Mesh Texturing
 - 
-For more detailed information, please refer to the [Development Issue](ReadMe_Doc/DevelopmentIssue.md)
+For more detailed information, please refer to the [Development Issue](ReadMe_Doc/DevelopmentIssues.md)
 
 ## External Libraries
 Current libaries in use: GLM, GLEW, GLFW, stb-image.
