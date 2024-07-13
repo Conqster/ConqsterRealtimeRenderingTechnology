@@ -1,0 +1,31 @@
+#user file specific
+*.user
+
+#Bulid result
+Debug/
+Release/
+x64/
+
+#C++ outputs
+*.exe
+//might be dangerous because of external files i am using
+*.dll 
+*.obj  
+*.lib
+*.pdb
+*.idb
+*.x86
+*.x64
+
+
+#VS built files
+*.builds
+*.pidp
+*.svclog
+*.scc
+
+*.log
+
+
+#Visual studio temorary files
+.vs/

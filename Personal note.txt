@@ -1,0 +1,8 @@
+why does the entry point of a program in the VS community on my machine have to be .cpp cant be .h "error an unresolved symbol in
+	- I think i know why, because .h the declaration &blueprint of a program while .cpp is the actual translation unit the system compiles. .h are normally used as include file to tell the system that some particular symbols (function, variables, etc) occur during compilation and after the linker looks for them and links them up.
+
+Shader code error message printing 
+		//TO-DO: Need to fix the debug message (for easy debugging)
+		//current issue: misspelt a data type (sampler as sample) wrong error message
+		//Error message was generic syntax error, unexpected IDENTIFIER, expecting
+		// LEFT_BRACE or COMMA or SEMICOLON.
