@@ -2,9 +2,9 @@
 
 Welcome to my 3D Computer Game Project, which serves as a experimenting/learning game technologies (physics simulation & rendering) ,applying memory management, optimization along with computer/game arcitecture.
 
-|[![Current Milestone](ReadMe_Docs\Computer Graphics.png)](https://youtu.be/9skO5a-XUGg)|
+|<img src = "ReadMe_Docs/Computer Graphics.png"/>|
 |:-|
-|*Current Milestone.*|
+|<p align = "center"> *Current Milestone.* </p>|
 
 ## Goals
 
@@ -18,7 +18,8 @@ Welcome to my 3D Computer Game Project, which serves as a experimenting/learning
 - 3D Rendering techniques
 
 </p>
-<h3> Sub-Goals </h3>
+
+### Sub-Goals 
 <p> Secondary goals:
 
 - Program a solid basic 3D Renderer (current project) with Configuration type as dynamic linked libary (.dll).
@@ -28,17 +29,26 @@ Welcome to my 3D Computer Game Project, which serves as a experimenting/learning
   
 </p>
 
-<h2> Current Features </h2>
+## Current Features
 
 <p> Implemented foundation game architecture and basic 3D renderer (model-view-projection and basic lighting) with OpenGL:
 
 - Intergrated foundational game architecture components such as Game Loop, GameObject and Rendering pipeline.
 - Mesh construction.
+  - Square.
+  - Cube.
+  - Sphere.
 - Camera/View (model-view-projection).
 - Lighting (Ambient + Diffuse).
 - Light Source (Directional, Point, Spot).
+- UI (for dev debugging/scenario setup)
+  - Program/Objects stats.
+  - Gameobject scrolling, properites modification, deletion.
+  - Light objects scrolling, properties modification, deletion.
+  - GLEW controls.
 </p>
-<h3>External Libaries</h3>
+
+### External Libaries
 <p>  Current libaries in use: GLM, GLEW, GLFW, stb-image.</p>
 
 
@@ -47,8 +57,6 @@ Welcome to my 3D Computer Game Project, which serves as a experimenting/learning
 <h1 align = "center"> Documentation </h1>
 <p> This section will dive into the discussion/description of what has been implement, below is a time-lapse of the current milestone to the project: </p>
 
-
-
-<p>
-    <img src = "ReadMe_Doc/Spot & Point Light Experiment(Milestone showcase)  NO SHADOWS(ambient, Diffuse &attenuation constants)2.mp4"/>
-</p>
+<video width="360" height="240" controls>
+    <source src = "ReadMe_Docs/Spot & Point Light Experiment(Milestone showcase) NO SHADOWS(ambient, Diffuse &attenuation constants)2.mp4" type="video/mp4"/>
+</video>
