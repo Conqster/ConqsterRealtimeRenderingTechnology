@@ -1,8 +1,12 @@
-<h1 align = "center">3D Computer Game Tech (Rendering & Physics Simulation) </h1> 
+# 3D Computer Game Tech (Rendering & Physics Simulation)
 
-<p>Welcome to my 3D Computer Game Project, which serves as a experimenting/learning game technologies (physics simulation & rendering) ,applying memory management, optimization along with computer/game arcitecture.</p>
+Welcome to my 3D Computer Game Project, which serves as a experimenting/learning game technologies (physics simulation & rendering) ,applying memory management, optimization along with computer/game arcitecture.
 
-<h2> Goals </h2>
+|[![Current Milestone](ReadMe_Docs\Computer Graphics.png)](https://youtu.be/9skO5a-XUGg)|
+|:-|
+|*Current Milestone.*|
+
+## Goals
 
 <p> The primary aim of this project is to deepen my understanding of: 
 
@@ -45,3 +49,6 @@
 
 
 
+<p>
+    <img src = "ReadMe_Doc/Spot & Point Light Experiment(Milestone showcase)  NO SHADOWS(ambient, Diffuse &attenuation constants)2.mp4"/>
+</p>
