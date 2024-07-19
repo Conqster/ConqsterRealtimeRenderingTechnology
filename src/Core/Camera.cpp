@@ -27,6 +27,11 @@ glm::mat4 Camera::CalViewMat()
 	return glm::lookAt(m_Position, m_Position + m_Front, m_Up);
 }
 
+glm::mat4 Camera::CalculateProjMatrix(float aspect_ratio)
+{
+	return glm::perspective(glm::radians(m_FOV), aspect_ratio, m_Near, m_Far);
+}
+
 void Camera::Translate(glm::vec3 direction, float dt)
 {
 	//m_Position += (m_Front * displacement * m_MoveSpeed * dt);
@@ -59,6 +64,7 @@ void Camera::Rotate(float dt_yaw, float dt_pitch)
 
 void Camera::Rotate(glm::vec2 mouse_pos, float height, float width)
 {
+
 	glm::vec2 mouse_movement = mouse_pos - (glm::vec2(width, height) / 2.0f);
 
 	m_Pitch = m_Front.x - (int)mouse_movement.y * 0.1f;

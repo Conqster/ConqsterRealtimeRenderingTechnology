@@ -1,6 +1,7 @@
 #pragma once
 #include "Light.h"
 
+
 class PointLight : public Light
 {
 public:
@@ -34,7 +35,7 @@ public:
 	void SetAttenuation(float constant, float linear, float quadratic);
 	inline float* Attenuation() { return m_AttenuationConstants; }
 
-	void Use(int colour_location,int ambient_intensity_loc, unsigned int diffuse_intensity_loc,int position_location, int attenuationLocation);
+	void Use(int enable_loc, int colour_loc,int ambient_intensity_loc, unsigned int diffuse_intensity_loc,int position_loc, int attenuation_loc);
 
 	glm::vec3 const  GetPosition() { return m_Position; }
 	inline float* const Ptr_Position() { return &m_Position[0]; }

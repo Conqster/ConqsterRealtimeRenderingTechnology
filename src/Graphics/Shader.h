@@ -12,6 +12,13 @@
 #include "Lights/DirectionalLight.h"
 
 
+struct ShaderFilePath
+{
+	const std::string& vertexPath;
+	const std::string& fragmentPath;
+};
+
+
 class Shader
 {
 private:
@@ -24,6 +31,7 @@ private:
 
 	struct uniformPointLight
 	{
+		int uniformEnabledLocation;
 		int uniformColourLocation;
 		int uniformAmbientIntensityLocation;
 		int uniformDiffuseLocation;
@@ -37,6 +45,7 @@ private:
 
 	struct uniformSpotLight
 	{
+		int uniformEnabledLocation;
 		int uniformColourLocation;
 		int uniformAmbientIntensityLocation;
 		int uniformDiffuseLocation;
@@ -52,6 +61,7 @@ private:
 
 	struct uniformDirectionalLight
 	{
+		int uniformEnabledLocation;
 		int uniformColourLocation;
 		int uniformAmbientIntensityLocation;
 		int uniformDiffuseLocation;

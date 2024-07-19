@@ -2,8 +2,11 @@
 #include "Renderer.h"
 
 
-Material::Material(Shader& shader)
+Material::Material(const Shader& shader)
 {
+	m_Shader = std::make_shared<Shader>(shader);
+	m_Metallic = 1.0f;
+	m_Smoothness = 1.0f;
 }
 
 void Material::Use()
@@ -12,6 +15,7 @@ void Material::Use()
 		return;
 
 	m_Shader->UseShader();
-	GLCall(glUniform1f(m_Shader->GetUniformLocation(""), m_SpecularIntensity));
-	GLCall(glUniform1f(m_Shader->GetUniformLocation(""), m_Shininess));
+	GLCall(glUniform1f(m_Shader->GetUniformLocation("u_Material.metallic"), m_Metallic));
+	GLCall(glUniform1f(m_Shader->GetUniformLocation("u_Material.smoothness"), m_Smoothness));
+	//m_GlobalShaderProgram.SetUniformVec3("u_Material.colour", mat.colour);
 }

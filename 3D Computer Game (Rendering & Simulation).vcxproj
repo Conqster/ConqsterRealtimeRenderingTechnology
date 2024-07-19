@@ -150,6 +150,10 @@
     <ClInclude Include="External Libs\imgui\imstb_textedit.h" />
     <ClInclude Include="External Libs\imgui\imstb_truetype.h" />
     <ClInclude Include="External Libs\stb_image\stb_image.h" />
+    <ClInclude Include="src\Core\Window.h" />
+    <ClInclude Include="src\Graphics\LearningRenderer.h" />
+    <ClInclude Include="src\Graphics\MainRenderer.h" />
+    <ClInclude Include="src\Graphics\RendererBase.h" />
     <ClInclude Include="src\Graphics\Lights\DirectionalLight.h" />
     <ClInclude Include="src\Graphics\Lights\SpotLight.h" />
     <ClInclude Include="src\Graphics\Material.h" />
@@ -187,6 +191,10 @@
     <ClCompile Include="External Libs\imgui\imgui_widgets.cpp" />
     <ClCompile Include="src\Core\Camera.cpp" />
     <ClCompile Include="src\Core\GameObject.cpp" />
+    <ClCompile Include="src\Core\Window.cpp" />
+    <ClCompile Include="src\Graphics\LearningRenderer.cpp" />
+    <ClCompile Include="src\Graphics\MainRenderer.cpp" />
+    <ClCompile Include="src\Graphics\RendererBase.cpp" />
     <ClCompile Include="src\Graphics\Lights\DirectionalLight.cpp" />
     <ClCompile Include="src\Graphics\Lights\Light.cpp" />
     <ClCompile Include="src\Graphics\Lights\PointLight.cpp" />

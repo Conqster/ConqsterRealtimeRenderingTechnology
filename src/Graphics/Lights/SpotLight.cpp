@@ -24,21 +24,22 @@ SpotLight::SpotLight(float red, float green, float blue, float ambient_intensity
 	std::cout << "Spot Light Created!!!!!\n";
 }
 
-void SpotLight::Use(int colour_location, int ambient_intensity_loc, unsigned int diffuse_intensity_loc, int position_location, int attenuationLocation, int dir_location, int falloff_location)
+void SpotLight::Use(int enable_loc, int colour_loc, int ambient_intensity_loc, unsigned int diffuse_intensity_loc, int position_loc, int attenuation_loc, int dir_loc, int falloff_loc)
 {
 	//TO-DO: just hack for now
+	GLCall(glUniform1i(enable_loc, m_Disable));
 	if (m_Disable)
 	{
-		GLCall(glUniform3f(colour_location, 0.0f, 0.0f, 0.0f));
+		//GLCall(glUniform3f(colour_loc, 0.0f, 0.0f, 0.0f));
 		return;
 	}
-	GLCall(glUniform3f(colour_location, m_Colour.x, m_Colour.y, m_Colour.z));
+	GLCall(glUniform3f(colour_loc, m_Colour.x, m_Colour.y, m_Colour.z));
 	GLCall(glUniform1f(ambient_intensity_loc, m_AmbientIntensity));
 	GLCall(glUniform1f(diffuse_intensity_loc, m_DiffuseIntensity));
 
-	GLCall(glUniform3f(position_location, m_Position.x, m_Position.y, m_Position.z));
-	GLCall(glUniform3fv(attenuationLocation, 1, m_AttenuationConstants));
+	GLCall(glUniform3f(position_loc, m_Position.x, m_Position.y, m_Position.z));
+	GLCall(glUniform3fv(attenuation_loc, 1, m_AttenuationConstants));
 
-	GLCall(glUniform3f(dir_location, m_Direction.x, m_Direction.y, m_Direction.z));
-	GLCall(glUniform1f(falloff_location, m_Falloff));
+	GLCall(glUniform3f(dir_loc, m_Direction.x, m_Direction.y, m_Direction.z));
+	GLCall(glUniform1f(falloff_loc, m_Falloff));
 }

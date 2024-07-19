@@ -20,7 +20,7 @@ private:
 	int m_RefCount;
 
 public:
-	Texture() = default;
+	Texture();
 	Texture(const std::string& fileLoc);
 	~Texture();
 

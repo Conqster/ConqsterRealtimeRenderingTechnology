@@ -4,12 +4,17 @@
 #include "External Libs/stb_image/stb_image.h"
 #include <iostream>
 
+Texture::Texture()
+	:m_Id(0), m_LocalBuffer(nullptr), m_Height(0),
+	m_Width(0), m_BitDepth(0), m_RefCount(0)
+{
+}
+
 Texture::Texture(const std::string& fileLoc)
 	:m_Id(0), m_FileLocation(fileLoc),
 	 m_LocalBuffer(nullptr), m_Height(0), 
-	 m_Width(0), m_BitDepth(0)
+	 m_Width(0), m_BitDepth(0), m_RefCount(0)
 {
-	m_RefCount = 0;
 	LoadTexture(fileLoc);
 }
 

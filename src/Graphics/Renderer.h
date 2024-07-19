@@ -21,33 +21,34 @@ void GLClearError();
 bool GLLogCall(const char* func, const char* file, int line);
 
 
+class Window;
+
 class Renderer
 {
 public:
 	Renderer();
-	Renderer(int width, int height);
+	Renderer(unsigned int width, unsigned int height);
 
 	bool Init();
 
-	void CreateGlobalShaderFromFile(const std::string& vert_file_path, const std::string& frag_file_path);
-	//void CreateGlobalShader(const char* vertex = globalVertexShader, const char* frag = globalFragmentShader);
-	void CreateProjectionViewMatrix();
+	void CreateMainShader(const ShaderFilePath& shader_file, const glm::mat4& viewProj);
+	void UpdateShaderViewProjection(const glm::mat4& viewProj);
 	
 	void ClearScreen() const;
-	void RenderObjects(const std::vector<GameObject*> objects, glm::mat4& camera_view_mat);
+	void RenderObjects(const std::vector<GameObject*> objects,class Camera& camera);
 	void SwapOpenGLBuffers() const;
 
-	inline struct GLFWwindow* GetWindow() { return m_Window; }
-	int GetWidth() { return m_Width; }
-	int GetHeight() { return m_Height; }
+	void AddPointLight(std::unique_ptr<PointLight> point_light);
+	void AddSpotLight(std::unique_ptr<SpotLight> spot_light);
+	void AddDirectionalLight(std::unique_ptr<DirectionalLight> directional_light);
 
-	inline bool* const LockCursorFlag() { return &m_lockCursor; }
+
 	void ToggleLockCursor();
 
-	//inline Light* const GetLight() 
-	//{ if(m_PointLights.size() > 0) return m_Lights[0]; }
+	inline Window* const GetWindow() { return m_Window; }
 
 	inline std::vector<Light*>& const GetLights() { return m_Lights; }
+	inline const Shader* GetCurrentMainShaderProgram() const { return &m_MainShaderProgram; }
 
 	inline unsigned int const LightsCount() { return m_Lights.size(); }
 
@@ -55,31 +56,26 @@ public:
 	void CloseWindow();
 
 private:
-	int m_Width;
-	int	m_Height;
+	Window* m_Window = nullptr;
 
-	struct GLFWwindow* m_Window = nullptr;
-
-	Shader m_GlobalShaderProgram;
-	GameObject* m_CubeDebugObject;
+	Shader m_MainShaderProgram;
+	GameObject* m_CubeDebugObject = nullptr;
 	//PointLight m_PointLight[Shader_Constants::MAX_POINT_LIGHTS];
 	std::vector<std::unique_ptr<PointLight>> m_PointLights;
 	std::vector<std::unique_ptr<SpotLight>> m_SpotLights;
 	std::vector<std::unique_ptr<DirectionalLight>> m_DirectionLights;
 	std::vector<Light*> m_Lights;
-	void AddPointLight(std::unique_ptr<PointLight> light);
-	void AddSpotLight(std::unique_ptr<SpotLight> light);
-	void AddDirectionalLight(std::unique_ptr<DirectionalLight> light);
-	glm::vec4 m_AmbientLightColour = glm::vec4(1.0f, 0.0f, 1.0f, 1.0f);
-	glm::vec3 m_TestLightPos = glm::vec3();
-	float m_AmbientLightStrength = 0.1f;
 
-	bool m_lockCursor = false;
+	void CreateLightDebugObj();
 
+	void ProcessLight();
+
+
+	//TO-DO: Need to change this later
 	unsigned int m_LineVAO;
 	unsigned int m_LineVBO;
 
-
 	void CreateLine();
+	void RenderGrid();
 };
 

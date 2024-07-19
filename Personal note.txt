@@ -6,3 +6,8 @@ Shader code error message printing
 		//current issue: misspelt a data type (sampler as sample) wrong error message
 		//Error message was generic syntax error, unexpected IDENTIFIER, expecting
 		// LEFT_BRACE or COMMA or SEMICOLON.
+
+
+Shader language/File/GLSL
+		when a shader file/program is compiled if a variable is declared but not used use in the program
+		it gets striped out noticed with uniform i declared without using it. 

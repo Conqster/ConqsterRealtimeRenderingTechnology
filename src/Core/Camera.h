@@ -18,6 +18,11 @@ public:
 	inline glm::vec3 const GetUp() { return glm::normalize(m_Up); } 
 
 	glm::mat4 CalViewMat();
+	glm::mat4 CalculateProjMatrix(float aspect_ratio);
+
+	inline float* const Ptr_FOV() { return &m_FOV; }
+	inline float* const Ptr_Near() { return &m_Near; }
+	inline float* const Ptr_Far() { return &m_Far; }
 
 	void Translate(glm::vec3 direction, float dt);
 	void Rotate(float dt_yaw, float dt_pitch);
@@ -25,6 +30,7 @@ public:
 	void SetPosition(glm::vec3 pos);
 
 	inline float* const Ptr_MoveSpeed() { return &m_MoveSpeed; }
+	inline float* const Ptr_RotSpeed() { return &m_RotSpeed; }
 	inline float const Ptr_Pitch() const { return m_Pitch; }
 	inline float const Ptr_Yaw() const { return m_Yaw; }
 
@@ -46,9 +52,8 @@ private:
 	glm::vec3 m_Up;
 	glm::vec3 m_Right;
 
-
-	//float roll;
-
-
+	float m_FOV = 45.0f;
+	float m_Near = 0.1f;
+	float m_Far = 150.0f;
 
 };

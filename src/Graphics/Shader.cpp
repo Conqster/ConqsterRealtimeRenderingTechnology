@@ -67,7 +67,7 @@ bool Shader::CreateFromCode(const std::string& vshaderSrc, const std::string& fs
 	GLCall(glDeleteShader(vshader));
 	GLCall(glDeleteShader(fshader));
 
-	SetupLights();
+	//SetupLights();
 
     return true;
 }
@@ -97,11 +97,12 @@ void Shader::UsePointLight(std::vector<std::unique_ptr<PointLight>>& lights, uns
 
 	for (unsigned int i = 0; i < count; i++)
 	{
-		lights[i]->Use(m_UniformPointLightLocationCache[i].uniformColourLocation,
-					m_UniformPointLightLocationCache[i].uniformAmbientIntensityLocation,
-					m_UniformPointLightLocationCache[i].uniformDiffuseLocation,
-					m_UniformPointLightLocationCache[i].uniformPositionLocation,
-					m_UniformPointLightLocationCache[i].uniformAttenuationLocation);
+		lights[i]->Use(m_UniformPointLightLocationCache[i].uniformEnabledLocation,
+					   m_UniformPointLightLocationCache[i].uniformColourLocation,
+					   m_UniformPointLightLocationCache[i].uniformAmbientIntensityLocation,
+					   m_UniformPointLightLocationCache[i].uniformDiffuseLocation,
+					   m_UniformPointLightLocationCache[i].uniformPositionLocation,
+					   m_UniformPointLightLocationCache[i].uniformAttenuationLocation);
 	}
 
 }
@@ -115,13 +116,14 @@ void Shader::UseSpotLight(std::vector<std::unique_ptr<SpotLight>>& lights, unsig
 
 	for (unsigned int i = 0; i < count; i++)
 	{
-		lights[i]->Use(m_UniformSpotLightLocationCache[i].uniformColourLocation,
-			m_UniformSpotLightLocationCache[i].uniformAmbientIntensityLocation,
-			m_UniformSpotLightLocationCache[i].uniformDiffuseLocation,
-			m_UniformSpotLightLocationCache[i].uniformPositionLocation,
-			m_UniformSpotLightLocationCache[i].uniformAttenuationLocation,
-			m_UniformSpotLightLocationCache[i].uniformDirectionLocation,
-			m_UniformSpotLightLocationCache[i].uniformFalloffLocation);
+		lights[i]->Use(m_UniformSpotLightLocationCache[i].uniformEnabledLocation, 
+					   m_UniformSpotLightLocationCache[i].uniformColourLocation,
+					   m_UniformSpotLightLocationCache[i].uniformAmbientIntensityLocation,
+					   m_UniformSpotLightLocationCache[i].uniformDiffuseLocation,
+					   m_UniformSpotLightLocationCache[i].uniformPositionLocation,
+					   m_UniformSpotLightLocationCache[i].uniformAttenuationLocation,
+					   m_UniformSpotLightLocationCache[i].uniformDirectionLocation,
+					   m_UniformSpotLightLocationCache[i].uniformFalloffLocation);
 	}
 }
 
@@ -134,10 +136,11 @@ void Shader::UseDirectionalLight(std::vector<std::unique_ptr<DirectionalLight>>&
 
 	for (unsigned int i = 0; i < count; i++)
 	{
-		lights[i]->Use(m_UniformDirectionalLightLocationCache[i].uniformColourLocation,
-			m_UniformDirectionalLightLocationCache[i].uniformAmbientIntensityLocation,
-			m_UniformDirectionalLightLocationCache[i].uniformDiffuseLocation,
-			m_UniformDirectionalLightLocationCache[i].uniformDirectionLocation);
+		lights[i]->Use(m_UniformDirectionalLightLocationCache[i].uniformEnabledLocation,
+					   m_UniformDirectionalLightLocationCache[i].uniformColourLocation,
+					   m_UniformDirectionalLightLocationCache[i].uniformAmbientIntensityLocation,
+					   m_UniformDirectionalLightLocationCache[i].uniformDiffuseLocation,
+					   m_UniformDirectionalLightLocationCache[i].uniformDirectionLocation);
 	}
 }
 
@@ -155,6 +158,7 @@ void Shader::SetUniformMat4f(const char* name, const glm::mat4 matrix)
 {
 	GLCall(glUniformMatrix4fv(GetUniformLocation(name), 1, GL_FALSE, &matrix[0][0]));
 }
+
 
 void Shader::SetUniformVec3(const char* name, const glm::vec3 vector)
 {
@@ -242,6 +246,10 @@ void Shader::SetupLights()
 	uniformPointLightCount = GetUniformLocation("u_PointLightCount");
 	for (size_t i = 0; i < Shader_Constants::MAX_POINT_LIGHTS; i++)
 	{
+		char is_enable_name[64];
+		sprintf_s(is_enable_name, "u_PointLights[%zu].base.isEnabled", i);
+		m_UniformPointLightLocationCache[i].uniformEnabledLocation = glGetUniformLocation(m_ProgramID, is_enable_name);
+
 		char colour_name[64];
 		sprintf_s(colour_name, "u_PointLights[%zu].base.colour", i);
 		m_UniformPointLightLocationCache[i].uniformColourLocation = glGetUniformLocation(m_ProgramID, colour_name);
@@ -267,6 +275,10 @@ void Shader::SetupLights()
 	uniformSpotLightCount = GetUniformLocation("u_SpotLightCount");
 	for (size_t i = 0; i < Shader_Constants::MAX_SPOT_LIGHTS; i++)
 	{
+		char is_enable_name[64];
+		sprintf_s(is_enable_name, "u_SpotLights[%zu].pointLight.base.isEnabled", i);
+		m_UniformSpotLightLocationCache[i].uniformEnabledLocation = glGetUniformLocation(m_ProgramID, is_enable_name);
+
 		char colour_name[64];
 		sprintf_s(colour_name, "u_SpotLights[%zu].pointLight.base.colour", i);
 		m_UniformSpotLightLocationCache[i].uniformColourLocation = glGetUniformLocation(m_ProgramID, colour_name);
@@ -300,6 +312,10 @@ void Shader::SetupLights()
 	uniformDirectionalLightCount = GetUniformLocation("u_DirectionalLightCount");
 	for (size_t i = 0; i < Shader_Constants::MAX_DIRECTIONAL_LIGHTS; i++)
 	{
+		char is_enable_name[64];
+		sprintf_s(is_enable_name, "u_DirectionalLights[%zu].base.isEnabled", i);
+		m_UniformDirectionalLightLocationCache[i].uniformEnabledLocation = glGetUniformLocation(m_ProgramID, is_enable_name);
+
 		char colour_name[64];
 		sprintf_s(colour_name, "u_DirectionalLights[%zu].base.colour", i);
 		m_UniformDirectionalLightLocationCache[i].uniformColourLocation = glGetUniformLocation(m_ProgramID, colour_name);

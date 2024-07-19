@@ -1,5 +1,8 @@
 #pragma once
 #include "Renderer.h"
+
+#include "../Core/Window.h"
+
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include "EventHandle.h"
@@ -11,6 +14,8 @@
 
 #include "Meshes/CubeMesh.h"
 #include "Texture.h"
+
+#include "Camera.h"
 
 void GLClearError()
 {
@@ -34,149 +39,37 @@ bool GLLogCall(const char* func, const char* file, int line)
 
 
 
-Renderer::Renderer() : m_Window(nullptr), m_lockCursor(false)
+Renderer::Renderer()
 {
-	m_Width = 800;
-	m_Height = 600;
-
-	m_Width = 1920;
-	m_Height = 1080;
-
-	//m_Width = 960;
-	//m_Height = 540;
+	m_Window = new Window();
 }
 
-Renderer::Renderer(int width, int height) : m_Width(width), 
-				  m_Height(height), m_Window(nullptr), m_lockCursor(false)
+Renderer::Renderer(unsigned int width, unsigned int height)
 {
+	m_Window = new Window(width, height);
 }
 
 
 bool Renderer::Init()
 {
+	return m_Window->Init();
+}
 
-	if (!glfwInit())
-	{
-		std::cout << "GLFW init Failed.......\n";
-		glfwTerminate();
-		return false;
-	}
+void Renderer::CreateMainShader(const ShaderFilePath& shader_file, const glm::mat4& viewProj)
+{
+	m_MainShaderProgram.CreateFromFile(shader_file.vertexPath, shader_file.fragmentPath);
+	m_MainShaderProgram.UseShader();
 
-
-
-	//setup GLFW window propreties 
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-
-	m_Window = glfwCreateWindow(m_Width, m_Height, "Testing Renderer", NULL, NULL);
-
-
-	if (!m_Window)
-	{
-		
-		std::cout << "Window mode creation and its OpenGL context failed!!!!!!!\n";
-		glfwTerminate();
-		return false;
-	}
-
-	glfwMakeContextCurrent(m_Window);
-	std::cout << "Init Window...........\n";
-	std::cout << "GRAPHICS INFO: openGL Version: " << glGetString(GL_VERSION) << "\n";
-
-	glfwSwapInterval(1);
-
-	EventHandle::CreateCallBacks(m_Window);
-
-	//allow modern extension features
-	glewExperimental = GL_TRUE;
-
-	GLenum GlewInitResult = glewInit();
-
-	if (GlewInitResult != GLEW_OK)
-	{
-		std::cout << "Glew Init failed, ERROR: " << glewGetErrorString(GlewInitResult) << "\n";
-		glfwDestroyWindow(m_Window);
-		glfwTerminate();
-		return false;
-	}
-
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LESS);
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
-	glFrontFace(GL_CCW);
-
-	//Setup Viewport size
-	glViewport(0, 0, m_Width, m_Height);
-
-	//glfwSetWindowUserPointer(m_Window, this);
-	float center_x = m_Width * 0.5f;
-	float center_y = m_Height * 0.5f;
-
-	glfwSetCursorPos(m_Window, center_x, center_y);
-
-	glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	m_lockCursor = true;
-
-	return true;
+	m_MainShaderProgram.SetUniformMat4f("u_projection", viewProj);
 }
 
 
-
-void Renderer::CreateGlobalShaderFromFile(const std::string& vert_file_path, const std::string& frag_file_path)
+void Renderer::UpdateShaderViewProjection(const glm::mat4& viewProj)
 {
-	m_GlobalShaderProgram.CreateFromFile(vert_file_path, frag_file_path);
-	m_GlobalShaderProgram.UseShader();
-	m_GlobalShaderProgram.SetUniform1i("u_Texture", 0);
+	//TO-DO: for now just the main shader, later could apply to multiple
+	m_MainShaderProgram.UseShader();
 
-	//m_PointLight[0] = PointLight(1.0f, 0.0f, 0.0f, 0.5f, 0.6f, glm::vec3());
-	AddDirectionalLight(std::make_unique<DirectionalLight>());
-	AddPointLight(std::make_unique<PointLight>(0.0f, 1.0f, 0.0f, 0.5f, 0.6f, glm::vec3(-3.0f, 4.0f, -4.0f)));
-	AddSpotLight(std::make_unique<SpotLight>(0.0f, 0.0f, 1.0f, 0.5f, 0.6f, glm::vec3(3.0f, 3.0f, 0.0f)));
-	AddSpotLight(std::make_unique<SpotLight>(1.0f, 1.0f, 1.0f, 0.5f, 0.6f, glm::vec3(0.0f, 15.0f, -10.0f)));
-	AddSpotLight(std::make_unique<SpotLight>(1.0f, 1.0f, 1.0f, 0.5f, 0.6f, glm::vec3(0.0f, 15.0f, -10.0f)));
-	AddPointLight(std::make_unique<PointLight>(1.0f, 0.0f, 0.0f, 0.5f, 0.6f, glm::vec3(5.0f, 10.0f, 0.0f)));
-	AddPointLight(std::make_unique<PointLight>(1.0f, 0.0f, 0.0f, 0.5f, 0.6f, glm::vec3(10.0f, 10.0f, 10.0f)));
-
-
-	//m_PointLight[2] = PointLight(0.0f, 1.0f, 0.0f, 0.5f, 0.6f, glm::vec3());
-	static CubeMesh cube_mesh;
-	cube_mesh.Create();
-	static Texture texture("Assets/Textures/plain64.png");
-	m_CubeDebugObject = new GameObject(&cube_mesh, &texture);
-	//m_CubeDebugObject->worldPos = glm::vec3(m_PointLights[0].GetPosition());
-	m_CubeDebugObject->worldScale = glm::vec3(0.25f);
-
-}
-
-//void Renderer::CreateGlobalShader(const char* vertex, const char* frag)
-//{
-//	//triangle shader
-//	m_GlobalShaderProgram.CreateFromCode(vertex, frag);
-//
-//	m_GlobalShaderProgram.UseShader();
-//	//0 - because the bind active texture is at slot 0 == glActiveTexture(GL_TEXTURE0)
-//	//maybe i could have multiple  slots in one texture
-//	m_GlobalShaderProgram.SetUniform1i("u_Texture", 0);
-//
-//
-//	//CREATE LINE VAO VBO propreties
-//	CreateLine();
-//}
-
-void Renderer::CreateProjectionViewMatrix()
-{
-	m_GlobalShaderProgram.UseShader();
-
-	//								  l_egde|r_egde|t_edge|b_egde | near  | far plane
-	//glm::mat4 projection = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f);
-	//glm::mat4 projection = glm::ortho(0.0f, 960.0f, 0.0f, 540.0f, -1.0f, 1.0f);   //Previous
-	glm::mat4 projection = glm::perspective(glm::radians(45.0f), (GLfloat)m_Width / m_Height, 0.1f, 150.0f/*10000.0f*/);
-
-	m_GlobalShaderProgram.SetUniformMat4f("u_projection", projection/*glm::mat4(1.0f)*/);
-
+	m_MainShaderProgram.SetUniformMat4f("u_projection", viewProj);
 }
 
 
@@ -188,79 +81,21 @@ void Renderer::ClearScreen() const
 
 void Renderer::SwapOpenGLBuffers() const
 {
-	GLCall(glfwSwapBuffers(m_Window));
+	m_Window->SwapBuffers();
 }
 
 
-void Renderer::RenderObjects(const std::vector<GameObject*> objects, glm::mat4& camera_view_mat)
+void Renderer::RenderObjects(const std::vector<GameObject*> objects, Camera& camera)
 {
-	m_GlobalShaderProgram.UseShader();
-	m_GlobalShaderProgram.SetUniformMat4f("u_view", camera_view_mat);
+	m_MainShaderProgram.UseShader();
+	m_MainShaderProgram.SetUniformMat4f("u_view", camera.CalViewMat());
+	m_MainShaderProgram.SetUniformVec3("u_ViewPos", camera.GetPosition());
 
 
-	if(m_PointLights.size() > 0)
-		m_GlobalShaderProgram.UsePointLight(m_PointLights, m_PointLights.size()/*(sizeof(m_PointLight) / sizeof(m_PointLight[0]))*/);
-
-	if (m_SpotLights.size() > 0)
-		m_GlobalShaderProgram.UseSpotLight(m_SpotLights, m_SpotLights.size());
-
-	if (m_DirectionLights.size() > 0)
-		m_GlobalShaderProgram.UseDirectionalLight(m_DirectionLights, m_DirectionLights.size());
-
-	//DRAW GRID
-	if (false)
-	{
-		GLCall(glBindVertexArray(m_LineVAO));
-		GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_LineVBO));
-		m_GlobalShaderProgram.SetUniform1i("u_DebugMode", 1);
+	if (m_Lights.size() > 0)
+		ProcessLight();
 
 
-		unsigned int length = 500;
-		unsigned int half_length = length * 0.5f;
-		glm::mat4 line_model = glm::mat4(1.0f);
-
-		//LENGTH
-		for (unsigned int i = 0; i < length; i++)
-		{
-			int offset = half_length - i;
-			line_model = glm::mat4(1.0f);
-			line_model = glm::translate(line_model, glm::vec3(0.0f, 0.0f, offset));
-			//line_model = glm::rotate
-			line_model = glm::scale(line_model, glm::vec3(half_length));
-			m_GlobalShaderProgram.SetUniformMat4f("u_model", line_model);
-			GLCall(glDrawArrays(GL_LINES, 0, 2));
-		}
-
-		//BREATH
-		for (unsigned int i = 0; i < length; i++)
-		{
-			int offset = half_length - i;
-			line_model = glm::mat4(1.0f);
-			line_model = glm::translate(line_model, glm::vec3(offset, 0.0f, 0.0f));
-			line_model = glm::rotate(line_model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-			line_model = glm::scale(line_model, glm::vec3(half_length));
-			m_GlobalShaderProgram.SetUniformMat4f("u_model", line_model);
-			GLCall(glDrawArrays(GL_LINES, 0, 2));
-		}
-
-
-		m_GlobalShaderProgram.SetUniform1i("u_DebugMode", 0);
-		GLCall(glBindVertexArray(0));
-		GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
-
-	}
-	
-
-	static float colour_b = 0.1f;
-	static int incrementDir = 1;
-
-	colour_b += incrementDir * 0.01f;
-	if (colour_b >= 1)
-		incrementDir = -1;
-	else if (colour_b <= 0)
-		incrementDir = 1;
-
-	m_GlobalShaderProgram.SetUniform4f("u_TestColour", -colour_b, 0.0f, colour_b, 1.0f);
 
 	glm::mat4 gameobject_model;
 	for (size_t i = 0; i < objects.size(); i++)
@@ -272,29 +107,37 @@ void Renderer::RenderObjects(const std::vector<GameObject*> objects, glm::mat4& 
 		gameobject_model = glm::rotate(gameobject_model, glm::radians(gameobject->rotation.w), (glm::vec3)gameobject->rotation);
 		gameobject_model = glm::scale(gameobject_model,/* 50.0f **/ gameobject->worldScale);
 
-		m_GlobalShaderProgram.SetUniformMat4f("u_model", gameobject_model);
-		m_GlobalShaderProgram.UseShader();
+		m_MainShaderProgram.SetUniformMat4f("u_model", gameobject_model);
+		m_MainShaderProgram.UseShader();
 
 		bool debug_mode = false;
 		//DEBUGING GAMEOBJECT
 		if (gameobject->selected)
 		{
-			m_GlobalShaderProgram.SetUniform1i("u_DebugMode", 1);
+			m_MainShaderProgram.SetUniform1i("u_DebugMode", 1);
 			//gameobject->Draw(); //solid debug
 			gameobject->DebugDraw(); //line debug
-			m_GlobalShaderProgram.SetUniform1i("u_DebugMode", 0);
+			m_MainShaderProgram.SetUniform1i("u_DebugMode", 0);
 		}
 		else if(debug_mode)
 		{
 			//gameobject->Draw();
-			m_GlobalShaderProgram.SetUniform1i("u_DebugMode", 1);
+			m_MainShaderProgram.SetUniform1i("u_DebugMode", 1);
 			//gameobject->Draw(); //solid debug
 			gameobject->DebugDraw(); //line debug
-			m_GlobalShaderProgram.SetUniform1i("u_DebugMode", 0);
+			m_MainShaderProgram.SetUniform1i("u_DebugMode", 0);
 		}
 
 		gameobject->Draw();
 	}
+
+
+	//DRAW GRID
+	if (false)
+	{
+		RenderGrid();
+	}
+
 
 	//////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////POINT LIGHTS DEBUG LOCATION////////////////////////
@@ -305,28 +148,27 @@ void Renderer::RenderObjects(const std::vector<GameObject*> objects, glm::mat4& 
 	{
 		if(auto a_point_light = dynamic_cast<PointLight*>(light))
 		{
+			if (!m_CubeDebugObject)
+				CreateLightDebugObj();
+
 			model = glm::mat4(1.0f);
 			model = glm::translate(model, a_point_light->GetPosition());
 			model = glm::scale(model, m_CubeDebugObject->worldScale);
-			m_GlobalShaderProgram.UseShader();
-			m_GlobalShaderProgram.SetUniformMat4f("u_model", model);
+			m_MainShaderProgram.UseShader();
+			m_MainShaderProgram.SetUniformMat4f("u_model", model);
 			m_CubeDebugObject->Draw();
 			//m_GlobalShaderProgram.SetUniform1i("u_DebugMode", 1);
 			//m_CubeDebugObject->DebugDraw();
 			//m_GlobalShaderProgram.SetUniform1i("u_DebugMode", 0);
 		}
 	}
-
-
 }
 
 
 
 void Renderer::ToggleLockCursor()
 {
-	m_lockCursor = !m_lockCursor;
-	unsigned int cursor_state = (m_lockCursor) ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL;
-	glfwSetInputMode(m_Window, GLFW_CURSOR, cursor_state);
+	m_Window->ToggleLockCursor();
 }
 
 
@@ -334,24 +176,38 @@ void Renderer::ToggleLockCursor()
 
 bool Renderer::WindowShouldClose()
 {
-	GLCall(return glfwWindowShouldClose(m_Window));
+	return m_Window->WindowShouldClose();
 }
 
 void Renderer::CloseWindow()
 {
-	m_CubeDebugObject->Cleanup();
-	glfwDestroyWindow(m_Window);
-	glfwTerminate();
+	delete m_CubeDebugObject;
+	m_CubeDebugObject = nullptr;
+
+	m_PointLights.clear();
+	m_SpotLights.clear();
+	m_DirectionLights.clear();
+
+	m_Lights.clear();
+
+	
+
+	if (m_Window)
+	{
+		m_Window->Close();
+		delete m_Window;
+		m_Window = nullptr;
+	}
 }
 
 
-void Renderer::AddPointLight(std::unique_ptr<PointLight> light)
+void Renderer::AddPointLight(std::unique_ptr<PointLight> point_light)
 {
 	if (m_PointLights.size() > Shader_Constants::MAX_POINT_LIGHTS)
 		return;
 
-	m_Lights.push_back(light.get());
-	m_PointLights.push_back(std::move(light));
+	m_Lights.push_back(point_light.get());
+	m_PointLights.push_back(std::move(point_light));
 	//m_PointLights.push_back(light);
 	////m_Lights.push_back(light);
 	//// m_PointLight.push_back creates a copy of light inside the vector
@@ -367,20 +223,42 @@ void Renderer::AddPointLight(std::unique_ptr<PointLight> light)
 	//m_Lights.push_back(&m_PointLights.back());
 }
 
-void Renderer::AddSpotLight(std::unique_ptr<SpotLight> light)
+void Renderer::AddSpotLight(std::unique_ptr<SpotLight> spot_light)
 {
 	if (m_PointLights.size() > Shader_Constants::MAX_SPOT_LIGHTS)
 		return;
 
-	m_Lights.push_back(light.get());
-	m_SpotLights.push_back(std::move(light));
+	m_Lights.push_back(spot_light.get());
+	m_SpotLights.push_back(std::move(spot_light));
 }
 
-void Renderer::AddDirectionalLight(std::unique_ptr<DirectionalLight> light)
+void Renderer::AddDirectionalLight(std::unique_ptr<DirectionalLight> directional_light)
 {
-	m_Lights.push_back(light.get());
-	m_DirectionLights.push_back(std::move(light));
+	m_Lights.push_back(directional_light.get());
+	m_DirectionLights.push_back(std::move(directional_light));
 	//m_Lights.push_back(light);
+}
+
+void Renderer::CreateLightDebugObj()
+{
+	static CubeMesh cube_mesh;
+	cube_mesh.Create();
+	static Texture texture("Assets/Textures/plain64.png");
+	m_CubeDebugObject = new GameObject(&cube_mesh, &texture);
+	m_CubeDebugObject->worldScale = glm::vec3(0.25f);
+}
+
+void Renderer::ProcessLight()
+{
+	if (m_PointLights.size() > 0)
+		m_MainShaderProgram.UsePointLight(m_PointLights, m_PointLights.size()/*(sizeof(m_PointLight) / sizeof(m_PointLight[0]))*/);
+
+	if (m_SpotLights.size() > 0)
+		m_MainShaderProgram.UseSpotLight(m_SpotLights, m_SpotLights.size());
+
+	if (m_DirectionLights.size() > 0)
+		m_MainShaderProgram.UseDirectionalLight(m_DirectionLights, m_DirectionLights.size());
+
 }
 
 void Renderer::CreateLine()
@@ -409,6 +287,47 @@ void Renderer::CreateLine()
 
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
 	GLCall(glBindVertexArray(0));
+}
+
+void Renderer::RenderGrid()
+{
+	GLCall(glBindVertexArray(m_LineVAO));
+	GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_LineVBO));
+	m_MainShaderProgram.SetUniform1i("u_DebugMode", 1);
+
+
+	unsigned int length = 500;
+	unsigned int half_length = length * 0.5f;
+	glm::mat4 line_model = glm::mat4(1.0f);
+
+	//LENGTH
+	for (unsigned int i = 0; i < length; i++)
+	{
+		int offset = half_length - i;
+		line_model = glm::mat4(1.0f);
+		line_model = glm::translate(line_model, glm::vec3(0.0f, 0.0f, offset));
+		//line_model = glm::rotate
+		line_model = glm::scale(line_model, glm::vec3(half_length));
+		m_MainShaderProgram.SetUniformMat4f("u_model", line_model);
+		GLCall(glDrawArrays(GL_LINES, 0, 2));
+	}
+
+	//BREATH
+	for (unsigned int i = 0; i < length; i++)
+	{
+		int offset = half_length - i;
+		line_model = glm::mat4(1.0f);
+		line_model = glm::translate(line_model, glm::vec3(offset, 0.0f, 0.0f));
+		line_model = glm::rotate(line_model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		line_model = glm::scale(line_model, glm::vec3(half_length));
+		m_MainShaderProgram.SetUniformMat4f("u_model", line_model);
+		GLCall(glDrawArrays(GL_LINES, 0, 2));
+	}
+
+
+	m_MainShaderProgram.SetUniform1i("u_DebugMode", 0);
+	GLCall(glBindVertexArray(0));
+	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
 }
 
 

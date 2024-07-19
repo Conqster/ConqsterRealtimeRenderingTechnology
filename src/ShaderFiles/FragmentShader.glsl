@@ -21,6 +21,7 @@ uniform float u_DiffuseIntensity;
 
 struct Light
 {
+	bool isEnabled;
 	vec3 colour;
 	float ambientIntensity;
 	float diffuseIntensity;
@@ -53,6 +54,14 @@ struct DirectionalLight
 	vec3 direction;
 };
 
+struct Material
+{
+	float metallic;
+	float smoothness;
+
+	vec3 colour;
+};
+
 uniform int u_PointLightCount;
 const int MAX_POINT_LIGHT = 5;
 uniform PointLight u_PointLights[MAX_POINT_LIGHT];
@@ -65,14 +74,63 @@ uniform int u_DirectionalLightCount;
 const int MAX_DIRECTIONAL_LIGHT = 2;
 uniform DirectionalLight u_DirectionalLights[MAX_DIRECTIONAL_LIGHT];
 
+uniform vec3 u_ViewPos;
+uniform Material u_Material;
+uniform bool u_UseNew = true;
+vec3 testColour;
+
+
+//////////////////CALCULATE SPECULAR REFLECTION////////////////////////////////////////
+vec3 CalculateSpecularReflection(vec3 surfaceNormal, vec3 lightDir, vec3 lightColour)
+{
+	//max metallic == 200 && max smoothness == 50 but reversed
+	float specularPower = (u_Material.metallic + 0.01f) * 300;
+	float specularFactor =(u_Material.smoothness * 8.0f * 2.0f) ;//* 50;
+	float pi = 3.14159265f;
+	float energyConservation = (specularFactor * specularPower) / (specularPower * pi);
+
+	vec3 viewDir = normalize(u_ViewPos - v_fragPos);
+	vec3 halfWayDir = normalize(lightDir + viewDir);
+	float highlight = pow(max(dot(surfaceNormal, halfWayDir), 0.0f), specularPower);
+
+	vec3 specularColour = mix(lightColour, testColour , u_Material.metallic);
+	//specularColour = lightColour;
+	
+	//NEW NEW 
+	if(u_UseNew)
+	{
+		//MIGHT CHANGE THIS: texture(u_Texture, v_texCoord).rgb to specular object material map
+		//MIGHT CHANGE THIS: (lightColour * light.specular) to light spcenular colour
+		return (highlight * (lightColour /* light.specular*/) * vec3(texture(u_Texture, v_texCoord)));
+	}
+	
+	return energyConservation * (highlight * specularColour);
+}
+
+
 //CALCULATE DIFFUSE
-vec3 LightDiffuse(float intensity, vec3 position, vec3 lightColour)
+vec3 LightDiffuse(Light light, vec3 lightDir)
 {
 	vec3 norm = normalize(v_testNormal);
-	vec3 lightDir = normalize(position - v_fragPos);
 	float diffuseFactor = max(dot(norm, lightDir), 0.0f);
-	vec3 diffuseColour = vec3(lightColour) * diffuseFactor * intensity;
-	return diffuseColour;
+	vec3 diffuseColour = vec3(light.colour) * diffuseFactor * light.diffuseIntensity;
+
+	vec3 specular = vec3(0.0f);
+	vec3 colour = vec3(0.0f);
+	if(diffuseFactor > 0.0f)//
+	{
+		//TO-DO: test reflection 
+		vec3 surfaceNormal = norm;
+		specular = CalculateSpecularReflection(surfaceNormal, lightDir, light.colour);
+	}
+
+	//NEW NEW 
+	if(u_UseNew)
+	{
+		//MIGHT CHANGE THIS: texture(u_Texture, v_texCoord).rgb to diffuse object material map
+		diffuseColour = light.colour * diffuseFactor * light.diffuseIntensity * texture(u_Texture, v_texCoord).rgb;
+	}
+	return diffuseColour + specular;
 }
 
 
@@ -82,9 +140,21 @@ vec3 CalculatePointLights()
 	
 	for(int i = 0; i < u_PointLightCount; i++)	
 	{
+		if(u_PointLights[i].base.isEnabled)
+			continue;
+		
 		vec3 ambient = u_PointLights[i].base.ambientIntensity * u_PointLights[i].base.colour;
-		vec3 diffuse = LightDiffuse(u_PointLights[i].base.diffuseIntensity, u_PointLights[i].position, u_PointLights[i].base.colour);
+		
+		//NEW NEW 
+		if(u_UseNew)
+		{
+			//MIGHT CHANGE THIS: texture(u_Texture, v_texCoord).rgb to diffuse object material map
+			ambient = u_PointLights[i].base.ambientIntensity * u_PointLights[i].base.colour * texture(u_Texture, v_texCoord).rgb;
+		}
+		vec3 lightDir = normalize(u_PointLights[i].position - v_fragPos);
+		vec3 diffuse = LightDiffuse(u_PointLights[i].base, lightDir);
 		vec3 resultColour = ambient + diffuse;
+		//vec3 resultColour = ambient * diffuse;
 
 		vec3 currentFragDir = u_PointLights[i].position - v_fragPos;
 		float distance = length(currentFragDir);
@@ -108,10 +178,26 @@ vec3 CalculateSpotLight()
 
 	for(int i = 0; i < u_SpotLightCount; i++)	
 	{
+		if(u_SpotLights[i].pointLight.base.isEnabled)
+			continue;
+		
 		vec3 ambient = u_SpotLights[i].pointLight.base.ambientIntensity * u_SpotLights[i].pointLight.base.colour;
-		//vec3 diffuse = LightDiffuse(u_SpotLights[i].pointLight.base.diffuseIntensity, u_Spotlights[i].pointLight.position, u_SpotLights[i].pointLight.base.colour);
-		vec3 diffuse2 = LightDiffuse(u_SpotLights[i].pointLight.base.diffuseIntensity, u_SpotLights[i].pointLight.position, u_SpotLights[i].pointLight.base.colour);
-		vec3 resultAmbientDiffColour = ambient + diffuse2;
+		
+		//NEW NEW 
+		if(u_UseNew)
+		{
+			//MIGHT CHANGE THIS: texture(u_Texture, v_texCoord).rgb to diffuse object material map
+			ambient = u_SpotLights[i].pointLight.base.ambientIntensity * u_SpotLights[i].pointLight.base.colour * texture(u_Texture, v_texCoord).rgb;
+		}
+		vec3 lightDir = normalize(u_SpotLights[i].pointLight.position - v_fragPos);
+		vec3 diffuse = LightDiffuse(u_SpotLights[i].pointLight.base, lightDir);
+		//vec3 diffuse2 = LightDiffuse(u_SpotLights[i].pointLight.base.diffuseIntensity, u_SpotLights[i].pointLight.position, u_SpotLights[i].pointLight.base.colour);
+		//vec3 resultAmbientDiffColour = ambient + diffuse;
+		vec3 resultAmbientDiffColour = ambient * diffuse;
+		
+		//NEW NEW
+		if(u_UseNew)
+			resultAmbientDiffColour = ambient + diffuse;
 		
 
 		vec3 currentFragDir = u_SpotLights[i].pointLight.position - v_fragPos;
@@ -140,28 +226,50 @@ vec3 CalculateDirectionalLight()
 	
 	for(int i = 0; i < u_DirectionalLightCount; i++)	
 	{
+		if(u_DirectionalLights[i].base.isEnabled)
+			continue;
+		
 		vec3 ambientColour = u_DirectionalLights[i].base.ambientIntensity * u_DirectionalLights[i].base.colour;
-
-		vec3 norm = normalize(v_testNormal);
-		float diffuseFactor = max(dot(norm, u_DirectionalLights[i].direction), 0.0f);
-		vec3 diffuseColour = vec3(u_DirectionalLights[i].base.colour) * diffuseFactor * u_DirectionalLights[i].base.diffuseIntensity;
-		resultColour += ambientColour + diffuseColour;
+		
+		//NEW NEW 
+		if(u_UseNew)
+		{
+			//MIGHT CHANGE THIS: texture(u_Texture, v_texCoord).rgb to diffuse object material map
+			ambientColour = u_DirectionalLights[i].base.ambientIntensity * u_DirectionalLights[i].base.colour * texture(u_Texture, v_texCoord).rgb;
+		}
+		vec3 diffuseColour = LightDiffuse(u_DirectionalLights[i].base, u_DirectionalLights[i].direction);
+		//resultColour += ambientColour + diffuseColour;
+		
+		if(!u_UseNew)
+			resultColour += (ambientColour * diffuseColour);
+		
+		//NEW NEW
+		if(u_UseNew)
+		{
+			resultColour += (ambientColour * diffuseColour);
+		}
 	}
 	return resultColour;
 }
 
 void main()
 { 
-
+	vec4 texColour = texture(u_Texture, v_texCoord);
+	testColour = vec3(texColour.x, texColour.y, texColour.z); /// later might get the pixel colour instead6-
+	//Testing colour 
 	vec3 finalLightColour = vec3(0.0f);
 	finalLightColour += CalculateDirectionalLight();
 	finalLightColour += CalculatePointLights();
 	finalLightColour += CalculateSpotLight();
 
-	vec4 texColour = texture(u_Texture, v_texCoord);
+	//vec4 texColour = texture(u_Texture, v_texCoord);
 	outColour = texColour * (v_colour + u_DeltaColour) + u_TestColour;
 	//outColour = vec4(ambient, 1.0f) * texColour;
 	outColour = vec4(finalLightColour, 1.0f) * texColour;
+	
+	//NEW NEW 
+	if(u_UseNew)
+		outColour = vec4(finalLightColour, 1.0f);
 
 	if(u_DebugMode)
 	{

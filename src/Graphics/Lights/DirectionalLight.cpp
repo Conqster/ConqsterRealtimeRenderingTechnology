@@ -21,20 +21,22 @@ DirectionalLight::DirectionalLight(float red, float green, float blue, float amb
 	std::cout << "Directional Light Created!!!!!\n";
 }
 
-void DirectionalLight::Use(int colour_location, int ambient_intensity_loc, unsigned int diffuse_intensity_loc, int direction_location)
+void DirectionalLight::Use(int enable_loc, int colour_loc, int ambient_intensity_loc, unsigned int diffuse_intensity_loc, int direction_loc)
 {
 	//TO-DO: just hack for now
+	GLCall(glUniform1i(enable_loc, m_Disable));
 	if (m_Disable)
 	{
-		GLCall(glUniform3f(colour_location, 0.0f, 0.0f, 0.0f));
+		GLCall(glUniform3f(colour_loc, 0.0f, 0.0f, 0.0f));
 		return;
 	}
 
-	GLCall(glUniform3f(colour_location, m_Colour.x, m_Colour.y, m_Colour.z));
+	
+	GLCall(glUniform3f(colour_loc, m_Colour.x, m_Colour.y, m_Colour.z));
 	GLCall(glUniform1f(ambient_intensity_loc, m_AmbientIntensity));
 	GLCall(glUniform1f(diffuse_intensity_loc, m_DiffuseIntensity));
 
-	GLCall(glUniform3f(direction_location, m_Direction.x, m_Direction.y, m_Direction.z));
+	GLCall(glUniform3f(direction_loc, m_Direction.x, m_Direction.y, m_Direction.z));
 }
 
 
