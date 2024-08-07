@@ -1,6 +1,6 @@
 # OpenGL Rendering ~ Part of Game Tech Learning 
 
-Welcome to my experimental learning project showcasing rendering techniques using OpenGL. Intially created for my 3D physics learning journey, I found Rendering quite fascinating. 
+Welcome to my ongoing experimental learning project showcasing rendering techniques using OpenGL. Initially created for my 3D physics learning journey, I found Rendering quite fascinating. 
 
 ## Quick Start
 Visual Studio 2022 was used for the development, with an x86/Debug and Windows build.
@@ -14,7 +14,7 @@ Start by downloading a Zip from the "<> Code" option.
 Currently, a build script is not included, you can build directly in VS community (F5): 
 
 - Build in Release/Debug Config, supporting platform x86.
-- Multiply scene are abstracted into multple classes. To switch scenes, go to the .cpp class ([Game.cpp](3D-Rendering/src/Core/Game.cpp)) and change the current Scene pointer OnStart function. See current available scenes.
+- Multiple scene are abstracted into multiple classes. To switch scenes, go to the .cpp class ([Game.cpp](3D-Rendering/src/Core/Game.cpp)) and change the current Scene pointer OnStart function. See current available scenes.
 
 ```
       //Game.h
