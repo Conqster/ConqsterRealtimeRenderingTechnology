@@ -14,7 +14,7 @@ Start by downloading a Zip from the "<> Code" option.
 Currently, a build script is not included, you can build directly in VS community (F5): 
 
 - Build in Release/Debug Config, supporting platform x86.
-- Multiple scene are abstracted into multiple classes. To switch scenes, go to the .cpp class ([Game.cpp](3D-Rendering/src/Core/Game.cpp)) and change the current Scene pointer OnStart function. See current available scenes.
+- Multiple scene are abstracted into multiple classes. To switch scenes, go to the .cpp class ([Game.cpp](src/Core/Game.cpp)) and change the current Scene pointer OnStart function. See current available scenes.
 
 ```
       //Game.h
