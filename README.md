@@ -6,28 +6,27 @@ Welcome to my experimental learning project showcasing rendering techniques usin
 Visual Studio 2022 was used for the development, with an x86/Debug and Windows build.
 
 <ins>**1. Downloading the repository:**</ins>
+
 Start by downloading a Zip from the "<> Code" option.
 
 <ins>**2. Usage:**</ins>
+
 Currently, a build script is not included, you can build directly in VS community (F5): 
 
 - Build in Release/Debug Config, supporting platform x86.
 - Multiply scene are abstracted into multple classes. To switch scenes, go to the .cpp class ([Game.cpp](3D-Rendering/src/Core/Game.cpp)) and change the current Scene pointer OnStart function. See current available scenes.
 
-|```h
-  //Game.h
+```
+      //Game.h
   Scene* m_CurrentScene;
   ...
   ...
-  ```|
-|```cpp
-  //Game.cpp
-m_CurrentScene = new MainScene();
- ```|
-|:-|
-|<p align = "center> [Code Sample](3D-Rendering/src/Core/Game.cpp) </p>|
+      //Game.cpp
+//m_CurrentScene = new MainScene();
+m_CurrentScene = new Light_ModelScene();
+ ```
 
-The Base Scene is a basic wrapper around OpenGL function and window creation, aiding my learning journey by allowing easy jumps into new rendering techniques without overwriting previous learnt techniques. 
+The Base Scene is a basic wrapper around OpenGL functions and window creation, aiding my learning journey by allowing easy jumps into new rendering techniques without overwriting previous learnt techniques. 
 
 |<a href="https://www.youtube.com/watch?v=9skO5a-XUGg"><img src = "ReadMe_Docs/Computer Graphics.png"/>|
 |:-|
@@ -90,8 +89,8 @@ Current libaries in use: GLM, GLEW, GLFW, stb-image, Assimp.
 For more detailed information, please refer to the [Detailed Documentation](ReadMe_Docs/Documentation.md)
 
 ## Learning Resources
--[learnopengl.com](https://learnopengl.com/Getting-started)
--[The Cherno C++ videos](https://www.youtube.com/playlist?list=PLlrATfBNZ98dudnM48yfGUldqGD0S4FFb)
--OpenGl Programming Guide 9th Edition (Red Book)
--Mathematics for 3D Game Programming and Computer Graphics.
+- [learnopengl.com](https://learnopengl.com/Getting-started)
+- [The Cherno C++ videos](https://www.youtube.com/playlist?list=PLlrATfBNZ98dudnM48yfGUldqGD0S4FFb)
+- OpenGl Programming Guide 9th Edition (Red Book)
+- Mathematics for 3D Game Programming and Computer Graphics.
 
