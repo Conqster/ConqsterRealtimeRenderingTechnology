@@ -4,16 +4,11 @@
 
 int main()
 {
-	Game game;
+	Game* new_game = new Game();
 
-	game.Start();
+	new_game->OnStart();
+	new_game->Run();
 
-	while(game.Running())
-	{
-		game.Update();
-	}
-
-	game.End();
 	std::cin.get();
 	//return 0;
 }

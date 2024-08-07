@@ -6,6 +6,8 @@
 
 #include "EventHandle.h"
 
+#include <string>
+
 Window::Window() 
 	: m_Width(1024), m_Height(768), m_LockCursor(false)
 {}
@@ -17,6 +19,17 @@ Window::Window(unsigned int width, unsigned int height)
 Window::Window(unsigned int width, unsigned int height, const char* program_name)
 	: m_Width(width), m_Height(height), m_ProgramName(program_name), m_LockCursor(false)
 {}
+
+Window* Window::Create(const WindowProperties& window_prop)
+{
+	m_Width = window_prop.width;
+	m_Height = window_prop.height;
+	m_ProgramName = window_prop.title;
+
+
+	Init();
+	return this;
+}
 
 bool Window::Init()
 {
@@ -62,8 +75,9 @@ bool Window::Init()
 		return false;
 	}
 
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LESS);
+	//TO_DO: need to take below out later to be defined by scene
+	//glEnable(GL_DEPTH_TEST);
+	//glDepthFunc(GL_LESS);
 	//glEnable(GL_CULL_FACE);
 	//glCullFace(GL_BACK);
 	//glFrontFace(GL_CCW);
@@ -118,6 +132,12 @@ glm::vec2 Window::GetMouseScreenPosition()
 	double x, y;
 	glfwGetCursorPos(m_Window, &x, &y);
 	return glm::vec2(x, y);
+}
+
+void Window::OnUpdate() const
+{
+	glfwPollEvents();
+	glfwSwapBuffers(m_Window);
 }
 
 Window::~Window()

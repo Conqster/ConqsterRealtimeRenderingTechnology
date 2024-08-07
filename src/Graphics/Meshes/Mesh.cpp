@@ -5,10 +5,28 @@
 //TO-DO: might change/move GLCall helper
 //       to a helper class from Renderer 
 //		 avoid circle include
-#include "Graphics/Renderer.h"
+#include "Graphics/RendererErrorAssertion.h"
 #include <iostream>
 
 #include "Util/MathsHelpers.h"
+
+void Mesh::CacheVertices(const float vertices[], size_t size)
+{
+	//unsigned int size = sizeof(vertices);
+	unsigned int item_size = sizeof(vertices[0]);
+	unsigned int count = size / item_size;
+	unsigned int num_of_vertices = count / 13;
+	auto& v = vertices;
+
+	for (size_t i = 0; i < num_of_vertices; i++)
+	{
+		m_Vertices.push_back(
+			{ v[0 + (i * 13)], v[1 + (i * 13)], v[2 + (i * 13)], v[3 + (i * 13)], //pos
+			v[4 + (i * 13)], v[5 + (i * 13)], v[6 + (i * 13)], v[7 + (i * 13)],   //col
+			v[10 + (i * 13)], v[11 + (i * 13)], v[12 + (i * 13)],                   // now nor swap uv
+			v[8 + (i * 13)], v[9 + (i * 13)], });								  // now uv swap nor
+	}
+}
 
 Mesh::Mesh()
 {
@@ -86,6 +104,7 @@ void Mesh::DefaultMesh()
 
 	};
 
+	CacheVertices(vertices, sizeof(vertices));
 
 	 unsigned int indices[] =
 	{

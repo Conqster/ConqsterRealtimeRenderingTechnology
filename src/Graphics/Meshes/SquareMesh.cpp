@@ -5,6 +5,8 @@
 void SquareMesh::Create()
 {
 
+	//m_Vertices.push_back({ -0.5f, -0.5f, 0.0f, 1.0f,		1.0f, 0.0f, 0.0f, 1.0f,    0.0f, 1.0f,  0.0f,  0.0f,  1.0f, });
+
 	//50.0f >> 1.0f
 	float vertices[] =
 	{//			  x		 y	   z	 w      	 r      g    b     a		u     v      nx     ny      nz
@@ -17,6 +19,11 @@ void SquareMesh::Create()
 		/*4*/	-0.5f, 0.5f, 0.0f, 1.0f,	 	0.0f, 0.2f, 0.8f, 1.0f,    0.0f, 0.0f,	0.0f,  0.0f,  1.0f,		//top-left
 
 	};
+
+	CacheVertices(vertices, sizeof(vertices));
+
+
+	//m_Vertices[0].position[0] = 0.0f;
 
 	unsigned int indices[] =
 	{

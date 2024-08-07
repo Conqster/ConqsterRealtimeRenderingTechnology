@@ -1,0 +1,28 @@
+# Blender MTL File: 'udim-monster.blend'
+# Material Count: 2
+
+newmtl Monster_Skin
+Ns 113.140521
+Ka 1.000000 1.000000 1.000000
+Kd 0.028517 0.028517 0.028517
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd monster_overlayColor_1001.png
+map_Kd monster_overlayColor_1002.png
+map_Kd monster_overlayColor_1003.png
+map_Ks monster_scalesCustomMask_1003.png
+map_Ke monster_scalesCustomMask_1003.png
+
+newmtl eyes_SHA
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.063685 0.063685 0.063685
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd monster_overlayColor_1001.png

@@ -11,3 +11,10 @@ Shader code error message printing
 Shader language/File/GLSL
 		when a shader file/program is compiled if a variable is declared but not used use in the program
 		it gets striped out noticed with uniform i declared without using it. 
+
+Learning Documents 
+	OpenGL Programming Guide 9th Edition 
+	The Cherno (C++ & OpenGL videos) 
+	Udemy course (OpenGL) 
+	Mathematics for 3D Game Programming and Computer Graphics
+	learnopengl.com

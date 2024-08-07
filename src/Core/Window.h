@@ -1,20 +1,38 @@
 #pragma once
 #include "glm/glm.hpp"
 
+struct WindowProperties
+{
+	const char* title;
+	uint32_t width;
+	uint32_t height;
+
+	WindowProperties(const char* title = "Default Title",
+					uint32_t width = 2560, uint32_t height = 1440)
+		: title(title), width(width), height(height){}
+};
+
+
+
 struct GLFWwindow;
 
 class Window
 {
 public:
 	Window();
-	Window(unsigned int width, unsigned int height);
-	Window(unsigned int width, unsigned int height, const char* program_name);
+	Window(uint32_t width, uint32_t height);
+	Window(uint32_t width, uint32_t height, const char* program_name);
+
+
+	Window* Create(const WindowProperties& window_prop);
 
 	bool Init();
 
 	void SwapBuffers() const;
 	void ToggleLockCursor();
 	bool WindowShouldClose() const;
+
+	void OnUpdate() const;
 
 	void Close() const;
 

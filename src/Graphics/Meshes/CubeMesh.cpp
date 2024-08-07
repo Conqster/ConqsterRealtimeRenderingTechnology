@@ -87,6 +87,7 @@ void CubeMesh::Create()
 		/*7b or 23*/	-0.5f, 0.5f, -0.5f, 1.0f,	1.0f, 0.0f, 0.0f, 1.0f,	  0.0f, 0.0f,		-1.0f,  1.0f, -1.0f,        //-1.0f,  1.0f, -1.0f,
 	};
 
+	CacheVertices(vertices, sizeof(vertices));
 
 	unsigned int indices[] =
 	{

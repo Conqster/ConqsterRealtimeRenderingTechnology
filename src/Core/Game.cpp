@@ -1,197 +1,95 @@
+#pragma once
 #include "Game.h"
+
 #include "GLFW/glfw3.h"
 #include "EventHandle.h"
 
-#include "Window.h"
+#include "Camera.h"
+#include <windows.h>
 
-//#include <direct.h>
-#include <iostream>
-
-#include "Graphics/Texture.h"
-#include "Graphics/Meshes/CubeMesh.h"
-#include "Graphics/Meshes/SquareMesh.h"
-#include "Graphics/Meshes/SphereMesh.h"
-
-#include "External Libs/imgui/imgui.h"
-#include "External Libs/imgui/imgui_impl_glfw.h"
-#include "External Libs/imgui/imgui_impl_opengl3.h"
-
-#include "Graphics/Lights/PointLight.h"
-#include "Graphics/Material.h"
+#include "Scenes/MainScene.h"
+#include "Scenes/Light&ModelScene.h"
+#include "Scenes/AdvanceOpenGLScene.h"
+#include "Scenes/FaceCullingScene.h"
 
 
-
-//std::string LightTypeToString(Light light)
-//{
-//	//return "hfgb uibguhbu f";
-//	switch (light.GetType())
-//	{
-//		case Point: return "Point Light";
-//		case Directional: return "Directional Light";
-//	}
-//	return "[Error]: Type not configured or null";
-//}
-
-const char* RenderSceneTypeToString(RenderScene renderScene)
+void Game::OnStart()
 {
-	switch (renderScene)
+	TimeTaken InitGame("Init Game");
+
+	m_Time.Init(100);
+
+	if (m_UseFullScreen)
+		m_WindowProp.width = GetSystemMetrics(SM_CXSCREEN), m_WindowProp.height = GetSystemMetrics(SM_CYSCREEN);
+
+	m_Window = new Window();
+	m_Window = m_Window->Create(m_WindowProp);
+
+	if (m_Window)
+		m_Running = true;
+
+	m_CurrentScene = new MainScene();
+	//m_CurrentScene = new Light_ModelScene();
+	//m_CurrentScene = new AdvanceOpenGLScene();
+	//m_CurrentScene = new FaceCullingScene();
+	m_CurrentScene->OnInit();
+	m_CurrentScene->SetWindow(m_Window);
+
+	//UIManager
+	m_UI = new UIManager(*m_Window);
+	//m_UI->OnInit(*m_Window);
+}
+
+
+void Game::Run()
+{
+	while (m_Running)
 	{
-		case MainScene: return "Main Renderer";
-		case Learning: return "Learning Renderer";
+		m_Time.Update();
+
+		Input();
+
+		m_CurrentScene->OnUpdate(m_Time.DeltaTime());
+
+		m_UI->OnStartFrame();
+		m_CurrentScene->OnRenderUI();
+		m_UI->OnEndFrame();
+
+		m_Window->OnUpdate();
 	}
-	return "[Error]: Type not configured or null";
+
+	OnEnd();
 }
 
-
-Game::Game()
+void Game::OnEnd()
 {
-	TimeTaken constructGame("Construct Game");
-	//m_MainRenderer2 = Renderer(windowWidth, windowHeight);
-	m_MainRenderer = MainRenderer(windowWidth, windowHeight);
-	std::cout << "a game has been contructed!!!!\n";
-}
+	TimeTaken ShuttingDown("Shutting down program");
 
+/*	m_CurrentScene->OnDestroy();
+	delete m_CurrentScene;*/
+	//m_CurrentScene = nullptr;
 
-void Game::Start()
-{
-	TimeTaken startTime("Start Game");
-	m_Running = m_MainRenderer.Init();
-
-
-	if (m_Running)
+	if (m_UI)
 	{
-		m_Camera = Camera(glm::vec3(0.0f, /*5.0f*/7.0f, -36.0f), glm::vec3(0.0f, 1.0f, 0.0f), 90.0f, 0.0f, 20.0f, 1.0f/*0.5f*/);
-	
-		window = m_MainRenderer.GetWindow();
-		m_LearningRendering = LearningRenderer(*window);
-		//m_MainRenderer = MainRenderer(*window);
-		//m_MainRenderer.Init();
-		//CreateShader
-		//Shader View MAtrix
-		ShaderFilePath shader_file { "src/ShaderFiles/VertexShader.glsl" ,"src/ShaderFiles/FragmentShader.glsl" };
-		//m_MainRenderer2.CreateMainShader(shader_file, m_Camera.CalculateProjMatrix(window->GetAspectRatio()));
-		m_MainRenderer.CreateShader(shader_file, m_Camera.CalculateProjMatrix(window->GetAspectRatio()), true);
-		//m_MainRenderer.CreateShader(shader_file, m_Camera.CalculateProjMatrix(window->GetAspectRatio()));
-		ShaderFilePath shader_file2{ "src/ShaderFiles/VertexLearningOpen.glsl","src/ShaderFiles/FragLearningOpen.glsl"};
-		m_LearningRendering.CreateShader(shader_file2, m_Camera.CalculateProjMatrix(window->GetAspectRatio()), false);
-		CreateGameObjects();
-		CreateLights();
+		m_UI->OnDestroy();
+		delete m_UI;
+		m_UI = nullptr;
+	}
 
-		m_GameTime.Init(100);
-
-
-		//IMGUI Stuffs
-		IMGUI_CHECKVERSION();
-		ImGui::CreateContext();
-		ImGuiIO& io = ImGui::GetIO(); (void)io;
-		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-		ImGui_ImplGlfw_InitForOpenGL(window->GetNativeWindow(), true);
-		//ImGui::StyleColorsDark();
-		ImGui_ImplOpenGL3_Init("#version 400"); //or version 430
+	if (m_Window)
+	{
+		m_Window->Close();
+		delete m_Window;
+		m_Window = nullptr;
 	}
 }
 
-void Game::Update()
-{	
-	m_GameTime.Update();
-
-
-	//RENDERING & GUI STUFFS
-	Input();
-
-
-	//m_MainRenderer.ClearScreen();
-	m_LearningRendering.ClearScreen();
-
-	UIUpdate();
-
-	
-	switch (renderScene)
-	{
-		case MainScene:
-			m_MainRenderer.RenderObjects(m_GameObjects, m_Camera);
-			break;
-		case Learning:
-			m_LearningRendering.Render(m_Camera);
-			break;
-	}
-
-
-	//m_MainRenderer.RenderObjects(m_GameObjects, m_Camera);
-
-
-	ImGui::Render();
-	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-	m_MainRenderer.SwapOpenGLBuffers();
-
-	//DELETE STUFFS !!!!!!!!!!!!!!!!!
-	switch (renderScene)
-	{
-	case MainScene:
-		if (m_GameObjects.size() > 0)
-		{
-			static float delete_objects_cooldown;
-			if (EventHandle::GetKeys()[GLFW_KEY_Y] && delete_objects_cooldown <= 0)
-			{
-				delete_objects_cooldown = 0.5f;
-				delete m_GameObjects[m_SelectedGameobjectidx];
-				m_GameObjects.erase(m_GameObjects.begin() + m_SelectedGameobjectidx);
-
-				//if (m_SelectedGameobjectidx != 0)
-				//	m_SelectedGameobjectidx--;
-				//else
-				//	m_SelectedGameobjectidx = (m_SelectedGameobjectidx + 1) % m_GameObjects.size();
-
-				if (m_SelectedGameobjectidx > m_GameObjects.size() - 1)
-					m_SelectedGameobjectidx--;
-			}
-			else
-				delete_objects_cooldown -= m_GameTime.DeltaTime();
-		}
-		break;
-	case Learning:
-		break;
-	}
-
-
-}
-
-void Game::End()
-{
-	TimeTaken EndGame("Close Game");
-	std::cout << "Game ended!!!!!!!!!\n";
-
-	//Cleanup ImGui
-	ImGui_ImplOpenGL3_Shutdown();
-	ImGui_ImplGlfw_Shutdown();
-	ImGui::DestroyContext();
-
-	for (auto& game_object : m_GameObjects)
-		delete game_object;
-
-	m_GameObjects.clear();
-
-
-	m_MainRenderer.CloseWindow();
-	window = nullptr; 
-}
-
-bool Game::Running()
-{
-	return m_Running;
-}
-
-Game::~Game()
-{
-}
 
 void Game::Input()
 {
-	glfwPollEvents();
 	bool* keys = EventHandle::GetKeys();
 
-	bool program_should_close = m_MainRenderer.WindowShouldClose();
+	bool program_should_close = m_Window->WindowShouldClose();
 
 
 	if (keys[GLFW_KEY_ESCAPE] || program_should_close)
@@ -200,580 +98,67 @@ void Game::Input()
 	}
 
 	//int state = EventHandle::GetKeyState(Graphics::GetWindow(), GLFW_KEY_T);
-	static float cooldown; 
+	static float cooldown;
 	if (keys[GLFW_KEY_T] && cooldown <= 0)
 	{
 		cooldown = 0.2f;
-		m_Camera.SetPosition(glm::vec3());
+		m_CurrentScene->GetCamera()->SetPosition(glm::vec3());
 	}
 	else
-		cooldown -= m_GameTime.DeltaTime();
+		cooldown -= m_Time.DeltaTime();
 
 	static float lock_cooldown;
 	if (keys[GLFW_KEY_L] && lock_cooldown <= 0)
 	{
 		lock_cooldown = 0.2f;
-		m_MainRenderer.ToggleLockCursor();
+		m_Window->ToggleLockCursor();
 	}
 	else
-		lock_cooldown -= m_GameTime.DeltaTime();
-
-	
+		lock_cooldown -= m_Time.DeltaTime();
 
 
-	if (*window->Ptr_LockCursorFlag())
-		m_Camera.Rotate(EventHandle::MousePosition(), (float)window->GetWidth(), (float)window->GetHeight());
+
+
+	if (*m_Window->Ptr_LockCursorFlag())
+		m_CurrentScene->GetCamera()->Rotate(EventHandle::MousePosition(), (float)m_Window->GetWidth(), (float)m_Window->GetHeight());
 
 
 	//MOVE CAMERA
 	if (keys[GLFW_KEY_W])
 	{
-		m_Camera.Translate(m_Camera.GetFroward(), m_GameTime.DeltaTime());
+		m_CurrentScene->GetCamera()->Translate(m_CurrentScene->GetCamera()->GetFroward(), m_Time.DeltaTime());
 	}
 	if (keys[GLFW_KEY_S])
 	{
-		m_Camera.Translate(m_Camera.GetFroward() * -1.0f, m_GameTime.DeltaTime());
+		m_CurrentScene->GetCamera()->Translate(m_CurrentScene->GetCamera()->GetFroward() * -1.0f, m_Time.DeltaTime());
 	}
 	if (keys[GLFW_KEY_A])
 	{
-		m_Camera.Translate(m_Camera.GetRight() * -1.0f, m_GameTime.DeltaTime());
+		m_CurrentScene->GetCamera()->Translate(m_CurrentScene->GetCamera()->GetRight() * -1.0f, m_Time.DeltaTime());
 
 	}
 	if (keys[GLFW_KEY_D])
 	{
-		m_Camera.Translate(m_Camera.GetRight(), m_GameTime.DeltaTime());
+		m_CurrentScene->GetCamera()->Translate(m_CurrentScene->GetCamera()->GetRight(), m_Time.DeltaTime());
 	}
 	if (keys[GLFW_KEY_E])
 	{
 		if (keys[GLFW_KEY_LEFT_SHIFT])
-			m_Camera.Translate(m_Camera.GetUp(), m_GameTime.DeltaTime());
+			m_CurrentScene->GetCamera()->Translate(m_CurrentScene->GetCamera()->GetUp(), m_Time.DeltaTime());
 		else
-			m_Camera.Translate(glm::vec3(0.0f, 1.0f, 0.0f), m_GameTime.DeltaTime());
+			m_CurrentScene->GetCamera()->Translate(glm::vec3(0.0f, 1.0f, 0.0f), m_Time.DeltaTime());
 	}
 	if (keys[GLFW_KEY_Q])
 	{
 		if (keys[GLFW_KEY_LEFT_SHIFT])
-			m_Camera.Translate(m_Camera.GetUp() * -1.0f, m_GameTime.DeltaTime());
+			m_CurrentScene->GetCamera()->Translate(m_CurrentScene->GetCamera()->GetUp() * -1.0f, m_Time.DeltaTime());
 		else
-			m_Camera.Translate(glm::vec3(0.0f, -1.0f, 0.0f), m_GameTime.DeltaTime());
+			m_CurrentScene->GetCamera()->Translate(glm::vec3(0.0f, -1.0f, 0.0f), m_Time.DeltaTime());
 	}
-
-
-
-
-
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////
-	///////////////////////////////////////SCENE SPECIFIC INPUT/////////////////////////////////////////////
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-	switch (renderScene)
-	{
-#pragma region Main Scene
-		case MainScene:
-			//TRANSLATE SELECTED GAMEOBJECT
-			if (m_GameObjects.size() > 0)
-			{
-				float x = 0;
-				float y = 0;
-				float re_scale = 0;
-				if (!keys[GLFW_KEY_LEFT_SHIFT] && keys[GLFW_KEY_UP])
-				{
-					y += 1;
-				}
-				else if (!keys[GLFW_KEY_LEFT_SHIFT] && keys[GLFW_KEY_DOWN])
-				{
-					y -= 1;
-				}
-
-				if (keys[GLFW_KEY_RIGHT])
-				{
-					x -= 1;
-				}
-				else if (keys[GLFW_KEY_LEFT])
-				{
-					x += 1;
-				}
-
-				if (keys[GLFW_KEY_LEFT_SHIFT] && keys[GLFW_KEY_UP])
-				{
-					re_scale += 0.1f;
-				}
-				else if (keys[GLFW_KEY_LEFT_SHIFT] && keys[GLFW_KEY_DOWN])
-				{
-					re_scale -= 0.1f;
-				}
-
-
-				auto& selected_gameobject = m_GameObjects[m_SelectedGameobjectidx];
-				if (selected_gameobject)
-				{
-					float sensitivity = 0.4f;
-					x *= sensitivity;
-					y *= sensitivity;
-
-					selected_gameobject->worldPos += glm::vec3(x, y, 0.0f);
-					selected_gameobject->worldScale += glm::vec3(1.0f) * re_scale;
-				}
-			}
-
-
-
-			{
-				//GAMEOBJECT SELECTOR 
-				unsigned int gameobject_count = m_GameObjects.size();
-				if (gameobject_count > 0)
-				{
-					static float selector_cooldown;
-					if (keys[GLFW_KEY_4] && selector_cooldown <= 0)
-					{
-
-						if (m_SelectedGameobjectidx < m_GameObjects.size())
-						{
-							m_GameObjects[m_SelectedGameobjectidx]->selected = false;
-
-							selector_cooldown = 0.4f;
-							if (m_SelectedGameobjectidx != 0)
-								m_SelectedGameobjectidx--;
-							else
-								m_SelectedGameobjectidx = gameobject_count - 1;
-
-
-							m_GameObjects[m_SelectedGameobjectidx]->selected = true;
-						}
-
-					}
-					else
-						selector_cooldown -= m_GameTime.DeltaTime();
-
-					if (keys[GLFW_KEY_6] && selector_cooldown <= 0)
-					{
-						if (m_SelectedGameobjectidx < m_GameObjects.size())
-						{
-							m_GameObjects[m_SelectedGameobjectidx]->selected = false;
-
-							selector_cooldown = 0.4f;
-							m_SelectedGameobjectidx = (m_SelectedGameobjectidx + 1) % gameobject_count;
-
-							m_GameObjects[m_SelectedGameobjectidx]->selected = true;
-						}
-					}
-					else
-						selector_cooldown -= m_GameTime.DeltaTime();
-				}
-
-			}
-			
-
-			//////////////////////////////////////////////////////////////////////////////////
-			////////////////////////////////////FORCE LIGHT LOCATION/////////////////////
-			//////////////////////////////////////////////////////////////////////////////////
-
-
-			static float toogle_cooldown;
-			if (keys[GLFW_KEY_O] && toogle_cooldown < 0)
-			{
-				toogle_cooldown = 0.2f;
-				selected_light_idx = (selected_light_idx + 1) % m_MainRenderer.LightsCount();
-			}
-			else
-				toogle_cooldown -= m_GameTime.DeltaTime();
-
-			break;
-#pragma endregion
-
-		
-		case Learning:
-
-			break;
-	}
-
-
-
-
-
-
 }
 
-void Game::CreateGameObjects()
-{
-	//TO-DO: fix bug i cant use the same mesh with two different obj
-	// may if its a pointer
 
-	//////////////////////////////////////////////////////////////////////////////////
-	////////////////////////////////SHARED MESHES/////////////////////////////////////
-	//////////////////////////////////////////////////////////////////////////////////
-	static SphereMesh sphere_mesh;
-	static CubeMesh cube_mesh;
-	static SquareMesh square_mesh;
-	sphere_mesh.Create();
-	cube_mesh.Create();
-	square_mesh.Create();
 
 
-	static Material metallic_material(*m_MainRenderer.GetCurrentMainShaderProgram());
-	static Material dull_material(*m_MainRenderer.GetCurrentMainShaderProgram());
 
-	//////////////////////////////////////////////////////////////////////////////////
-	////////////////////////////////TEXTURE///////////////////////////////////////////
-	//////////////////////////////////////////////////////////////////////////////////
-	static Texture brick_texture("Assets/Textures/brick.png");
-	static Texture ground_texture("Assets/Textures/plain64.png");
-	static Texture image_texture("Assets/Textures/At Manchester.png");
 
-
-	//////////////////////////////////////////////////////////////////////////////////
-	//////////////////////////////////SPHERE//////////////////////////////////////////
-	//////////////////////////////////////////////////////////////////////////////////
-	GameObject* obj = new GameObject(&sphere_mesh, &brick_texture, &metallic_material);
-	//obj->rotation = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
-	obj->worldPos = glm::vec3(0.0f, 5.0f, 0.0f);
-	obj->radius = 1.0f;
-	//m_PhysicsWorld.AddBody(obj);
-	m_GameObjects.push_back(obj);
-
-
-	//////////////////////////////////////////////////////////////////////////////////
-	////////////////////////////////////BOX / CUBE/////////////////////////////////////
-	//////////////////////////////////////////////////////////////////////////////////
-	GameObject* obj2 = new GameObject(&cube_mesh, &/*image_texture*/ground_texture, &metallic_material);
-	obj2->worldPos = glm::vec3(-6.0f, 2.5f, 0.0f);
-	obj2->worldScale = glm::vec3(2.0f);
-	//m_PhysicsWorld.AddBody(obj2);
-	m_GameObjects.push_back(obj2);
-
-
-	//////////////////////////////////////////////////////////////////////////////////
-	////////////////////////////////////SMALL CUBE/////////////////////////////////////
-	//////////////////////////////////////////////////////////////////////////////
-	GameObject* small_cube = new GameObject(&cube_mesh, &image_texture, &dull_material);
-	small_cube->worldPos = glm::vec3(6.0f, 2.5f, 0.0f);
-	small_cube->worldScale = glm::vec3(0.5f);
-	//m_PhysicsWorld.AddBody(obj2);
-	m_GameObjects.push_back(small_cube);
-
-
-
-
-
-
-	//////////////////////////////////////////////////////////////////////////////////
-	///////////////////////////////////GROUND/////////////////////////////////////////
-	//////////////////////////////////////////////////////////////////////////////////
-	GameObject* ground = new GameObject(&square_mesh, &ground_texture, &metallic_material);
-	ground->worldPos = glm::vec3(0.0f, /*-150.0f*/ -3.0f,  0.0f);
-	ground->worldScale = glm::vec3(200.0f, 200.0f, 0.1f);
-	ground->rotation = glm::vec4(glm::vec3(1.0f, 0.0f, 0.0f), -90.0f);
-	//m_PhysicsWorld.AddBody(ground);
-	m_GameObjects.push_back(ground);
-
-
-	//////////////////////////////////////////////////////////////////////////////////
-	//////////////////////////////////BIG SPHERE//////////////////////////////////////
-	//////////////////////////////////////////////////////////////////////////////////
-	GameObject* big_ball = new GameObject(&sphere_mesh, &brick_texture, &dull_material);
-	//big_ball->worldPos = glm::vec3(15.0f, 0.0f, 0.0f);
-	//big_ball->worldPos = glm::vec3(0.0f, -10.0f, 0.0f);
-	big_ball->worldScale = glm::vec3(2.5f);
-	big_ball->m_Static = true;
-	big_ball->radius = 2.5f;
-	//m_PhysicsWorld.AddBody(big_ball);
-	m_GameObjects.push_back(big_ball);
-
-
-	m_SelectedGameobjectidx = 0;
-	if (m_GameObjects.size() > 0)
-		m_GameObjects[m_SelectedGameobjectidx]->selected = true;
-}
-
-void Game::CreateLights()
-{
-	m_MainRenderer.AddDirectionalLight(std::make_unique<DirectionalLight>());
-	m_MainRenderer.AddPointLight(std::make_unique<PointLight>(0.0f, 1.0f, 0.0f, 0.5f, 0.6f, glm::vec3(-1.6f, 0.4f, -2.6f)));
-	m_MainRenderer.AddSpotLight(std::make_unique<SpotLight>(0.0f, 0.0f, 1.0f, 0.5f, 0.6f, glm::vec3(3.0f, 3.0f, 0.0f)));
-	m_MainRenderer.AddSpotLight(std::make_unique<SpotLight>(1.0f, 1.0f, 1.0f, 0.5f, 0.6f, glm::vec3(0.0f, 15.0f, -10.0f)));
-	m_MainRenderer.AddSpotLight(std::make_unique<SpotLight>(1.0f, 1.0f, 1.0f, 0.5f, 0.6f, glm::vec3(0.0f, 15.0f, -10.0f)));
-	m_MainRenderer.AddPointLight(std::make_unique<PointLight>(1.0f, 0.0f, 0.0f, 0.5f, 0.6f, glm::vec3(5.0f, 10.0f, 0.0f)));
-	m_MainRenderer.AddPointLight(std::make_unique<PointLight>(1.0f, 0.0f, 0.0f, 0.5f, 0.6f, glm::vec3(10.0f, 10.0f, 10.0f)));
-
-}
-
-void Game::UIUpdate()
-{
-	ImGui_ImplOpenGL3_NewFrame();
-	ImGui_ImplGlfw_NewFrame();
-	ImGui::NewFrame();
-
-
-
-	//IMGUI - WINDOW
-	{
-
-		//ImGui::ShowDemoWindow();
-
-		ImGui::Begin("Debug");
-
-		//CAMERA
-		ImGui::SeparatorText("Camera info");
-		ImGui::Text("Position x: %f, y: %f, z: %f",
-						m_Camera.GetPosition().x,
-						m_Camera.GetPosition().y,
-						m_Camera.GetPosition().z);
-
-		ImGui::Text("Pitch: %f", m_Camera.Ptr_Pitch());
-		ImGui::Text("Yaw: %f", m_Camera.Ptr_Yaw());
-
-
-		if (ImGui::TreeNode("Camera Properties"))
-		{
-			ImGui::SliderFloat("Move Speed", m_Camera.Ptr_MoveSpeed(), 5.0f, 50.0f);
-			ImGui::SliderFloat("Rot Speed", m_Camera.Ptr_RotSpeed(), 0.0f, 2.0f);
-
-			float window_width = window->GetWidth();
-			float window_height = window->GetHeight();
-			static glm::mat4 test_proj;
-
-			bool update_camera_proj = false;
-
-			update_camera_proj = ImGui::SliderFloat("FOV", m_Camera.Ptr_FOV(), 0.0f, 120.0f, "%.1f");
-			update_camera_proj += ImGui::DragFloat("Near", m_Camera.Ptr_Near(), 0.1f, 0.1f, 50.0f, "%.1f");
-			update_camera_proj += ImGui::DragFloat("Far", m_Camera.Ptr_Far(), 0.1f, 0.0f, 500.0f, "%.1f");
-
-			if (update_camera_proj)
-			{
-				glm::mat4 new_proj = m_Camera.CalculateProjMatrix(window->GetAspectRatio());
-				//m_MainRenderer2.UpdateShaderViewProjection(new_proj);
-				m_MainRenderer.SetShaderViewProjection(new_proj);
-				m_LearningRendering.SetShaderViewProjection(new_proj);
-			}
-
-			ImGui::TreePop();
-		}
-
-		//ImGui::Po
-
-
-		ImGui::SeparatorText("Scene Properties");
-
-		if (ImGui::Checkbox("Lock Cursor", window->Ptr_LockCursorFlag()))
-		{
-			//TO-DO: Below is not ideal but might chnage later / dispose
-			*window->Ptr_LockCursorFlag() = !(*window->Ptr_LockCursorFlag());
-			m_MainRenderer.ToggleLockCursor();
-		}
-
-		if (ImGui::Button("Switch Renderer"))
-			ImGui::OpenPopup("my_select_popup");
-		ImGui::SameLine();
-		ImGui::TextUnformatted(RenderSceneTypeToString(renderScene));
-		if (ImGui::BeginPopup("my_select_popup"))
-		{
-			ImGui::SeparatorText("Renderer");
-			for (int i = 0; i < RenderScene::Count; i++)
-				if (ImGui::Selectable(RenderSceneTypeToString((RenderScene)i)))
-					renderScene = (RenderScene)i;
-			ImGui::EndPopup();
-		}
-		ImGui::Text("Light Counts: %d", m_MainRenderer.GetLights().size());
-		//Game object is tie to game
-		ImGui::Text("Gameobject Counts: %d", m_GameObjects.size());
-		ImGui::Checkbox("Render Scene", &m_RenderMainScene);
-
-
-#pragma region Main Render Scene
-		if (renderScene == RenderScene::MainScene)
-		{
-			//LIGHT
-		//TO-DO: going to create a vector of vector of different lights
-		// so to track: 1 directional light
-		//				multiple point lights
-		//				multiple spot lights
-			ImGui::SeparatorText("Lights");
-			ImGui::Checkbox("Use New Shading", m_MainRenderer.UseNewShading());
-			//auto selected_light = m_Renderer.GetLights()[selected_light_idx] /*+ selected_light_idx*/;
-			if (m_MainRenderer.GetLights().size() > 0)
-				if (auto selected_light = m_MainRenderer.GetLights()[selected_light_idx])
-				{
-					ImGui::Text("Light: %d - %s", selected_light_idx, selected_light->LightTypeToString());
-					ImGui::ColorEdit3("Ambient Light", selected_light->Ptr_Colour());
-					ImGui::SliderFloat("Ambient Intensity", selected_light->Ptr_AmbientIntensity(), 0.0f, 1.0f);
-					ImGui::SliderFloat("Diffuse Intensity", selected_light->Ptr_DiffuseIntensity(), 0.0f, 1.0f);
-
-
-					if (auto point_light = dynamic_cast<PointLight*>(selected_light))
-					{
-						ImGui::DragFloat3("Light Pos", point_light->Ptr_Position(), 0.1f);
-						ImGui::SliderFloat("Constant", &point_light->Attenuation()[0], 0.0f, 1.0f);
-						ImGui::SliderFloat("Linear", &point_light->Attenuation()[1], 0.0f, 1.0f);
-						ImGui::SliderFloat("Quadratic", &point_light->Attenuation()[2], 0.0f, 1.0f);
-
-						if (auto spot_light = dynamic_cast<SpotLight*>(selected_light))
-						{
-							ImGui::SliderFloat3("Direction", spot_light->Ptr_Direction(), -1.0f, 1.0f);
-							ImGui::SliderFloat("Falloff", spot_light->Ptr_Falloff(), 0.0f, 25.0f);
-						}
-					}
-					else if (auto directional_light = dynamic_cast<DirectionalLight*>(selected_light))
-					{
-						ImGui::SliderFloat3("Direction", directional_light->Ptr_Direction(), -1.0f, 1.0f);
-						ImGui::SameLine();
-						ImGui::Text("Need to normalise this direction!!!!!");
-					}
-
-					ImGui::Checkbox("Disable", selected_light->Ptr_Disable());
-				}
-				else
-					ImGui::Text("No Lights!!!!");
-
-
-
-			//GAMEOBJECT
-			ImGui::SeparatorText("Selected GameObject");
-			auto& gameobject = m_GameObjects[m_SelectedGameobjectidx];
-			ImGui::DragFloat3("position", &gameobject->worldPos.x, 0.1f);
-			ImGui::DragFloat3("Scale", &gameobject->worldScale.x, 0.1f);
-			ImGui::SliderFloat4("New Rot", &gameobject->rotation.x, -1.0f, 1.0f);
-
-			Material* gameobject_material = gameobject->GetMaterial();
-			if (gameobject_material)
-			{
-				if (ImGui::TreeNode("GameObject Material"))
-				{
-					ImGui::SliderFloat("Metallic", gameobject_material->Ptr_Metallic(), 0.0f, 1.0f, "%.2f");
-					ImGui::SliderFloat("Smoothness", gameobject_material->Ptr_Smoothness(), 0.0f, 1.0f, "%.2f");
-
-					ImGui::TreePop();
-				}
-			}
-
-			SphereMesh* gameobject_mesh = dynamic_cast<SphereMesh*>(gameobject->GetMesh());
-			if (gameobject_mesh)
-			{
-				if (ImGui::TreeNode("GameObject Mesh"))
-				{
-					bool update_sector_count = ImGui::SliderInt("Sector Count", &gameobject_mesh->SectorCount, 8, 72);
-					bool update_span_count = ImGui::SliderInt("Span Count", &gameobject_mesh->SpanCount, 4, 24);
-					ImGui::SeparatorText("Info");
-					ImGui::Text("Vertex Count: %d\nIndex Count: %d",
-						gameobject_mesh->GetVerticesCount(),
-						gameobject_mesh->GetIndicesCount());
-
-					//ImGui::Text("Index counts: %d", )
-
-					if (update_sector_count || update_span_count)
-						gameobject_mesh->Update();
-
-					ImGui::TreePop();
-				}
-
-			}
-
-		}
-
-
-
-#pragma endregion
-
-		//float r = sin(glfwGetTime() * 2.0f);
-		//float g = sin(glfwGetTime() * 0.7f);
-		//float b = sin(glfwGetTime() * 1.3f);
-		//m_LearningRendering.test_Material.diffuse = glm::vec3(r, g, b);
-		//m_LearningRendering.test_Light.diffuse = m_LearningRendering.test_LightColour * glm::vec3(0.5f);
-		//m_LearningRendering.test_Light.ambient = m_LearningRendering.test_Light.diffuse * glm::vec3(0.2f);
-		//ImGui::Text("GLFW time: %f", glfwGetTime());
-
-
-#pragma region Learning Render Scene
-
-		if(renderScene == RenderScene::Learning)
-		{
-			ImGui::SeparatorText("Playing Around");
-
-			ImGui::SeparatorText("Light Properties");
-			ImGui::ColorEdit3("LightColour", &m_LearningRendering.test_LightColour[0]);
-			ImGui::DragFloat3("Light Pos", &m_LearningRendering.test_Light.position[0], 0.1f);
-			ImGui::ColorEdit3("Light Ambient", &m_LearningRendering.test_Light.ambient[0]);
-			ImGui::ColorEdit3("Light Diffuse", &m_LearningRendering.test_Light.diffuse[0]);
-			ImGui::ColorEdit3("Light Specular", &m_LearningRendering.test_Light.specular[0]);
-
-			ImGui::SeparatorText("Toy Properties");
-			//ImGui::ColorEdit3("Ambient colour", &m_LearningRendering.test_Material.ambient[0]);
-			//ImGui::ColorEdit3("Diffuse Colour", &m_LearningRendering.test_Material.diffuse[0]);
-			//ImGui::ColorEdit3("Specular Colour", &m_LearningRendering.test_Material.specular[0]);
-			//Might play with this
-			ImGui::InputInt("Diffuse Map Slot: ", &m_LearningRendering.test_Material.diffuseMap);
-			if (m_LearningRendering.test_Material.diffuseMap < 0)
-				m_LearningRendering.test_Material.diffuseMap = 0;
-			ImGui::InputInt("Specular Map Slot: ", &m_LearningRendering.test_Material.specularMap);
-			if (m_LearningRendering.test_Material.specularMap < 0)
-				m_LearningRendering.test_Material.specularMap = 0;
-			ImGui::InputInt("Emission Map Slot: ", &m_LearningRendering.test_Material.emissionMap);
-			if (m_LearningRendering.test_Material.emissionMap < 0)
-				m_LearningRendering.test_Material.emissionMap = 0;
-			ImGui::SliderInt("Specular Shininess", &m_LearningRendering.test_Material.shiniess, 0, 256 * 2);
-			ImGui::Checkbox("Invert Specular Map", &m_LearningRendering.test_Material.invertSpecularMap);
-			ImGui::ColorEdit3("Emission Colour", &m_LearningRendering.test_Material.emissionColour[0]);
-			ImGui::SliderFloat("Emission Strength", &m_LearningRendering.test_Material.emissionStrength, 0.0f, 10.0f);
-			ImGui::Checkbox("Emit", &m_LearningRendering.test_Material.emit);
-
-			ImGui::SeparatorText("Global Prop");
-			ImGui::SliderFloat("Ambient", &m_LearningRendering.test_GlobalAmbientStrength, 0.0f, 1.0f);
-			ImGui::SliderFloat("Diffuse", &m_LearningRendering.test_GlobalDiffuseStrength, 0.0f, 1.0f);
-			ImGui::SliderFloat("Specular Strength", &m_LearningRendering.test_GlobalSpecularStrength, 0.0f, 1.0f);
-
-		}
-
-
-#pragma endregion
-
-
-		ImGui::Spacing();
-		ImGui::Spacing();
-
-		ImGui::SeparatorText("Infos");
-		ImGui::TextWrapped("	Toggle Cursor - L, This Disables Camera mouse Rotation");
-		ImGui::Text("    Toggle between Lights - O, If more than one exists");
-		ImGui::Text("	Use WASD - To move Camera Around");
-		ImGui::TextWrapped("	Use Q & E - To move Camera Down & Up (World Space) +HOLD: SHIFT (Local Space)");
-		ImGui::Text("	Use T - To Reset Camera");
-		ImGui::TextWrapped("	Use 4 & 6 - To cycle through gameobject Left - Right Respectively");
-		ImGui::Text("	Use Arrow Keys - To move specified target object");
-		ImGui::TextWrapped("	Hold Shift + Arrows Keys Up or Down - To Scale Up or Down");
-		ImGui::Text("	Use Y - To delete first gameobject in list");
-
-		ImGui::Spacing();
-		ImGui::Spacing();
-
-		ImGui::SeparatorText("Stats");
-		ImGuiIO& io = ImGui::GetIO();
-		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-		ImGui::Text("Game Time: %f", m_GameTime.DeltaTime());
-		ImGui::Text("Current Index: %d", m_SelectedGameobjectidx);
-		ImGui::Text("Mouse Pos: %f, %f", window->GetMouseScreenPosition().x, window->GetMouseScreenPosition().y);
-		ImGui::Text("Event Mouse Pos: %f, %f", EventHandle::MousePosition().x, EventHandle::MousePosition().y);
-		ImGui::Text("Default/Start Screen Size: %d, %d", window->GetWidth(), window->GetHeight());
-		ImGui::Text("Default/Start Half Screen Size: %f, %f", window->GetWidth() * 0.5f, window->GetHeight() * 0.5f);
-
-
-		if (renderScene == RenderScene::MainScene)
-		{
-			//quich dump - for degugging light
-			for (auto& light : m_MainRenderer.GetLights())
-			{
-				ImGui::Text("Light- %s", light->LightTypeToString());
-				if (auto spot_light = dynamic_cast<SpotLight*>(light))
-				{
-					ImGui::Text("Direction X: %f, Y: %f, Z: %f", spot_light->GetDirection().x, spot_light->GetDirection().y, spot_light->GetDirection().z);
-					ImGui::Text("Falloff: %f", spot_light->GetFalloff());
-				}
-			}
-
-		}
-
-		ImGui::End();
-
-
-	}
-
-}

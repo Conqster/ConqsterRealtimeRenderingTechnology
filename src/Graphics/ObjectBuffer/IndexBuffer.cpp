@@ -1,6 +1,6 @@
 #pragma once
 #include "IndexBuffer.h"
-#include "Graphics/Renderer.h"
+#include "Graphics/RendererErrorAssertion.h"
 #include <iostream>
 
 IndexBuffer::IndexBuffer(const unsigned int* data, unsigned int count)

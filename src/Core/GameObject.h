@@ -14,7 +14,7 @@ public:
 //forward declare haha
 class Mesh;
 class Texture;
-class Material;
+//class Material;
 
 //TRACKING THE SELECTED GAMEOBJECT IN RENDER AS INT 
 //4 BYTES COMPARE TO GAMEOBJECT SIZE
@@ -24,14 +24,14 @@ private:
 	//TO-DO: use aggregation 
 	Mesh* m_Mesh = nullptr;
 	Texture* m_Texture = nullptr;
-	Material* m_Material = nullptr;
+	//Material* m_Material = nullptr;
 
 	//std::shared_ptr<Material> m_Material;
 	
 public:
 	//GameObject(Mesh& mesh);
 	GameObject(Mesh* mesh, Texture* texture);
-	GameObject(Mesh* mesh, Texture* texture, Material* material);
+	//GameObject(Mesh* mesh, Texture* texture, Material* material);
 	GameObject() = default;
 	~GameObject();
 
@@ -42,9 +42,10 @@ public:
 
 	inline Texture* const GetTexture() const { return m_Texture; }
 	inline Mesh* const GetMesh() const { return m_Mesh; }
-	inline Material* const GetMaterial() const { return m_Material; }
+	//inline Material* const GetMaterial() const { return m_Material; }
 
 	bool selected = false;
+	bool testImGui = false;
 
 	//glm::vec3 worldPos = glm::vec3(0.0f);
 	glm::vec3 worldPos = glm::vec3(0.0f);

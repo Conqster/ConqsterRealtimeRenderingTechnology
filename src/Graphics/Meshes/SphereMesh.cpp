@@ -1,7 +1,7 @@
 #include "SphereMesh.h"
 #include "Util/MathsHelpers.h"
 
-#include "Graphics/Renderer.h"
+#include "Graphics/RendererErrorAssertion.h"
 #include "../ObjectBuffer/VertexBufferLayout.h"
 
 #include <iostream>
@@ -123,6 +123,8 @@ void SphereMesh::Create()
 			//}
 		}
 	}
+
+	CacheVertices(&m_Vertices[0], m_Vertices.size());
 
 	GLCall(glEnable(GL_BLEND));
 	GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));

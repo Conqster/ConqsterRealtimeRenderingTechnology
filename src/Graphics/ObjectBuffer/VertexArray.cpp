@@ -1,5 +1,5 @@
 #pragma once
-#include "Graphics/Renderer.h"
+#include "Graphics/RendererErrorAssertion.h"
 #include "VertexArray.h"
 #include "VertexBufferLayout.h"
 #include "VertexBuffer.h"
