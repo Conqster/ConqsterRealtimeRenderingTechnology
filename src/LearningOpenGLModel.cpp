@@ -2,7 +2,7 @@
 
 #include <GL/glew.h>
 #include "External Libs/stb_image/stb_image.h"
-#include "Graphics/NewShader.h"
+#include "Graphics/Shader.h"
 
 #include <iostream>
 
@@ -24,7 +24,7 @@ namespace learning {
 			SetupMesh();
 		}
 
-		void L_Mesh::Draw(NewShader& shader)
+		void L_Mesh::Draw(Shader& shader)
 		{
 			unsigned int diffuseNr = 1;
 			unsigned int specularNr = 1;
@@ -87,7 +87,7 @@ namespace learning {
 		////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-		void L_Model::Draw(NewShader& shader)
+		void L_Model::Draw(Shader& shader)
 		{
 			for (auto& mesh : meshes)
 				mesh.Draw(shader);

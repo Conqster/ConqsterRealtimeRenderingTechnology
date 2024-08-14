@@ -3,7 +3,7 @@
 
 #include "GameObject.h"
 #include "Graphics/Lights/LightManager.h"
-#include "Graphics/NewShader.h"
+#include "Graphics/Shader.h"
 
 #include "LearningOpenGLModel.h"
 
@@ -20,7 +20,7 @@ class Light_ModelScene : public Scene
 public:
 	Light_ModelScene() = default;
 
-	virtual void OnInit() override;
+	virtual void OnInit(Window* window) override;
 	virtual void OnUpdate(float delta_time) override;
 	virtual void OnRender() override;
 	virtual void OnRenderUI() override;
@@ -39,11 +39,7 @@ private:
 	//void ProcessInput(float delta_time);
 
 	//for now
-	NewShader m_MainShaderProgram;
-	glm::vec3 m_ClearScreenColour = glm::vec3(0.0f, 0.1f, 0.1f);
-
-
-
+	Shader m_MainShaderProgram;
 
 	glm::vec3 test_LightColour = glm::vec3(1.0f);
 	glm::vec3 depth_fogColour = glm::vec3(1.0f);
@@ -163,7 +159,7 @@ private:
 
 
 	learning::model::L_Model newModel;
-	NewShader modelShader;
+	Shader modelShader;
 
-	void AdditionalShader(const NewShaderFilePath& shader_file, const glm::mat4& viewProj);
+	void AdditionalShader(const ShaderFilePath& shader_file, const glm::mat4& viewProj);
 };

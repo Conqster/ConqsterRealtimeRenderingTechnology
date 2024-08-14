@@ -6,8 +6,12 @@
 #include "External Libs/imgui/imgui.h"
 
 
-void Light_ModelScene::OnInit()
+void Light_ModelScene::OnInit(Window* window)
 {
+	Scene::OnInit(window);
+
+	window->UpdateProgramTitle("light Model Scene");
+
 	//TO:DO: take this opengl func out later into child classes 
 	//		 so each child could define their specific behaviour 
 	//glDisable(GL_DEPTH_TEST);
@@ -20,7 +24,7 @@ void Light_ModelScene::OnInit()
 	if (!m_Camera)
 		m_Camera = new Camera(glm::vec3(0.0f, /*5.0f*/7.0f, -36.0f), glm::vec3(0.0f, 1.0f, 0.0f), 90.0f, 0.0f, 20.0f, 1.0f/*0.5f*/);
 
-	NewShaderFilePath shader_file{ "src/ShaderFiles/VertexLearningOpen.glsl","src/ShaderFiles/FragLearningOpen.glsl" };
+	ShaderFilePath shader_file{ "src/ShaderFiles/VertexLearningOpen.glsl","src/ShaderFiles/FragLearningOpen.glsl" };
 	m_MainShaderProgram.Create("light_model_shader", shader_file);
 
 	CreateObjects();
@@ -437,7 +441,7 @@ void Light_ModelScene::CreateObjects()
 		//newModel.GenModel("Assets/Textures/UDIM_monster/UDIM_monster/udim-monster.obj");  //change scale to 0.1f
 		//newModel.GenModel("Assets/Textures/bugatti/bugatti.obj");
 		//newModel.GenModel("C:/Users/okeja/Desktop/Personal Project/3D-Rendering/Assets/Textures/backpack/backpack.obj");
-		NewShaderFilePath shader_file{ "src/ShaderFiles/ModelVertexShader.glsl" ,"src/ShaderFiles/ModelFragShader.glsl" };
+		ShaderFilePath shader_file{ "src/ShaderFiles/ModelVertexShader.glsl" ,"src/ShaderFiles/ModelFragShader.glsl" };
 		AdditionalShader(shader_file, glm::mat4(1.0f));
 	}
 
@@ -551,7 +555,7 @@ void Light_ModelScene::CreateObjects()
 
 }
 
-void Light_ModelScene::AdditionalShader(const NewShaderFilePath& shader_file, const glm::mat4& viewProj)
+void Light_ModelScene::AdditionalShader(const ShaderFilePath& shader_file, const glm::mat4& viewProj)
 {
 	modelShader.CreateFromFile(shader_file);
 	modelShader.Bind();

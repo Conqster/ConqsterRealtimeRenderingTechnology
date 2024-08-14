@@ -24,10 +24,11 @@ Camera::~Camera()
 
 glm::mat4 Camera::CalViewMat()
 {
+	Update();
 	return glm::lookAt(m_Position, m_Position + m_Front, m_Up);
 }
 
-glm::mat4 Camera::CalculateProjMatrix(float aspect_ratio)
+glm::mat4 Camera::CalculateProjMatrix(float aspect_ratio) const
 {
 	return glm::perspective(glm::radians(m_FOV), aspect_ratio, m_Near, m_Far);
 }

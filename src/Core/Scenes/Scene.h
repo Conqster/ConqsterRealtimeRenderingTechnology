@@ -17,7 +17,7 @@
 		virtual void SetWindow(Window* window);
 		inline Camera* const GetCamera() const { return m_Camera; }
 
-		virtual void OnInit();
+		virtual void OnInit(Window* window);
 		virtual void OnUpdate(float delta_time);
 		virtual void OnRender();
 		virtual void OnRenderUI();
@@ -28,4 +28,6 @@
 	protected:
 		Camera* m_Camera = nullptr;
 		Window* window = nullptr;
+
+		glm::vec3 m_ClearScreenColour = glm::vec3(0.1f, 0.1f, 0.1f);
 	};

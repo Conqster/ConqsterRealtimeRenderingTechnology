@@ -26,6 +26,7 @@ Window* Window::Create(const WindowProperties& window_prop)
 	m_Height = window_prop.height;
 	m_ProgramName = window_prop.title;
 
+	m_InitProp = window_prop;
 
 	Init();
 	return this;
@@ -125,6 +126,14 @@ void Window::Close() const
 	glfwDestroyWindow(m_Window);
 	glfwTerminate();
 	std::cout << "[Warning] : Window has closed, so as GLFW!!!!!\n";
+}
+
+void Window::UpdateProgramTitle(const char* title)
+{
+	m_ProgramName =
+		m_InitProp.title = title;
+
+	glfwSetWindowTitle(m_Window, m_ProgramName);
 }
 
 glm::vec2 Window::GetMouseScreenPosition()

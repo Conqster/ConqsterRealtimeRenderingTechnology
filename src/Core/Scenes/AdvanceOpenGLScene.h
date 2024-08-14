@@ -1,7 +1,7 @@
 #pragma once
 #include "Scene.h"
 
-#include "Graphics/NewShader.h"
+#include "Graphics/Shader.h"
 #include "LearningOpenGLModel.h"
 
 
@@ -14,7 +14,7 @@ class AdvanceOpenGLScene : public Scene
 public: 
 	AdvanceOpenGLScene() = default;
 
-	virtual void OnInit() override;
+	virtual void OnInit(Window* window) override;
 	virtual void OnUpdate(float delta_time) override;
 	virtual void OnRender() override;
 	virtual void OnRenderUI() override;
@@ -25,8 +25,6 @@ public:
 
 
 private:
-	glm::vec3 m_ClearScreenColour = glm::vec3(0.1f, 0.1f, 0.1f);
-
 
 	learning::ObjectVertex m_Cube;
 	learning::ObjectVertex m_Plane;
@@ -34,8 +32,8 @@ private:
 	Texture* metalTex;
 	Texture* marbleTex;
 
-	NewShader objectShaders;
-	NewShader outlineShader;
+	Shader objectShaders;
+	Shader outlineShader;
 	bool doDepthTest = true;
 	bool secondpass_stencil = true;
 	glm::vec4 outlineColour = glm::vec4(0.4f, 0.0f, 0.8f, 1.0f);
@@ -44,7 +42,7 @@ private:
 
 	class SquareMesh* grassMesh = nullptr;
 	Texture* grassTexture;
-	NewShader grassShader;
+	Shader grassShader;
 	glm::vec3 grassPos = glm::vec3(0.0f);
 	glm::vec3 grassRotAxis = glm::vec3(0.0f, 1.0f, 0.0f);
 	float grassRot = 0.0f;

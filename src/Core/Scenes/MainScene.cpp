@@ -14,8 +14,12 @@ void MainScene::SetWindow(Window* window)
 	this->window = window;
 }
 
-void MainScene::OnInit()
+void MainScene::OnInit(Window* window)
 {
+	Scene::OnInit(window);
+
+	window->UpdateProgramTitle("My Main Scene");
+
 	//TO:DO: take this opengl func out later into child classes 
 	//		 so each child could define their specific behaviour 
 	glEnable(GL_DEPTH_TEST);
@@ -27,7 +31,7 @@ void MainScene::OnInit()
 	if (!m_Camera)
 		m_Camera = new Camera(glm::vec3(0.0f, /*5.0f*/7.0f, -36.0f), glm::vec3(0.0f, 1.0f, 0.0f), 90.0f, 0.0f, 20.0f, 1.0f/*0.5f*/);
 
-	NewShaderFilePath shader_file{ "src/ShaderFiles/New/MainSceneVertexShader.glsl" ,"src/ShaderFiles/New/MainSceneFragShader.glsl" };
+	ShaderFilePath shader_file{ "src/ShaderFiles/New/MainSceneVertexShader.glsl" ,"src/ShaderFiles/New/MainSceneFragShader.glsl" };
 	m_MainShaderProgram.Create("main_shader", shader_file);
 
 	CreateObjects();
@@ -488,7 +492,7 @@ void MainScene::SetupLights()
 
 }
 
-void MainScene::ProcessLight(NewShader& shader)
+void MainScene::ProcessLight(Shader& shader)
 {
 	shader.Bind();
 	shader.SetUniform1i("u_ObjectSpecularExponent", g_ObjectSpecularExponent);

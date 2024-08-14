@@ -4,8 +4,12 @@
 
 #include "Graphics/Texture.h"
 
-void FaceCullingScene::OnInit()
+void FaceCullingScene::OnInit(Window* window)
 {
+	Scene::OnInit(window);
+
+	window->UpdateProgramTitle("Face Culling Scene");
+
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	
@@ -191,7 +195,7 @@ void FaceCullingScene::CreateObjects()
 
 	crateTex = new Texture("Assets/Textures/container.png");
 
-	NewShaderFilePath file_path
+	ShaderFilePath file_path
 		{ "src/ShaderFiles/VertexLearningOpen.glsl", 
 		"src/ShaderFiles/Learning/DepthTestFrag.glsl" };
 	shader.Create("shader_1", file_path);

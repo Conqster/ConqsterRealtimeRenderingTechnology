@@ -34,10 +34,12 @@ protected:
 	void CacheVertices(const float vertices[], size_t size);
 public:
 	Mesh();
+	Mesh(const VertexArray vao, VertexBuffer vbo);
 	~Mesh();
 
 	virtual void Create();
 	void Render();
+	void RenderArray();
 	void RenderDebugOutLine();
 
 	void Clear();
@@ -48,6 +50,8 @@ public:
 
 	inline std::vector<Vertex>* const Ptr_Vertices() { return &m_Vertices; }
 	inline std::vector<Vertex> const GetVertices() { return m_Vertices; }
+
+	inline VertexArray* const GetVAO() { return &VAO; }
 
 	inline unsigned int const GetVerticesCount() const { return m_Vertices.size();}
 private: 

@@ -155,12 +155,15 @@
     <ClInclude Include="src\Core\Scenes\Light&amp;ModelScene.h" />
     <ClInclude Include="src\Core\Scenes\MainScene.h" />
     <ClInclude Include="src\Core\Scenes\Scene.h" />
+    <ClInclude Include="src\Core\Scenes\Textures_FrameBufferScene.h" />
     <ClInclude Include="src\Core\UIManager.h" />
     <ClInclude Include="src\Core\Window.h" />
     <ClInclude Include="src\Graphics\Lights\LightManager.h" />
     <ClInclude Include="src\Graphics\Lights\NewLights.h" />
     <ClInclude Include="src\Graphics\NewMaterial.h" />
-    <ClInclude Include="src\Graphics\NewShader.h" />
+    <ClInclude Include="src\Graphics\Shader.h" />
+    <ClInclude Include="src\Graphics\Skybox.h" />
+    <ClInclude Include="src\Graphics\TextureCube.h" />
     <ClInclude Include="src\LearningOpenGLModel.h" />
     <ClInclude Include="src\Core\Game.h" />
     <ClInclude Include="src\Util\Constants.h" />
@@ -199,15 +202,17 @@
     <ClCompile Include="src\Core\Scenes\MainScene.cpp" />
     <ClCompile Include="src\Core\Game.cpp" />
     <ClCompile Include="src\Core\Scenes\Scene.cpp" />
+    <ClCompile Include="src\Core\Scenes\Textures_FrameBufferScene.cpp" />
     <ClCompile Include="src\Core\UIManager.cpp" />
     <ClCompile Include="src\Core\Window.cpp" />
     <ClCompile Include="src\Graphics\Lights\LightManager.cpp" />
     <ClCompile Include="src\Graphics\Lights\NewLights.cpp" />
     <ClCompile Include="src\Graphics\NewMaterial.cpp" />
-    <ClCompile Include="src\Graphics\NewShader.cpp" />
+    <ClCompile Include="src\Graphics\Shader.cpp" />
     <ClCompile Include="src\Graphics\Meshes\CubeMesh.cpp" />
     <ClCompile Include="src\Graphics\Meshes\Mesh.cpp" />
     <ClCompile Include="src\Graphics\Meshes\SphereMesh.cpp" />
+    <ClCompile Include="src\Graphics\Skybox.cpp" />
     <ClCompile Include="src\Graphics\stb_image.cpp" />
     <ClCompile Include="src\Graphics\ObjectBuffer\IndexBuffer.cpp" />
     <ClCompile Include="src\Graphics\RendererErrorAssertion.cpp" />
@@ -217,6 +222,7 @@
     <ClCompile Include="src\Graphics\Meshes\SquareMesh.cpp" />
     <ClCompile Include="src\Graphics\ObjectBuffer\VertexArray.cpp" />
     <ClCompile Include="src\Graphics\ObjectBuffer\VertexBuffer.cpp" />
+    <ClCompile Include="src\Graphics\TextureCube.cpp" />
     <ClCompile Include="src\LearningOpenGLModel.cpp" />
     <ClCompile Include="src\Physics\PhysicsWorld.cpp" />
   </ItemGroup>

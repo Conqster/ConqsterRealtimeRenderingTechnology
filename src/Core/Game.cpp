@@ -11,6 +11,7 @@
 #include "Scenes/Light&ModelScene.h"
 #include "Scenes/AdvanceOpenGLScene.h"
 #include "Scenes/FaceCullingScene.h"
+#include "Scenes/Textures_FrameBufferScene.h"
 
 
 void Game::OnStart()
@@ -19,25 +20,36 @@ void Game::OnStart()
 
 	m_Time.Init(100);
 
+
+	m_WindowProp.width = 1000;
+	m_WindowProp.height = 700;
+
 	if (m_UseFullScreen)
 		m_WindowProp.width = GetSystemMetrics(SM_CXSCREEN), m_WindowProp.height = GetSystemMetrics(SM_CYSCREEN);
+
+
 
 	m_Window = new Window();
 	m_Window = m_Window->Create(m_WindowProp);
 
-	if (m_Window)
-		m_Running = true;
-
-	m_CurrentScene = new MainScene();
+	//m_CurrentScene = new MainScene();
 	//m_CurrentScene = new Light_ModelScene();
 	//m_CurrentScene = new AdvanceOpenGLScene();
 	//m_CurrentScene = new FaceCullingScene();
-	m_CurrentScene->OnInit();
-	m_CurrentScene->SetWindow(m_Window);
+	m_CurrentScene = new Texture_FrameBufferScene();
 
-	//UIManager
-	m_UI = new UIManager(*m_Window);
-	//m_UI->OnInit(*m_Window);
+	if (m_Window && m_CurrentScene)
+	{
+		m_CurrentScene->OnInit(m_Window);
+
+		//UIManager
+		m_UI = new UIManager(*m_Window);
+		//m_UI->OnInit(*m_Window);
+
+		m_Running = true;
+		return;
+	}
+	std::cout << "Failed to init window &/ Scene!!!!!\n";
 }
 
 

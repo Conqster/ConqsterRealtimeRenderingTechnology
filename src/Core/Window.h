@@ -46,10 +46,16 @@ public:
 
 	GLFWwindow* GetNativeWindow() const { return m_Window; }
 
+	WindowProperties* const GetInitProp() { return &m_InitProp; }
+
+	void UpdateProgramTitle(const char* title);
+
 	~Window();
 private:
 	unsigned int m_Width;
 	unsigned int m_Height;
+
+	WindowProperties m_InitProp;
 
 	GLFWwindow* m_Window = nullptr;
 	const char* m_ProgramName = "default";

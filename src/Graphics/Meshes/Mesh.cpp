@@ -34,6 +34,12 @@ Mesh::Mesh()
 	m_RefCount = 0;
 }
 
+Mesh::Mesh(const VertexArray vao, VertexBuffer vbo)
+{
+	VAO = vao;
+	VBO = vbo;
+}
+
 Mesh::~Mesh()
 {
 	//Clear();
@@ -50,6 +56,7 @@ void Mesh::Render()
 	IBO.Bind();
 	GLCall(glDrawElements(GL_TRIANGLES, IBO.GetCount(), GL_UNSIGNED_INT, (void*)0));
 }
+
 
 void Mesh::RenderDebugOutLine()
 {

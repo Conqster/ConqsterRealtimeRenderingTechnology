@@ -7,14 +7,14 @@
 
 
 
-struct NewShaderFilePath
+struct ShaderFilePath
 {
 	const std::string& vertexPath;
 	const std::string& fragmentPath;
 };
 
 
-class NewShader
+class Shader
 {
 private:
 	unsigned int m_ProgramID = 0;
@@ -25,10 +25,10 @@ private:
 
 	std::unordered_map<std::string, int> cacheUniformLocations = std::unordered_map<std::string, int>();
 public:
-	NewShader() = default;
+	Shader() = default;
 
-	bool Create(const char* name, const NewShaderFilePath& file_paths);
-	bool CreateFromFile(const NewShaderFilePath& file_paths);
+	bool Create(const char* name, const ShaderFilePath& file_paths);
+	bool CreateFromFile(const ShaderFilePath& file_paths);
 
 	void Bind() const;
 	void UnBind() const;
@@ -47,7 +47,7 @@ public:
 	void SetUniformMat4f(const char* name, const glm::mat4 matrix);
 
 	void Clear();
-	~NewShader();
+	~Shader();
 
 private: 
 	unsigned int CompileShader(GLenum shader_type, const std::string& source);

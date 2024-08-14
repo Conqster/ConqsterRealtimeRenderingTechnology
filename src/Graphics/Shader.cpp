@@ -1,5 +1,5 @@
 #pragma once
-#include "NewShader.h"
+#include "Shader.h"
 #include <fstream>
 
 #include "RendererErrorAssertion.h"
@@ -16,7 +16,7 @@
 	}
 
 
-	bool NewShader::Create(const char* name, const NewShaderFilePath& file_paths)
+	bool Shader::Create(const char* name, const ShaderFilePath& file_paths)
 	{
 		m_Name = name;
 		m_FragFilePath = file_paths.fragmentPath;
@@ -24,7 +24,7 @@
 		return CreateFromFile(file_paths);
 	}
 
-	bool NewShader::CreateFromFile(const NewShaderFilePath& file_paths)
+	bool Shader::CreateFromFile(const ShaderFilePath& file_paths)
 	{
 		//m_ShaderFilePath.fragmentPath = file_paths.fragmentPath;Y
 		m_FragFilePath = file_paths.fragmentPath;
@@ -36,7 +36,7 @@
 	}
 
 
-	std::string NewShader::ReadFile(const std::string& shader_file)
+	std::string Shader::ReadFile(const std::string& shader_file)
 	{
 		std::string content;
 		std::ifstream fileStream(shader_file, std::ios::in);
@@ -59,7 +59,7 @@
 	}
 
 
-	bool NewShader::CreateFromCode(const char* vCode, const char* fCode)
+	bool Shader::CreateFromCode(const char* vCode, const char* fCode)
 	{
 		m_ProgramID = glCreateProgram();
 		printf("Thge shader program Id is %d\n", m_ProgramID);
@@ -94,7 +94,7 @@
 	}
 
 
-	unsigned int NewShader::CompileShader(GLenum type, const std::string& source)
+	unsigned int Shader::CompileShader(GLenum type, const std::string& source)
 	{
 		GLuint shaderid = glCreateShader(type);
 
@@ -123,18 +123,18 @@
 
 
 
-	void NewShader::Bind() const
+	void Shader::Bind() const
 	{
 		glUseProgram(m_ProgramID);
 	}
 
-	void NewShader::UnBind() const
+	void Shader::UnBind() const
 	{
 		glUseProgram(0);
 	}
 
 
-	int NewShader::GetUniformLocation(const char* name)
+	int Shader::GetUniformLocation(const char* name)
 	{
 		if (cacheUniformLocations.find(name) != cacheUniformLocations.end())
 			return cacheUniformLocations[name];
@@ -151,13 +151,13 @@
 		return location;
 	}
 
-	NewShader::~NewShader()
+	Shader::~Shader()
 	{
 		Clear();
 		printf("I have been kick out \n");
 	}
 
-	void NewShader::Clear()
+	void Shader::Clear()
 	{
 		//TO-DO: not too sure but a program could accually been 0
 		if (m_ProgramID != 0)
@@ -170,7 +170,7 @@
 
 
 	//TO-DO: need to rewrite works for now
-	const char* NewShader::GetShaderFilePath(GLenum shader_type)
+	const char* Shader::GetShaderFilePath(GLenum shader_type)
 	{
 		switch (shader_type)
 		{
@@ -181,38 +181,38 @@
 		}
 	}
 
-	void NewShader::SetUniform1i(const char* name, int value)
+	void Shader::SetUniform1i(const char* name, int value)
 	{
 		GLCall(glUniform1i(GetUniformLocation(name), value));
 	}
 
-	void NewShader::SetUniform4f(const char* name, float v0, float v1, float v2, float v3)
+	void Shader::SetUniform4f(const char* name, float v0, float v1, float v2, float v3)
 	{
 		GLCall(glUniform4f(GetUniformLocation(name), v0, v1, v2, v3));
 	}
 
-	void NewShader::SetUniformMat4f(const char* name, const glm::mat4 matrix)
+	void Shader::SetUniformMat4f(const char* name, const glm::mat4 matrix)
 	{
 		GLCall(glUniformMatrix4fv(GetUniformLocation(name), 1, GL_FALSE, &matrix[0][0]));
 	}
 
 
-	void NewShader::SetUniformVec3(const char* name, const glm::vec3 vector)
+	void Shader::SetUniformVec3(const char* name, const glm::vec3 vector)
 	{
 		GLCall(glUniform3f(GetUniformLocation(name), vector.x, vector.y, vector.z));
 	}
 
-	void NewShader::SetUniformVec4(const char* name, const glm::vec4 vector)
+	void Shader::SetUniformVec4(const char* name, const glm::vec4 vector)
 	{
 		GLCall(glUniform4f(GetUniformLocation(name), vector.x, vector.y, vector.z, vector.w));
 	}
 
-	void NewShader::SetUniform1f(const char* name, float value)
+	void Shader::SetUniform1f(const char* name, float value)
 	{
 		GLCall(glUniform1f(GetUniformLocation(name), value));
 	}
 
-	void NewShader::SetUniformVec3f(const char* name, const float* value)
+	void Shader::SetUniformVec3f(const char* name, const float* value)
 	{
 		GLCall(glUniform3fv(GetUniformLocation(name), 1, value));
 	}

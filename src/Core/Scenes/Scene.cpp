@@ -10,9 +10,9 @@ void Scene::SetWindow(Window* window)
 	}
 
 
-	void Scene::OnInit()
+	void Scene::OnInit(Window* window)
 	{
-
+		this->window = window;
 	}
 
 	void Scene::OnUpdate(float delta_time)

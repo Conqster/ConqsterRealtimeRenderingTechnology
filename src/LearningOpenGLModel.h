@@ -7,7 +7,7 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
-#include "Graphics/NewShader.h"
+#include "Graphics/Shader.h"
 
 
 
@@ -148,7 +148,7 @@ namespace learning {
 			std::vector<L_Texture> textures;
 
 			L_Mesh(std::vector<L_Vertex> _vertices, std::vector<unsigned int> _indices, std::vector<L_Texture> _textures);
-			void Draw(class NewShader& shader);
+			void Draw(class Shader& shader);
 		private:
 			//render data 
 			unsigned int VAO, VBO, IBO;
@@ -181,7 +181,7 @@ namespace learning {
 				LoadModel(path, flip_uv);
 			}
 
-			void Draw(class NewShader& shader);
+			void Draw(class Shader& shader);
 
 		private:
 			//model data

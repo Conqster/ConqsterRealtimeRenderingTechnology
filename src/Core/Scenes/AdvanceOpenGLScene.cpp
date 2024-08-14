@@ -5,8 +5,12 @@
 
 #include "Graphics/Meshes/SquareMesh.h"
 
-void AdvanceOpenGLScene::OnInit()
+void AdvanceOpenGLScene::OnInit(Window* window)
 {
+	Scene::OnInit(window);
+
+	window->UpdateProgramTitle("Advance openGL Scene");
+
 	// configure global opengl state
 	// -----------------------------
 	glEnable(GL_DEPTH_TEST);
@@ -81,6 +85,7 @@ void AdvanceOpenGLScene::OnRender()
 	model = glm::translate(model, glm::vec3(2.0f, 0.0f,0.0));
 	objectShaders.SetUniformMat4f("u_Model", model);
 	glDrawArrays(GL_TRIANGLES, 0, 36);
+
 
 
 	if (secondpass_stencil)
@@ -320,11 +325,11 @@ void AdvanceOpenGLScene::CreateObjects()
 	metalTex = new Texture("Assets/Textures/metal.jpeg");
 	marbleTex = new Texture("Assets/Textures/marble.jpeg");
 
-	NewShaderFilePath file_path{ "src/ShaderFiles/Learning/DepthTestVertex.glsl", "src/ShaderFiles/Learning/DepthTestFrag.glsl" };
+	ShaderFilePath file_path{ "src/ShaderFiles/Learning/DepthTestVertex.glsl", "src/ShaderFiles/Learning/DepthTestFrag.glsl" };
 	objectShaders.Create("depth_test_learning", file_path);
 
 	
-	NewShaderFilePath outlineShader_file_path{ "src/ShaderFiles/Learning/DepthTestVertex.glsl", "src/ShaderFiles/Learning/OutlineFragStencil.glsl" };
+	ShaderFilePath outlineShader_file_path{ "src/ShaderFiles/Learning/DepthTestVertex.glsl", "src/ShaderFiles/Learning/OutlineFragStencil.glsl" };
 	outlineShader.Create("stencil_outline_test", outlineShader_file_path);
 
 
@@ -333,7 +338,7 @@ void AdvanceOpenGLScene::CreateObjects()
 
 	grassTexture = new Texture("Assets/Textures/blending_transparent_window.png");
 
-	NewShaderFilePath grass_file_path{ "src/ShaderFiles/Learning/DepthTestVertex.glsl", "src/ShaderFiles/Learning/GrassFragShader.glsl" };
+	ShaderFilePath grass_file_path{ "src/ShaderFiles/Learning/DepthTestVertex.glsl", "src/ShaderFiles/Learning/GrassFragShader.glsl" };
 	grassShader.Create("grass_shader", grass_file_path);
 }
  
