@@ -7,6 +7,8 @@
 #include "Graphics/Meshes/SphereMesh.h"
 #include "Graphics/Skybox.h"
 
+#include "Graphics/ObjectBuffer/Framebuffer.h"
+
 
 class Texture_FrameBufferScene : public Scene
 {
@@ -27,10 +29,10 @@ public:
 private:
 	void CreateObjects();
 
-	unsigned int FBO;
-	unsigned int fboTex;
+	Framebuffer m_Framebuffer;
 
-	unsigned int RBO;
+	bool m_FrameCaptureRear = true;
+	bool m_PerfromDepthTest = false;
 
 	Shader screenShader;
 	learning::ObjectVertex m_Quad;
@@ -40,10 +42,6 @@ private:
 
 
 	//unsigned int cubeTexMap;
-	class TextureCube* m_SkyboxMap = nullptr;
-	Shader m_SkyboxShader;
-	learning::ObjectVertex m_Skybox_vertex;
-
 	Skybox m_DefaultSkybox;
 
 

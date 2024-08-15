@@ -47,7 +47,7 @@ public:
 	inline int const RefCount() const { return m_RefCount; }
 
 	bool LoadTexture(const std::vector<std::string>& fileLoc);
-	void Activate(unsigned int slot = 0) const;
+	void Activate(uint16_t slot = 0) const;
 	void DisActivate() const;
 	void Clear();
 

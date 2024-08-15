@@ -36,6 +36,8 @@ void TextureCube::UnRegisterUse()
 
 bool TextureCube::LoadTexture(const std::vector<std::string>& fileLoc)
 {
+	//stbi_set_flip_vertically_on_load(true);
+
 	m_FaceTextureFiles = fileLoc;
 	GLCall(glGenTextures(1, &m_Id));
 	GLCall(glBindTexture(GL_TEXTURE_CUBE_MAP, m_Id));
@@ -46,7 +48,9 @@ bool TextureCube::LoadTexture(const std::vector<std::string>& fileLoc)
 	for (size_t i = 0; i < fileLoc.size(); i++)
 	{
 		//m_LocalBuffer = stbi_load(fileLoc[i].c_str(), &width, &height, &nrChannels, 0);
+
 		unsigned char* data = stbi_load(fileLoc[i].c_str(), &width, &height, &nrChannels, 0);
+
 
 		if (data)
 		{
@@ -69,14 +73,15 @@ bool TextureCube::LoadTexture(const std::vector<std::string>& fileLoc)
 	GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE));
 
 
-
+	//stbi_set_flip_vertically_on_load(false);
+	
 	//if (m_LocalBuffer)
 		//stbi_image_free(m_LocalBuffer);
 
 	return true;
 }
 
-void TextureCube::Activate(unsigned int slot) const
+void TextureCube::Activate(uint16_t slot) const
 {
 	//GLCall(glActiveTexture(GL_TEXTURE0 + slot));
 	GLCall(glBindTexture(GL_TEXTURE_CUBE_MAP, m_Id));

@@ -81,6 +81,13 @@ Issues encounted during development:
 - 
 For more detailed information, please refer to the [Development Issue](ReadMe_Docs/DevelopmentIssues.md)
 
+## Some Screenshots
+### Skybox, Framebuffer
+
+|<img src = "ReadMe_Docs/Skybox, Framebuffer, Depthtest.png"/>|
+|:-|
+|<p align = "center"> *Skybox, Framebuffer (renderpass), Depth test.* </p>|
+
 ## External Libraries
 Current libaries in use: GLM, GLEW, GLFW, stb-image, Assimp.
 

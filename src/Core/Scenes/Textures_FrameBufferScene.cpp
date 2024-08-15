@@ -7,6 +7,7 @@
 #include <iostream>
 
 #include "External Libs/stb_image/stb_image.h"
+#include "Graphics/RendererErrorAssertion.h"
 
 void Texture_FrameBufferScene::OnInit(Window* window)
 {
@@ -37,25 +38,22 @@ void Texture_FrameBufferScene::OnUpdate(float delta_time)
 
 void Texture_FrameBufferScene::OnRender()
 {
-	//glViewport(0, 0, window->GetWidth(), window->GetHeight());
-	//glViewport(500, 500, window->GetWidth() * 0.5f, window->GetHeight() * 0.5f);
 	glViewport(0, 0, window->GetWidth(), window->GetHeight());
 	/////////////////////////////////////////////////////////////////////	
 	// First Pass
 	/////////////////////////////////////////////////////////////////////	
-	glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+	m_Framebuffer.Bind();
 	glEnable(GL_DEPTH_TEST);
 	//TO-DO: might re-define this if i want to run multiple scene at the same time
 	glClearColor(m_ClearScreenColour.r, m_ClearScreenColour.g, m_ClearScreenColour.b, 0.0f);
-	//glClear(GL_COLOR_BUFFER_BIT);   //Alway need to clear buffers 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);  //Not using the stencil buffer now
-	DrawObjects(/*true*/false, true); //true to do depth test on the object,
+	DrawObjects(m_PerfromDepthTest, m_FrameCaptureRear); //true to do depth test on the object,
 
 
 	/////////////////////////////////////////////////////////////////////	
 	// Second Pass
 	/////////////////////////////////////////////////////////////////////	
-	glBindFramebuffer(GL_FRAMEBUFFER, 0); // return back to default buffer
+	m_Framebuffer.UnBind(); // return back to default buffer
 	glClearColor(m_ClearColourSecondPass.r, m_ClearColourSecondPass.g, m_ClearColourSecondPass.b, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -73,41 +71,15 @@ void Texture_FrameBufferScene::OnRender()
 	glViewport(x_pos, y_pos, win_width, win_height);
 	screenShader.Bind();
 	glBindVertexArray(m_Quad.VAO);
-	glBindTexture(GL_TEXTURE_2D, fboTex);
+
+	//use texture render onto from framebuffer first pass
+	m_Framebuffer.BindTexture();
+
 	screenShader.SetUniform1f("u_Offset", screenTexSampleOffset);
 	screenShader.SetUniform1i("u_DoSpecial", specialScreenKernel);
 	screenShader.SetUniform1i("u_KernelType", specialKernelType);
 	screenShader.SetUniformVec3("u_TexColour", m_PlayColourFBOTexture);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
-	//glDrawArrays(GL_LINE_LOOP, 0, 6);
-
-	//glDisable(GL_DEPTH_TEST);
-	/////////////////////////////////////////////////////////////////////	
-	// Test new pass for 
-	/////////////////////////////////////////////////////////////////////	
-	//x_pos = window->GetWidth() - (win_width * 2.0f) - (x_offset);
-	//glViewport(x_pos, y_pos, win_width, win_height);
-	//DrawObjects(false, false);
-	// 
-	//
-	//screenShader.Bind();
-	//glBindVertexArray(m_Quad.VAO);
-	//glBindTexture(GL_TEXTURE_2D, fboTex);
-	//screenShader.SetUniform1f("u_Offset", screenTexSampleOffset);
-	//screenShader.SetUniform1i("u_DoSpecial", specialScreenKernel);
-	//screenShader.SetUniform1i("u_KernelType", specialKernelType);
-	//screenShader.SetUniformVec3("u_TexColour", m_PlayColourFBOTexture);
-	//glDrawArrays(GL_TRIANGLES, 0, 6);
-	/////////////////////////////////////////////////////////////////////	
-	// Test new pass
-	/////////////////////////////////////////////////////////////////////	
-	// 
-	//TO-DO: might re-define this if i want to run multiple scene at the same time
-	//glClearColor(m_ClearScreenColour.r, m_ClearScreenColour.g, m_ClearScreenColour.b, 0.0f);
-	//glClear(GL_COLOR_BUFFER_BIT);   //Alway need to clear buffers 
-	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);  //Not using the stencil buffer now
-	//glEnable(GL_DEPTH_TEST);
-
 
 }
 
@@ -176,6 +148,10 @@ void Texture_FrameBufferScene::OnRenderUI()
 
 	ImGui::ColorEdit3("texture colour", &m_PlayColourFBOTexture[0]);
 
+	ImGui::SeparatorText("Frame buffer Properties");
+	ImGui::Checkbox("Capture Rear", &m_FrameCaptureRear);
+	ImGui::Checkbox("Depth test", &m_PerfromDepthTest);
+
 	ImGui::SeparatorText("Kernel Effect");
 	ImGui::SliderFloat("texture sample offset", &screenTexSampleOffset, 50.0f, 500.0f, "%.1f");
 	ImGui::Checkbox("perform special kernels", &specialScreenKernel);
@@ -215,9 +191,6 @@ void Texture_FrameBufferScene::OnRenderUI()
 
 void Texture_FrameBufferScene::OnDestroy()
 {
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glDeleteFramebuffers(1, &FBO);
-
 	m_PlaneTex->UnRegisterUse();
 	delete m_PlaneTex;
 	m_PlaneTex = nullptr;
@@ -234,21 +207,6 @@ void Texture_FrameBufferScene::OnDestroy()
 	glDeleteBuffers(1, &m_Cube.VBO);
 	glDeleteBuffers(1, &m_Plane.VBO);
 
-	glDeleteFramebuffers(1, &FBO);
-	glDeleteTextures(1, &fboTex);        //delte frame texture/ texture attached to frame buffer
-
-
-	glDeleteRenderbuffers(1, &RBO);
-
-	/////////////////
-	// Sky box
-	/////////////////
-	m_SkyboxMap->UnRegisterUse();
-	delete m_SkyboxMap;
-	m_SkyboxMap = nullptr;
-
-	glDeleteVertexArrays(1, &m_Skybox_vertex.VAO);
-	glDeleteBuffers(1, &m_Skybox_vertex.VBO);
 
 	Scene::OnDestroy();
 }
@@ -261,142 +219,38 @@ Texture_FrameBufferScene::~Texture_FrameBufferScene()
 
 void Texture_FrameBufferScene::CreateObjects()
 {
-	std::vector<std::string> skybox_faces
-	{
-		"Assets/Textures/Skybox/right.jpg",
-		"Assets/Textures/Skybox/left.jpg",
-		"Assets/Textures/Skybox/top.jpg",
-		"Assets/Textures/Skybox/bottom.jpg",
-		"Assets/Textures/Skybox/front.jpg",
-		"Assets/Textures/Skybox/back.jpg"
-	};
-
-	///////////////////////////////////////////////////////////////////////
-	// NEW NEW SKY BOX: Cube Texture Map
-	///////////////////////////////////////////////////////////////////////
-	m_DefaultSkybox.Create(skybox_faces);
-
 	///////////////////////////////////////////////////////////////////////
 	// SKY BOX: Cube Texture Map
 	///////////////////////////////////////////////////////////////////////
-	m_SkyboxMap = new TextureCube(skybox_faces);
-
-	ShaderFilePath skybox_shader_file_path
-	{ "src/ShaderFiles/SkyboxVertex.glsl",
-		//"src/ShaderFiles/Learning/ScreenFrameFrag.glsl" };
-		"src/ShaderFiles/SkyboxFragment.glsl" };
-	m_SkyboxShader.Create("skybox_shader", skybox_shader_file_path);
-
-
-
-	///////////////////////////////////////////////////////////////////////
-	// SKY BOX: VAO & VBO
-	///////////////////////////////////////////////////////////////////////
-	float skybox_vertices[] = {
-
-		-1.0f,  1.0f, -1.0f,
-		-1.0f, -1.0f, -1.0f,
-		 1.0f, -1.0f, -1.0f,
-		 1.0f, -1.0f, -1.0f,
-		 1.0f,  1.0f, -1.0f,
-		-1.0f,  1.0f, -1.0f,
-
-		-1.0f, -1.0f,  1.0f,
-		-1.0f, -1.0f, -1.0f,
-		-1.0f,  1.0f, -1.0f,
-		-1.0f,  1.0f, -1.0f,
-		-1.0f,  1.0f,  1.0f,
-		-1.0f, -1.0f,  1.0f,
-
-		 1.0f, -1.0f, -1.0f,
-		 1.0f, -1.0f,  1.0f,
-		 1.0f,  1.0f,  1.0f,
-		 1.0f,  1.0f,  1.0f,
-		 1.0f,  1.0f, -1.0f,
-		 1.0f, -1.0f, -1.0f,
-
-		-1.0f, -1.0f,  1.0f,
-		-1.0f,  1.0f,  1.0f,
-		 1.0f,  1.0f,  1.0f,
-		 1.0f,  1.0f,  1.0f,
-		 1.0f, -1.0f,  1.0f,
-		-1.0f, -1.0f,  1.0f,
-
-		-1.0f,  1.0f, -1.0f,
-		 1.0f,  1.0f, -1.0f,
-		 1.0f,  1.0f,  1.0f,
-		 1.0f,  1.0f,  1.0f,
-		-1.0f,  1.0f,  1.0f,
-		-1.0f,  1.0f, -1.0f,
-
-		-1.0f, -1.0f, -1.0f,
-		-1.0f, -1.0f,  1.0f,
-		 1.0f, -1.0f, -1.0f,
-		 1.0f, -1.0f, -1.0f,
-		-1.0f, -1.0f,  1.0f,
-		 1.0f, -1.0f,  1.0f
-
+	std::vector<std::string> def_skybox_faces
+	{
+		"Assets/Textures/Skyboxes/default_skybox/right.jpg",
+		"Assets/Textures/Skyboxes/default_skybox/left.jpg",
+		"Assets/Textures/Skyboxes/default_skybox/top.jpg",
+		"Assets/Textures/Skyboxes/default_skybox/bottom.jpg",
+		"Assets/Textures/Skyboxes/default_skybox/front.jpg",
+		"Assets/Textures/Skyboxes/default_skybox/back.jpg"
 	};
 
+	std::vector<std::string> skybox_faces_2
+	{
+		"Assets/Textures/Skyboxes/envmap_stormydays/right.tga",
+		"Assets/Textures/Skyboxes/envmap_stormydays/left.tga",
+		"Assets/Textures/Skyboxes/envmap_stormydays/top.tga",
+		"Assets/Textures/Skyboxes/envmap_stormydays/bottom.tga",
+		"Assets/Textures/Skyboxes/envmap_stormydays/front.tga",
+		"Assets/Textures/Skyboxes/envmap_stormydays/back.tga"
+	};
 
-	glGenVertexArrays(1, &m_Skybox_vertex.VAO);
-	glBindVertexArray(m_Skybox_vertex.VAO);
+	m_DefaultSkybox.Create(skybox_faces_2);
 
-	glGenBuffers(1, &m_Skybox_vertex.VBO);
-	glBindBuffer(GL_ARRAY_BUFFER, m_Skybox_vertex.VBO);
-
-	glBufferData(GL_ARRAY_BUFFER, sizeof(skybox_vertices), skybox_vertices, GL_STATIC_DRAW);
-
-	//Only the pos, is required no need for the UV coord 
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(skybox_vertices[0]) * 3, (void*)0);
 	
-	glBindVertexArray(0);
-
-
 	///////////////////////////////////////////////////////////////////////
 	// Frame Buffer creation
 	///////////////////////////////////////////////////////////////////////
 	uint16_t use_width = window->GetWidth(); // 2.0f;
 	uint16_t use_height = window->GetHeight(); // 2.0f;
-
-	//glViewport(0, 0, window->GetWidth() * 0.5f, window->GetHeight() * 0.5f);
-	glGenFramebuffers(1, &FBO);
-	glBindFramebuffer(GL_FRAMEBUFFER, FBO);
-
-	///////////////////////////////////////////////////////////////////////
-	// create colour attachment texture for frame buffer
-	///////////////////////////////////////////////////////////////////////
-	glGenTextures(1, &fboTex);
-	glBindTexture(GL_TEXTURE_2D, fboTex);
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, use_width, use_height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	//attach this new texture(fboTex) to the framebuffer FBO
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fboTex, 0);
-
-
-	///////////////////////////////////////////////////////////////////////
-	// create a render buffer object for depth and stencil 
-	///////////////////////////////////////////////////////////////////////
-	glGenRenderbuffers(1, &RBO);
-	glBindRenderbuffer(GL_RENDERBUFFER, RBO);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, use_width, use_height);
-
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RBO);
-
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		std::cout << "[FRAMEBUFFER ERROR]: Framebuffer did not complete!!!!\n";
-
-	glBindRenderbuffer(GL_RENDERBUFFER, 0);
-	//glViewport(0,0, window->GetWidth(), window->GetHeight());
-
-	///////////////////////////////////////////////////////////////////////
-	// Create Quad Object vertex
-	///////////////////////////////////////////////////////////////////////
+	m_Framebuffer.Generate(use_width, use_height);
 
 	float quad_vertices[] = {
 
@@ -506,7 +360,7 @@ void Texture_FrameBufferScene::CreateObjects()
 
 
 	//m_CrateTex = new Texture("Assets/Textures/container.png");
-	m_CrateTex = new Texture("Assets/Textures/container2.jpg");
+	m_CrateTex = new Texture("Assets/Textures/brick.png");
 
 	ShaderFilePath file_path
 					{ "src/ShaderFiles/VertexLearningOpen.glsl",
@@ -556,13 +410,13 @@ void Texture_FrameBufferScene::CreateObjects()
 
 	float plane_vertices[] = {
 
-		5.0f, 0.0f,5.0f,  2.0f, 0.0f,
+		5.0f, 0.0f,5.0f,  4.0f, 0.0f,
 		-5.0f,0.0f, 5.0f,  0.0f, 0.0f,
-		-5.0f,0.0f,-5.0f,  0.0f, 2.0f,
+		-5.0f,0.0f,-5.0f,  0.0f, 4.0f,
 			 //0.0f,
-		 5.0f,0.0f, 5.0f,  2.0f, 0.0f,
-		-5.0f,0.0f,-5.0f,  0.0f, 2.0f,
-		 5.0f,0.0f,-5.0f,  2.0f, 2.0f
+		 5.0f,0.0f, 5.0f,  4.0f, 0.0f,
+		-5.0f,0.0f,-5.0f,  0.0f, 4.0f,
+		 5.0f,0.0f,-5.0f,  4.0f, 4.0f
 	};
 
 	glGenVertexArrays(1, &m_Plane.VAO);
@@ -581,7 +435,8 @@ void Texture_FrameBufferScene::CreateObjects()
 	m_PlaneWorTrans.scale = glm::vec3(5.0f, 0.0f, 5.0f);
 
 
-	m_PlaneTex = new Texture("Assets/Textures/marble.jpeg");
+	//m_PlaneTex = new Texture("Assets/Textures/dirt.png");
+	m_PlaneTex = new Texture("Assets/Textures/concrete_panels_4k.gltf/textures/concrete_panels_diff_4k.jpg");
 	//marbleTex = new Texture("Assets/Textures/marble.jpeg");
 }
 
@@ -642,6 +497,13 @@ void Texture_FrameBufferScene::DrawObjects(bool depth_test, bool use_rear)
 	m_CrateShader.SetUniformMat4f("u_model", model);
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 
+	/////////////////////////////////////////////////////////////////////
+	// CUBE THREE
+	/////////////////////////////////////////////////////////////////////
+	model = glm::translate(model, glm::vec3(-10.0f, 0.0f, 0.0f));
+	m_CrateShader.SetUniformMat4f("u_model", model);
+	glDrawArrays(GL_TRIANGLES, 0, 36);
+
 	glBindVertexArray(0);
 
 	/////////////////////////////////////////////////////////////////////
@@ -677,9 +539,13 @@ void Texture_FrameBufferScene::DrawObjects(bool depth_test, bool use_rear)
 	m_ObjectSampleReflect.SetUniformMat4f("u_View", m_Camera->CalViewMat());
 	m_ObjectSampleReflect.SetUniformMat4f("u_Projection", m_Camera->CalculateProjMatrix(window->GetAspectRatio()));
 
+	m_ObjectSampleReflect.SetUniform1i("u_DoDepthTest", depth_test);
+	if (depth_test)
+		m_ObjectSampleReflect.SetUniform1f("u_Near", *m_Camera->Ptr_Near());
+
 
 	m_ObjectSampleReflect.SetUniformVec3("u_CamPos", m_Camera->GetPosition());
-	m_SkyboxMap->Activate();
+	m_DefaultSkybox.ActivateMap();
 
 	m_ObjectSampleReflect.SetUniformMat4f("u_Model", sample_model);
 	glBindVertexArray(m_Cube.VAO);
@@ -695,19 +561,16 @@ void Texture_FrameBufferScene::DrawObjects(bool depth_test, bool use_rear)
 		sample_model = glm::scale(sample_model, m_SceneSphereTranforms[i].scale);
 		m_ObjectSampleReflect.SetUniformMat4f("u_Model", sample_model);
 		m_Sphere.Render();
-
 	}
-	//sample_model = glm::translate(sample_model, glm::vec3(20.0f, 0.0f, 0.0f));
-	//sample_model = glm::translate(sample_model, m_SphereTrans.pos + m_SphereTrans.scale);
-
-
-
-
 
 
 	///////////////////////////////////////////////////////////
 	// DRAW Sky box
 	///////////////////////////////////////////////////////////
+
+	if (depth_test)
+		return;
+
 	if (use_rear)
 	{
 		Camera new_camera = *m_Camera;
@@ -717,22 +580,4 @@ void Texture_FrameBufferScene::DrawObjects(bool depth_test, bool use_rear)
 	else
 		m_DefaultSkybox.Draw(*m_Camera, *window);
 
-
-
-	//m_SkyboxShader.Bind();
-	//glDepthMask(GL_FALSE);
-
-	//glm::mat4 sky_view = glm::mat4(glm::mat3((use_rear) ? rear_view : m_Camera->CalViewMat()));
-	////glm::mat4 sky_view = glm::mat4(glm::mat3(m_Camera->CalViewMat()));
-	//m_SkyboxShader.SetUniformMat4f("u_View", sky_view);
-	//m_SkyboxShader.SetUniformMat4f("u_Projection", m_Camera->CalculateProjMatrix(window->GetAspectRatio()));
-
-	//glBindVertexArray(m_Skybox_vertex.VAO);
-	//m_SkyboxMap->Activate();
-	////glm::mat4 model = glm::mat4(1.0f);
-	////glm::scale(glm::mat4(1.0f), glm::vec3(10.0f));
-	//glDrawArrays(GL_TRIANGLES, 0, 36);
-	//glDepthMask(GL_TRUE);
-	//glBindVertexArray(0);
-	//m_SkyboxShader.UnBind();
 }

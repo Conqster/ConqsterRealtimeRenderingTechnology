@@ -19,7 +19,9 @@ public:
 	//Doesnt work because i am modifing the shader indirect if i call setUniforms
 	//as i would cache the uniform is it exist but not been cached
 	void Draw(class Camera& camera, class Window& window);
-	//void ActivateMap()
+
+	void ActivateMap(uint16_t slot = 0);
+	void DisActivate();
 
 	inline Shader* const GetShader() { return &m_Shader; }
 	inline TextureCube* const GetTextureMap() { return &m_TextureMap; }
