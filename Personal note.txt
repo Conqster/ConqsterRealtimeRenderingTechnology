@@ -22,3 +22,7 @@ Learning Documents
 Shader Files 
 	Move shader files from src/ShaderFile 
 	into Asset folder
+
+FPS issue
+	with main scene runs at 1100 FPS 
+	while Texture Framebuffers scene runs at 167 - 220 FPS, have up 3 render passes. but when most of the objects in the scene is culled frame goes up to 1000 FPS

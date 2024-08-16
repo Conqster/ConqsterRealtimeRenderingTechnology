@@ -38,7 +38,7 @@ void Texture_FrameBufferScene::OnUpdate(float delta_time)
 
 void Texture_FrameBufferScene::OnRender()
 {
-	glViewport(0, 0, window->GetWidth(), window->GetHeight());
+	
 	/////////////////////////////////////////////////////////////////////	
 	// First Pass
 	/////////////////////////////////////////////////////////////////////	
@@ -54,6 +54,7 @@ void Texture_FrameBufferScene::OnRender()
 	// Second Pass
 	/////////////////////////////////////////////////////////////////////	
 	m_Framebuffer.UnBind(); // return back to default buffer
+	glViewport(0, 0, window->GetWidth(), window->GetHeight());
 	glClearColor(m_ClearColourSecondPass.r, m_ClearColourSecondPass.g, m_ClearColourSecondPass.b, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -183,6 +184,11 @@ void Texture_FrameBufferScene::OnRenderUI()
 		ImGui::SliderFloat3("Sphere Scale", &m_SceneSphereTranforms[i].scale.x, 0.1f, 10.0f, "%.1f");
 		ImGui::PopID();
 	}
+
+	ImGui::SeparatorText("Stats");
+	ImGuiIO& io = ImGui::GetIO();
+	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+	//ImGui::Text("Game Time: %f", del);
 
 
 
@@ -360,7 +366,8 @@ void Texture_FrameBufferScene::CreateObjects()
 
 
 	//m_CrateTex = new Texture("Assets/Textures/container.png");
-	m_CrateTex = new Texture("Assets/Textures/brick.png");
+	//m_CrateTex = new Texture("Assets/Textures/brick.png");
+	m_CrateTex = new Texture("Assets/Textures/At Manchester.jpg");
 
 	ShaderFilePath file_path
 					{ "src/ShaderFiles/VertexLearningOpen.glsl",
@@ -387,20 +394,30 @@ void Texture_FrameBufferScene::CreateObjects()
 	////////////////////////////////////
 	m_Sphere.Create();
 
-	uint16_t num_of_sphere = 5;
-	glm::vec3 sphere_pos = glm::vec3(0.0f);
-	glm::vec3 offset = glm::vec3(1.5f, 0.0f, 0.0f);
-	glm::vec3 sphere_scale = glm::vec3(1.0f);
-	float scale_offset = 1.0f;
-	glm::vec3 liftoff_ground = glm::vec3(0.0f, 1.0f, 0.0f);
-	float scale_weight = 0;
+	uint16_t num_of_sphere = 10;
+	glm::vec3 sphere_pos = glm::vec3(-20.0f, 1.0f, 0.0f);
+	float offset = 6.0f;
+	glm::vec3 sphere_scale = glm::vec3(1.5f);
+
+	glm::vec3 new_offset = glm::vec3(0.0f);
 	for (uint16_t i = 0; i < num_of_sphere; i++)
 	{
-		Transform new_sphere_trans;
-		new_sphere_trans.scale = sphere_scale + glm::vec3(1 * i * scale_offset);
-		scale_weight = new_sphere_trans.scale.x;
-		new_sphere_trans.pos = sphere_pos + (liftoff_ground * scale_weight) + (scale_weight * glm::vec3(1.0f, 0.0f, 0.0f) * (offset * (float)i));
-		m_SceneSphereTranforms.push_back(new_sphere_trans);
+		new_offset.x = (float)i * offset;
+
+		for (uint16_t j = 0; j < (num_of_sphere / 2); j++)
+		{
+			new_offset.y = (float)j * offset;
+
+			for (uint16_t k = 0; k < 3; k++)
+			{
+				new_offset.z = (float)k * offset;
+
+				Transform new_sphere_trans;
+				new_sphere_trans.scale = sphere_scale;
+				new_sphere_trans.pos = sphere_pos + new_offset;
+				m_SceneSphereTranforms.push_back(new_sphere_trans);
+			}
+		}
 	}
 
 
@@ -475,7 +492,9 @@ void Texture_FrameBufferScene::DrawObjects(bool depth_test, bool use_rear)
 	/////////////////////////////////////////////////////////////////////
 	glBindVertexArray(m_Cube.VAO);
 	model = glm::translate(model, m_CubeWorTrans.pos);
+	model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 	model = glm::scale(model, m_CubeWorTrans.scale);
+
 
 	m_CrateTex->Activate();
 

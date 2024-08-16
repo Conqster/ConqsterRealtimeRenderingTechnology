@@ -178,7 +178,6 @@
     <ClInclude Include="src\Core\EventHandle.h" />
     <ClInclude Include="src\Graphics\Texture.h" />
     <ClInclude Include="src\Graphics\Meshes\SquareMesh.h" />
-    <ClInclude Include="src\Physics\PhysicsWorld.h" />
     <ClInclude Include="src\Util\GameTime.h" />
     <ClInclude Include="src\Util\MathsHelpers.h" />
     <ClInclude Include="src\Util\Vector.h" />
@@ -226,7 +225,6 @@
     <ClCompile Include="src\Graphics\ObjectBuffer\VertexBuffer.cpp" />
     <ClCompile Include="src\Graphics\TextureCube.cpp" />
     <ClCompile Include="src\LearningOpenGLModel.cpp" />
-    <ClCompile Include="src\Physics\PhysicsWorld.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

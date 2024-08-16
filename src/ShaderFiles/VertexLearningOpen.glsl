@@ -14,6 +14,8 @@ uniform mat4 u_projection;
 uniform mat4 u_model;
 uniform mat4 u_view;
 
+uniform bool u_UsePointSize;
+
 void main()
 {
 	gl_Position = (u_projection * u_view * u_model) * pos;
@@ -22,4 +24,9 @@ void main()
 	v_FragPos = vec3(u_model * pos);
 	v_Normals = mat3(transpose(inverse(u_model))) * normals;
 	v_TexCoord = textureCoord;
+	
+	if(u_UsePointSize && gl_VertexID == 2)
+		gl_PointSize = gl_Position.z;
+	else
+		gl_PointSize = 2.0f;
 }

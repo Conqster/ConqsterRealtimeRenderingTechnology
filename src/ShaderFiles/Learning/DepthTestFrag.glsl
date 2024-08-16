@@ -13,6 +13,7 @@ uniform bool u_DoDepthTest;
 uniform float u_Near;
 float far = 150.0f;
 
+
 float LinearizeDepth(float depth)
 {
 	float z = depth * 2.0f - 1.0f;
@@ -23,7 +24,7 @@ void main()
 {
 	//o_Colour = texture(u_Texture, v_TexCoord) + vec4(1.0f, 1.0f, 1.0f, 1.0f) * intensity;
 	o_Colour = texture(u_Texture, v_TexCoord) * u_Intensity;
-	
+
 	
 	if(!u_DoDepthTest)
 		return;

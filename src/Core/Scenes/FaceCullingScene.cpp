@@ -11,8 +11,8 @@ void FaceCullingScene::OnInit(Window* window)
 	window->UpdateProgramTitle("Face Culling Scene");
 
 	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
-	
+	//glEnable(GL_CULL_FACE);
+	glEnable(GL_PROGRAM_POINT_SIZE);
 
 	if (!m_Camera)
 		m_Camera = new Camera(glm::vec3(0.0f, /*5.0f*/7.0f, -36.0f), glm::vec3(0.0f, 1.0f, 0.0f), 90.0f, 0.0f, 20.0f, 1.0f/*0.5f*/);
@@ -34,7 +34,7 @@ void FaceCullingScene::OnRender()
 	glClearColor(m_ClearScreenColour.r, m_ClearScreenColour.g, m_ClearScreenColour.b, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
+	//glEnable(GL_PROGRAM_POINT_SIZE);
 	shader.Bind();
 	shader.SetUniformMat4f("u_projection", m_Camera->CalculateProjMatrix(window->GetAspectRatio()));
 	shader.SetUniformMat4f("u_view", m_Camera->CalViewMat());
@@ -49,6 +49,14 @@ void FaceCullingScene::OnRender()
 	shader.SetUniform1i("u_DoDepthTest", 0);
 	shader.SetUniform1f("u_Intensity", 1.0f);
 	glDrawArrays(GL_TRIANGLES, 0, 36);
+
+	model = glm::translate(model, glm::vec3(3.0f, 0.0f, 0.0f));
+	shader.SetUniformMat4f("u_model", model);
+	shader.SetUniform1i("u_UsePointSize", 1);
+	//glDrawArrays(GL_TRIANGLES, 0, 36);
+	glDrawArrays(GL_POINTS, 0, 36);
+	//shader.SetUniform1i("u_UsePointSize", 0);
+
 }
 
 void FaceCullingScene::OnRenderUI()

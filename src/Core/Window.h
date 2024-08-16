@@ -32,14 +32,14 @@ public:
 	void ToggleLockCursor();
 	bool WindowShouldClose() const;
 
-	void OnUpdate() const;
+	void OnUpdate();
 
 	void Close() const;
 
 	inline bool const Initilised() { return m_Initilised; }
-	inline unsigned int const GetWidth() { return m_Width; }
-	inline unsigned int const GetHeight() { return m_Height; }
-	inline float const GetAspectRatio() { return (float)m_Width / (float)m_Height; }
+	inline unsigned int const GetWidth() { return m_InitProp.width; }
+	inline unsigned int const GetHeight() { return m_InitProp.height; }
+	inline float const GetAspectRatio() { return (float)m_InitProp.width / (float)m_InitProp.height; }
 	glm::vec2 GetMouseScreenPosition();
 
 	inline bool* const Ptr_LockCursorFlag() { return &m_LockCursor; }
@@ -52,13 +52,16 @@ public:
 
 	~Window();
 private:
-	unsigned int m_Width;
-	unsigned int m_Height;
+	static int m_Width;
+	static int m_Height;
 
 	WindowProperties m_InitProp;
 
 	GLFWwindow* m_Window = nullptr;
 	const char* m_ProgramName = "default";
+
+	static void HandleWindowResizeCallback(GLFWwindow* window, int width, int height);
+	static bool m_OnResize;
 
 	bool m_LockCursor = false;
 	bool m_Initilised = false;

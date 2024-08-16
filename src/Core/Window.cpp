@@ -8,16 +8,21 @@
 
 #include <string>
 
+
+int Window::m_Width;
+int Window::m_Height;
+bool Window::m_OnResize;
+
 Window::Window() 
-	: m_Width(1024), m_Height(768), m_LockCursor(false)
+	:  m_LockCursor(false)
 {}
 
 Window::Window(unsigned int width, unsigned int height)
-	: m_Width(width), m_Height(height), m_LockCursor(false)
+	: m_LockCursor(false)
 {}
 
 Window::Window(unsigned int width, unsigned int height, const char* program_name)
-	: m_Width(width), m_Height(height), m_ProgramName(program_name), m_LockCursor(false)
+	: m_ProgramName(program_name), m_LockCursor(false)
 {}
 
 Window* Window::Create(const WindowProperties& window_prop)
@@ -47,7 +52,7 @@ bool Window::Init()
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-	m_Window = glfwCreateWindow(m_Width, m_Height, m_ProgramName, NULL, NULL);
+	m_Window = glfwCreateWindow(m_InitProp.width, m_InitProp.height, m_ProgramName, NULL, NULL);
 
 	if (!m_Window)
 	{
@@ -61,7 +66,13 @@ bool Window::Init()
 
 	glfwSwapInterval(1);
 
+	//Set glfw callbacks  
 	EventHandle::CreateCallBacks(m_Window);
+
+	//To-do: a quick fix to assign handle for window size call back
+	// had to make it static
+	//glfwSetWindowSizeCallback(m_Window, HandleWindowResizeCallback);
+	glfwSetFramebufferSizeCallback(m_Window, HandleWindowResizeCallback);
 
 	//allow modern extension features
 	glewExperimental = GL_TRUE;
@@ -75,20 +86,6 @@ bool Window::Init()
 		glfwTerminate();
 		return false;
 	}
-
-	//TO_DO: need to take below out later to be defined by scene
-	//glEnable(GL_DEPTH_TEST);
-	//glDepthFunc(GL_LESS);
-	//glEnable(GL_CULL_FACE);
-	//glCullFace(GL_BACK);
-	//glFrontFace(GL_CCW);
-
-	//Setup Viewport size
-	glViewport(0, 0, m_Width, m_Height);
-
-	//glfwSetWindowUserPointer(m_Window, this);
-	float center_x = m_Width * 0.5f;
-	float center_y = m_Height * 0.5f;
 
 
 	glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -110,9 +107,6 @@ void Window::ToggleLockCursor()
 	m_LockCursor = !m_LockCursor;
 	unsigned int cursor_state = (m_LockCursor) ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL;
 	glfwWindowHint(GLFW_CENTER_CURSOR, GL_TRUE);
-	//float center_x = m_Width * 0.5f;
-	//float center_y = m_Height * 0.5f;
-	//glfwSetCursorPos(m_Window, center_x, center_y);
 	glfwSetInputMode(m_Window, GLFW_CURSOR, cursor_state);
 }
 
@@ -136,6 +130,18 @@ void Window::UpdateProgramTitle(const char* title)
 	glfwSetWindowTitle(m_Window, m_ProgramName);
 }
 
+
+void Window::HandleWindowResizeCallback(GLFWwindow* window, int width, int height)
+{
+	m_Width = width;
+	m_Height = height;
+
+	glViewport(0, 0, m_Width, m_Height);
+
+	m_OnResize = true;
+}
+
+
 glm::vec2 Window::GetMouseScreenPosition()
 {
 	double x, y;
@@ -143,8 +149,17 @@ glm::vec2 Window::GetMouseScreenPosition()
 	return glm::vec2(x, y);
 }
 
-void Window::OnUpdate() const
+void Window::OnUpdate()
 {
+	if (m_OnResize)
+	{
+		m_InitProp.width = m_Width;
+		m_InitProp.height = m_Height;
+		
+		m_OnResize = false;
+		std::cout << "Window Resized!!!!!!!!!\n";
+	}
+
 	glfwPollEvents();
 	glfwSwapBuffers(m_Window);
 }

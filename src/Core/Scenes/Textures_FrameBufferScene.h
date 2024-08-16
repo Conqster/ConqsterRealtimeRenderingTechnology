@@ -31,8 +31,8 @@ private:
 
 	Framebuffer m_Framebuffer;
 
-	bool m_FrameCaptureRear = true;
-	bool m_PerfromDepthTest = false;
+	bool m_FrameCaptureRear = false;
+	bool m_PerfromDepthTest = true;
 
 	Shader screenShader;
 	learning::ObjectVertex m_Quad;
