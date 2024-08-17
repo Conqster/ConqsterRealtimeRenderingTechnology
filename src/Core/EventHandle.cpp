@@ -53,6 +53,7 @@ glm::vec2 EventHandle::MousePosition()
 	return m_CurrentMousePos;
 }
 
+
 void EventHandle::HandleKeys(GLFWwindow* window, int key, int code, int action, int mode)
 {
 	//std::cout << " MAIN Called .........\n";
@@ -82,6 +83,9 @@ void EventHandle::HandleMouse(GLFWwindow* window, double xPos, double yPos)
 
 	xChange = xPos - lastX;
 	yChange = lastY - yPos;
+
+	//xChange += xPos - lastX;
+	//yChange += lastY - yPos;
 
 	lastX = xPos;
 	lastY = yPos;

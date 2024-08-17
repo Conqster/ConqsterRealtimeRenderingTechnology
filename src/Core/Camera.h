@@ -36,6 +36,7 @@ public:
 
 	inline float* New_Yaw() { return &m_Yaw; }
 
+
 private:
 
 	void Update();

@@ -104,10 +104,13 @@ void Game::Input()
 	bool program_should_close = m_Window->WindowShouldClose();
 
 
-	if (keys[GLFW_KEY_ESCAPE] || program_should_close)
-	{
+	if ((keys[GLFW_KEY_LEFT_ALT] && keys[GLFW_KEY_F4]) || program_should_close)
 		m_Running = false;
-	}
+
+	//if (keys[GLFW_KEY_ESCAPE] || program_should_close)
+	//{
+	//	m_Running = false;
+	//}
 
 	//int state = EventHandle::GetKeyState(Graphics::GetWindow(), GLFW_KEY_T);
 	static float cooldown;
@@ -120,7 +123,7 @@ void Game::Input()
 		cooldown -= m_Time.DeltaTime();
 
 	static float lock_cooldown;
-	if (keys[GLFW_KEY_L] && lock_cooldown <= 0)
+	if (keys[GLFW_KEY_ESCAPE] && lock_cooldown <= 0)
 	{
 		lock_cooldown = 0.2f;
 		m_Window->ToggleLockCursor();
@@ -131,8 +134,13 @@ void Game::Input()
 
 
 
+	//if (*m_Window->Ptr_LockCursorFlag())
+	//	m_CurrentScene->GetCamera()->Rotate(EventHandle::MousePosition(), (float)m_Window->GetWidth(), (float)m_Window->GetHeight());
+
 	if (*m_Window->Ptr_LockCursorFlag())
-		m_CurrentScene->GetCamera()->Rotate(EventHandle::MousePosition(), (float)m_Window->GetWidth(), (float)m_Window->GetHeight());
+		m_CurrentScene->GetCamera()->Rotate(EventHandle::MouseXChange(), EventHandle::MouseYChange());
+	else
+
 
 
 	//MOVE CAMERA

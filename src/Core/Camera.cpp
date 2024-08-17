@@ -94,6 +94,7 @@ void Camera::SetPosition(glm::vec3 pos)
 	m_Position = pos;
 }
 
+
 void Camera::Update()
 {
 	//m_Front.x = cos(MathsHelper::Deg2Rad(m_Yaw)) * cos(MathsHelper::Deg2Rad(m_Pitch));
