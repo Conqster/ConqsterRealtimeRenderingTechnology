@@ -9,6 +9,8 @@
 #include "External Libs/stb_image/stb_image.h"
 #include "Graphics/RendererErrorAssertion.h"
 
+#include "EventHandle.h"
+
 void Texture_FrameBufferScene::OnInit(Window* window)
 {
 	Scene::OnInit(window);
@@ -105,6 +107,9 @@ void Texture_FrameBufferScene::OnRenderUI()
 	ImGui::Text("Pitch: %f", m_Camera->Ptr_Pitch());
 	ImGui::Text("Yaw: %f", m_Camera->Ptr_Yaw());
 
+	//MOUSE PROP
+	ImGui::Text("Mouse Position, X: %f, Y: %f", EventHandle::MousePosition().x, EventHandle::MousePosition().y);
+
 
 	if (ImGui::TreeNode("Camera Properties"))
 	{
@@ -187,6 +192,7 @@ void Texture_FrameBufferScene::OnRenderUI()
 
 	ImGui::SeparatorText("Stats");
 	ImGuiIO& io = ImGui::GetIO();
+
 	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
 	//ImGui::Text("Game Time: %f", del);
 

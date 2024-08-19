@@ -2,25 +2,43 @@
 #include "glm/glm.hpp"
 
 
+//struct Input_Button_Action
+//{
+//	int button;
+//	int action;
+//};
+
+
+
+constexpr int NUM_BUTTONS = 7;
+constexpr int NUM_ACTIONS = 3;
+constexpr int NUM_KEYS = 1024;
 
 class EventHandle
 {
 public:
 	static void CreateCallBacks(struct GLFWwindow* window);
 
-	static bool* GetKeys();
+	inline static bool* GetKeys() { return keys; }
 	static int GetKeyState(GLFWwindow* window, int key);
+
+	static bool (*GetMouseButton())[3] { return mouseButton; }
 
 	static float MouseXChange();
 	static float MouseYChange();
 
 	static glm::vec2 MousePosition();
+
+	static void PollEvents();
 	
 private: 
 	static void HandleKeys(GLFWwindow* window, int key, int code, int action, int mode);
 	static void HandleMouse(GLFWwindow* window, double xPos, double yPos);
-	static bool keys[1024];
-
+	static void HandleMouseButton(GLFWwindow* window, int button, int action, int mods);
+	
+	static bool keys[NUM_KEYS];
+	static bool mouseButton[NUM_BUTTONS][NUM_ACTIONS];
+	static bool mouseButtonEventCount;
 
 	static float lastX;
 	static float lastY;

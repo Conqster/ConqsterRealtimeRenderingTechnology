@@ -23,6 +23,8 @@ public:
 	Window(uint32_t width, uint32_t height);
 	Window(uint32_t width, uint32_t height, const char* program_name);
 
+	Window(const WindowProperties& window_prop);
+
 
 	Window* Create(const WindowProperties& window_prop);
 

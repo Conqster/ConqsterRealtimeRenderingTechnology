@@ -1,10 +1,15 @@
 #include "EventHandle.h"
 #include "GLFW/glfw3.h"
 #include <iostream>
+#include <cstring>
 
 #include "glm/glm.hpp"
 
-bool EventHandle::keys[1024];
+#include "Util/GameTime.h"
+
+bool EventHandle::keys[NUM_KEYS];
+bool EventHandle::mouseButton[NUM_BUTTONS][NUM_ACTIONS];
+bool EventHandle::mouseButtonEventCount;
 
 float EventHandle::lastX;
 float EventHandle::lastY;
@@ -20,19 +25,18 @@ void EventHandle::CreateCallBacks(GLFWwindow* window)
 	glfwSetKeyCallback(window, HandleKeys);
 	glfwSetCursorPosCallback(window, HandleMouse);
 
-	//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	std::cout << "Created callbacks......\n";
-}
+	glfwSetMouseButtonCallback(window, HandleMouseButton);
 
-bool* EventHandle::GetKeys()
-{
-	return keys;
+	mouseButtonEventCount = sizeof(mouseButton) / sizeof(mouseButton[0][0]);
+
+	std::cout << "Created callbacks......\n";
 }
 
 int EventHandle::GetKeyState(GLFWwindow* window, int key)
 {
 	return glfwGetKey(window, key);
 }
+
 
 float EventHandle::MouseXChange()
 {
@@ -53,11 +57,21 @@ glm::vec2 EventHandle::MousePosition()
 	return m_CurrentMousePos;
 }
 
+void EventHandle::PollEvents()
+{
+	//TimeTaken poll_event_time("Polling Event Time taken");
+
+	memset(mouseButton, 0, sizeof(mouseButton));
+	glfwPollEvents();
+}
+
 
 void EventHandle::HandleKeys(GLFWwindow* window, int key, int code, int action, int mode)
 {
+
+	//To-Do (Fix): a data struture that allow notification of which input and corresponding action
 	//std::cout << " MAIN Called .........\n";
-	if (key >= 0 && key < 1024)
+	if (key >= 0 && key < NUM_KEYS && action >= 0 && action < NUM_ACTIONS)
 	{
 		if (action == GLFW_PRESS)
 		{
@@ -84,8 +98,8 @@ void EventHandle::HandleMouse(GLFWwindow* window, double xPos, double yPos)
 	xChange = xPos - lastX;
 	yChange = lastY - yPos;
 
-	//xChange += xPos - lastX;
-	//yChange += lastY - yPos;
+	xChange += xPos - lastX;
+	yChange += lastY - yPos;
 
 	lastX = xPos;
 	lastY = yPos;
@@ -94,3 +108,14 @@ void EventHandle::HandleMouse(GLFWwindow* window, double xPos, double yPos)
 	m_CurrentMousePos = glm::vec2(xPos, yPos);
 
 }
+
+void EventHandle::HandleMouseButton(GLFWwindow* window, int button, int action, int mods)
+{
+	if (button >= 0 && button < NUM_BUTTONS && action >= 0 && action < NUM_ACTIONS)
+	{
+		mouseButton[button][action] = true;
+	}
+
+
+}
+

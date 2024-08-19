@@ -11,5 +11,10 @@ public:
 	void OnEndFrame();
 	void OnDestroy();
 
+	inline bool* ImGuiWantCaptureMouse() { return m_ImGuiWantCaptureMouse; }
+
 	~UIManager();
+
+private:
+	bool* m_ImGuiWantCaptureMouse;
 };

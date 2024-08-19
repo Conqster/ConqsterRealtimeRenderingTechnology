@@ -29,8 +29,7 @@ void Game::OnStart()
 
 
 
-	m_Window = new Window();
-	m_Window = m_Window->Create(m_WindowProp);
+	m_Window = new Window(m_WindowProp);
 
 	//m_CurrentScene = new MainScene();
 	//m_CurrentScene = new Light_ModelScene();
@@ -77,7 +76,7 @@ void Game::OnEnd()
 {
 	TimeTaken ShuttingDown("Shutting down program");
 
-/*	m_CurrentScene->OnDestroy();
+	/*	m_CurrentScene->OnDestroy();
 	delete m_CurrentScene;*/
 	//m_CurrentScene = nullptr;
 
@@ -100,6 +99,10 @@ void Game::OnEnd()
 void Game::Input()
 {
 	bool* keys = EventHandle::GetKeys();
+	bool (*mouse_buttons)[3] = EventHandle::GetMouseButton();
+	//bool(*key_codes)[3] = EventHandle::GetKeyCodes();
+
+
 
 	bool program_should_close = m_Window->WindowShouldClose();
 
@@ -133,13 +136,17 @@ void Game::Input()
 
 
 
-
 	//if (*m_Window->Ptr_LockCursorFlag())
 	//	m_CurrentScene->GetCamera()->Rotate(EventHandle::MousePosition(), (float)m_Window->GetWidth(), (float)m_Window->GetHeight());
 
 	if (*m_Window->Ptr_LockCursorFlag())
-		m_CurrentScene->GetCamera()->Rotate(EventHandle::MouseXChange(), EventHandle::MouseYChange());
+		m_CurrentScene->GetCamera()->Rotate(EventHandle::MousePosition(), (float)m_Window->GetWidth(), (float)m_Window->GetHeight());
+		//m_CurrentScene->GetCamera()->Rotate(EventHandle::MouseXChange(), EventHandle::MouseYChange());
 	else
+	{
+		if (mouse_buttons[GLFW_MOUSE_BUTTON_LEFT][GLFW_RELEASE] && !*m_UI->ImGuiWantCaptureMouse())
+			m_Window->ToggleLockCursor();
+	}
 
 
 

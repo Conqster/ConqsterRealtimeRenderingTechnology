@@ -19,6 +19,7 @@ void UIManager::OnInit(const class Window& window)
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+	m_ImGuiWantCaptureMouse = &io.WantCaptureMouse;
 	ImGui_ImplGlfw_InitForOpenGL(window.GetNativeWindow(), true);
 	//ImGui::StyleColorsDark();
 	ImGui_ImplOpenGL3_Init("#version 400"); //or version 430
@@ -40,6 +41,7 @@ void UIManager::OnEndFrame()
 void UIManager::OnDestroy()
 {
 	//TimeTaken ShuttingDown("Shutting down program");
+	m_ImGuiWantCaptureMouse = nullptr;     //Didnt use the new keyword so its fine 
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();
@@ -49,4 +51,5 @@ UIManager::~UIManager()
 {
 	//fix late
 	//OnDestroy();
+
 }

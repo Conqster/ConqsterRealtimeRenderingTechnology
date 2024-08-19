@@ -25,6 +25,18 @@ Window::Window(unsigned int width, unsigned int height, const char* program_name
 	: m_ProgramName(program_name), m_LockCursor(false)
 {}
 
+Window::Window(const WindowProperties& window_prop)
+	: m_LockCursor(false)
+{
+	m_Width = window_prop.width;
+	m_Height = window_prop.height;
+	m_ProgramName = window_prop.title;
+
+	m_InitProp = window_prop;
+
+	Init();
+}
+
 Window* Window::Create(const WindowProperties& window_prop)
 {
 	m_Width = window_prop.width;
@@ -88,10 +100,10 @@ bool Window::Init()
 	}
 
 
-	glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	//glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	//glfwSetCursorPos(m_Window, center_x, center_y);
 	glfwWindowHint(GLFW_CENTER_CURSOR, GL_TRUE);
-	m_LockCursor = true;
+	//m_LockCursor = true;
 
 	m_Initilised = true;
 	return true;
@@ -160,7 +172,7 @@ void Window::OnUpdate()
 		std::cout << "Window Resized!!!!!!!!!\n";
 	}
 
-	glfwPollEvents();
+	EventHandle::PollEvents();
 	glfwSwapBuffers(m_Window);
 }
 
