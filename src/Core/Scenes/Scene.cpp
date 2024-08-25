@@ -38,8 +38,3 @@ void Scene::SetWindow(Window* window)
 		window = nullptr;
 
 	}
-
-	Scene::~Scene()
-	{
-
-	}

@@ -87,6 +87,11 @@ void Camera::Rotate(glm::vec2 mouse_pos, float height, float width)
 	Update();
 }
 
+void Camera::NewRotate(glm::vec2 mouse_pos)
+{
+
+}
+
 
 
 void Camera::SetPosition(glm::vec3 pos)
@@ -95,16 +100,9 @@ void Camera::SetPosition(glm::vec3 pos)
 }
 
 
+
 void Camera::Update()
 {
-	//m_Front.x = cos(MathsHelper::Deg2Rad(m_Yaw)) * cos(MathsHelper::Deg2Rad(m_Pitch));
-	//m_Front.y = sin(MathsHelper::Deg2Rad(m_Pitch));
-	//m_Front.z = sin(MathsHelper::Deg2Rad(m_Yaw)) * cos(MathsHelper::Deg2Rad(m_Pitch));
-	//m_Front.Normalize();
-
-	//m_Right = (m_Front.Cross(m_WorldUp)).Normalize();
-	//m_Up = (m_Right.Cross(m_Front)).Normalize();
-
 	m_Front.x = cos(glm::radians(m_Yaw)) * cos(glm::radians(m_Pitch));
 	m_Front.y = sin(glm::radians(m_Pitch));
 	m_Front.z = sin(glm::radians(m_Yaw)) * cos(glm::radians(m_Pitch));

@@ -56,6 +56,9 @@ private:
 	Shader m_ObjectSampleReflect;
 
 	SphereMesh m_Sphere;
+	Texture* m_SphereTex;
+	float m_SkyboxInfluencity = 0.5f;
+	glm::vec3 m_TextureColour = glm::vec3(0.0f, 0.0f, 1.0f);
 
 
 	struct Transform

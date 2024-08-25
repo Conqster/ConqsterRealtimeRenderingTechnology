@@ -162,6 +162,7 @@
     <ClInclude Include="src\Graphics\Lights\NewLights.h" />
     <ClInclude Include="src\Graphics\NewMaterial.h" />
     <ClInclude Include="src\Graphics\ObjectBuffer\Framebuffer.h" />
+    <ClInclude Include="src\Graphics\ObjectBuffer\UniformBuffer.h" />
     <ClInclude Include="src\Graphics\Shader.h" />
     <ClInclude Include="src\Graphics\Skybox.h" />
     <ClInclude Include="src\Graphics\TextureCube.h" />
@@ -209,6 +210,7 @@
     <ClCompile Include="src\Graphics\Lights\NewLights.cpp" />
     <ClCompile Include="src\Graphics\NewMaterial.cpp" />
     <ClCompile Include="src\Graphics\ObjectBuffer\Framebuffer.cpp" />
+    <ClCompile Include="src\Graphics\ObjectBuffer\UniformBuffer.cpp" />
     <ClCompile Include="src\Graphics\Shader.cpp" />
     <ClCompile Include="src\Graphics\Meshes\CubeMesh.cpp" />
     <ClCompile Include="src\Graphics\Meshes\Mesh.cpp" />

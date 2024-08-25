@@ -24,7 +24,7 @@
 
 		virtual void OnDestroy();
 
-		~Scene();
+		virtual ~Scene() = default;
 	protected:
 		Camera* m_Camera = nullptr;
 		Window* window = nullptr;

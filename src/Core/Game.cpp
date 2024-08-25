@@ -34,8 +34,8 @@ void Game::OnStart()
 	//m_CurrentScene = new MainScene();
 	//m_CurrentScene = new Light_ModelScene();
 	//m_CurrentScene = new AdvanceOpenGLScene();
-	//m_CurrentScene = new FaceCullingScene();
-	m_CurrentScene = new Texture_FrameBufferScene();
+	m_CurrentScene = new FaceCullingScene();
+	//m_CurrentScene = new Texture_FrameBufferScene();
 
 	if (m_Window && m_CurrentScene)
 	{
@@ -76,9 +76,9 @@ void Game::OnEnd()
 {
 	TimeTaken ShuttingDown("Shutting down program");
 
-	/*	m_CurrentScene->OnDestroy();
-	delete m_CurrentScene;*/
-	//m_CurrentScene = nullptr;
+	m_CurrentScene->OnDestroy();
+	delete m_CurrentScene;
+	m_CurrentScene = nullptr;
 
 	if (m_UI)
 	{

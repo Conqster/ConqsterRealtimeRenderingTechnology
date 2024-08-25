@@ -25,8 +25,6 @@ void main()
 	v_Normals = mat3(transpose(inverse(u_model))) * normals;
 	v_TexCoord = textureCoord;
 	
-	if(u_UsePointSize && gl_VertexID == 2)
+	if(u_UsePointSize)
 		gl_PointSize = gl_Position.z;
-	else
-		gl_PointSize = 2.0f;
 }

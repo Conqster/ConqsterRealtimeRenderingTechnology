@@ -4,6 +4,8 @@
 #include "LearningOpenGLModel.h"
 #include "Graphics/Shader.h"
 
+#include "Graphics/ObjectBuffer/UniformBuffer.h"
+
 
 class FaceCullingScene : public Scene
 {
@@ -18,14 +20,19 @@ public:
 
 	virtual void OnDestroy() override;
 
-	~FaceCullingScene();
+	~FaceCullingScene() override;
 
 
 private:
 	learning::ObjectVertex m_Cube;
 	class Texture* crateTex;
 
-	Shader shader;
+	Shader m_DefaultShader;
+	Shader m_Obj1Shader;
+	Shader m_Obj2Shader;
+	Shader m_Obj3Shader;
 
 	void CreateObjects();
+
+	UniformBuffer m_CameraMatUBO;
 };

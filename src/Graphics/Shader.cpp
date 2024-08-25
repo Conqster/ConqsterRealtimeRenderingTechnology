@@ -43,7 +43,7 @@
 
 		if (!fileStream.is_open())
 		{
-			printf("[Reading Shader]: Failed to read %s, file doesn't exist.", shader_file);
+			printf("[Reading Shader File]: Failed to read %s, file doesn't exist.", shader_file);
 			return "";
 		}
 
@@ -81,7 +81,7 @@
 		if (!result)
 		{
 			glGetProgramInfoLog(m_ProgramID, sizeof(eLog), NULL, eLog);
-			printf("Error validating program: '%s'\n", eLog);
+			printf("[ERROR VALIDATING PROGRAM]: '%s'\n", eLog);
 			return false;
 		}
 
@@ -154,7 +154,7 @@
 	Shader::~Shader()
 	{
 		Clear();
-		printf("I have been kick out \n");
+		printf("[SHADER]: Closed/deleting \n");
 	}
 
 	void Shader::Clear()

@@ -83,7 +83,7 @@ bool TextureCube::LoadTexture(const std::vector<std::string>& fileLoc)
 
 void TextureCube::Activate(uint16_t slot) const
 {
-	//GLCall(glActiveTexture(GL_TEXTURE0 + slot));
+	GLCall(glActiveTexture(GL_TEXTURE0 + slot));
 	GLCall(glBindTexture(GL_TEXTURE_CUBE_MAP, m_Id));
 }
 

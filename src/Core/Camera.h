@@ -27,6 +27,8 @@ public:
 	void Translate(glm::vec3 direction, float dt);
 	void Rotate(float dt_yaw, float dt_pitch);
 	void Rotate(glm::vec2 mouse_pos, float height, float width);
+	void NewRotate(glm::vec2 mouse_pos);
+
 	void SetPosition(glm::vec3 pos);
 
 	inline float* const Ptr_MoveSpeed() { return &m_MoveSpeed; }
@@ -58,5 +60,7 @@ private:
 	float m_FOV = 45.0f;
 	float m_Near = 0.1f;
 	float m_Far = 150.0f;
+
+	glm::vec3 m_InitialMousePos = glm::vec3(0.0f);
 
 };

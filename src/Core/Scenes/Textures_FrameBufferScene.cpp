@@ -152,6 +152,12 @@ void Texture_FrameBufferScene::OnRenderUI()
 	ImGui::ColorEdit3("clear Screen Colour", &m_ClearScreenColour[0]);
 	ImGui::ColorEdit3("clear Second Pass Colour", &m_ClearColourSecondPass[0]);
 
+
+	ImGui::Spacing();
+	ImGui::SliderFloat("Object Sample skybox influencity", &m_SkyboxInfluencity, 0.0f, 1.0f, "%.1f");
+	ImGui::ColorEdit3("Object Texture Colour", &m_TextureColour[0]);
+	ImGui::Spacing();
+
 	ImGui::ColorEdit3("texture colour", &m_PlayColourFBOTexture[0]);
 
 	ImGui::SeparatorText("Frame buffer Properties");
@@ -211,6 +217,10 @@ void Texture_FrameBufferScene::OnDestroy()
 	delete m_CrateTex;
 	m_CrateTex = nullptr;
 
+	m_SphereTex->UnRegisterUse();
+	delete m_SphereTex;
+	m_SphereTex = nullptr;
+
 	glDeleteVertexArrays(1, &m_Quad.VAO);
 	glDeleteVertexArrays(1, &m_Cube.VAO);
 	glDeleteVertexArrays(1, &m_Plane.VAO);
@@ -254,7 +264,8 @@ void Texture_FrameBufferScene::CreateObjects()
 		"Assets/Textures/Skyboxes/envmap_stormydays/back.tga"
 	};
 
-	m_DefaultSkybox.Create(skybox_faces_2);
+	m_DefaultSkybox.Create(def_skybox_faces);
+	//m_DefaultSkybox.Create(skybox_faces_2);
 
 	
 	///////////////////////////////////////////////////////////////////////
@@ -399,6 +410,7 @@ void Texture_FrameBufferScene::CreateObjects()
 	// Create Spheres
 	////////////////////////////////////
 	m_Sphere.Create();
+	m_SphereTex = new Texture("Assets/Textures/plain64.png");
 
 	uint16_t num_of_sphere = 10;
 	glm::vec3 sphere_pos = glm::vec3(-20.0f, 1.0f, 0.0f);
@@ -579,6 +591,10 @@ void Texture_FrameBufferScene::DrawObjects(bool depth_test, bool use_rear)
 
 
 	////Object 2. Multiple Sphere
+	//Sphere texture 
+	m_SphereTex->Activate(1);
+	m_ObjectSampleReflect.SetUniform1f("u_SkyboxInfluencity", m_SkyboxInfluencity);
+	m_ObjectSampleReflect.SetUniformVec3("u_TextureColour", m_TextureColour);
 	for (size_t i = 0; i < m_SceneSphereTranforms.size(); i++)
 	{
 		sample_model = glm::mat4(1.0f);
