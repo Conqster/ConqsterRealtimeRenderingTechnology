@@ -1,9 +1,5 @@
 #pragma once
 
-
-
-
-
 class UniformBuffer
 {
 	unsigned int m_ID = 0;

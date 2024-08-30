@@ -13,6 +13,7 @@ public:
 
 	void Bind();
 	void UnBind();
+	void Delete();
 
 	void BindTexture(unsigned int slot = 0);
 

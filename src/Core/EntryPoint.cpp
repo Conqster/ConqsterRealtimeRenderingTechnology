@@ -9,6 +9,6 @@ int main()
 	new_game->OnStart();
 	new_game->Run();
 
-	std::cin.get();
-	//return 0;
+	//std::cin.get();
+	return 0;
 }

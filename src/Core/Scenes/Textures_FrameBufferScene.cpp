@@ -10,6 +10,9 @@
 #include "Graphics/RendererErrorAssertion.h"
 
 #include "EventHandle.h"
+#include "SceneManager.h"
+
+
 
 void Texture_FrameBufferScene::OnInit(Window* window)
 {
@@ -88,6 +91,7 @@ void Texture_FrameBufferScene::OnRender()
 
 void Texture_FrameBufferScene::OnRenderUI()
 {
+
 	ImGui::Begin("Debug Texture FrameBuffer");
 
 	ImGui::SeparatorText("Window info");
@@ -230,12 +234,16 @@ void Texture_FrameBufferScene::OnDestroy()
 	glDeleteBuffers(1, &m_Plane.VBO);
 
 
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+
+	//m_Framebuffer.UnBind();
+	m_Framebuffer.Delete();
 	Scene::OnDestroy();
 }
 
 Texture_FrameBufferScene::~Texture_FrameBufferScene()
 {
-
 
 }
 
@@ -622,3 +630,14 @@ void Texture_FrameBufferScene::DrawObjects(bool depth_test, bool use_rear)
 		m_DefaultSkybox.Draw(*m_Camera, *window);
 
 }
+
+//
+//void Texture_FrameBufferScene::RegisterScene(const char* name)
+//{
+//	SceneManager::Instance().RegisterScene(name, []() -> Scene*
+//		{
+//			return new Texture_FrameBufferScene();
+//		});
+//
+//	std::cout << "register Texture_FrameBufferScene!!!!!!!!!!!!\n";
+//}

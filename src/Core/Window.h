@@ -30,11 +30,13 @@ public:
 
 	bool Init();
 
+	void ClearScreen(glm::vec3 colour) const;
 	void SwapBuffers() const;
 	void ToggleLockCursor();
 	bool WindowShouldClose() const;
 
-	void OnUpdate();
+	void OnUpdate(bool full = true);
+	void OnWaitUpdate();
 
 	void Close() const;
 

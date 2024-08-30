@@ -1,7 +1,6 @@
 #include "UniformBuffer.h"
 
 #include "..\RendererErrorAssertion.h"
-#include <iostream>
 
 UniformBuffer::UniformBuffer(signed long long int size)
 {
@@ -11,8 +10,6 @@ UniformBuffer::UniformBuffer(signed long long int size)
 UniformBuffer::~UniformBuffer()
 {
 	glDeleteBuffers(1, &m_ID);
-
-	std::cout << "Deleted uniform buffer!!!!!!!!!!!!!!!!!!!!!!!!\n";
 }
 
 void UniformBuffer::Generate(signed long long int size)

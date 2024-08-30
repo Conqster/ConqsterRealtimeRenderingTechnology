@@ -34,3 +34,15 @@ Square Mesh are constructed with two CCW winded triangles with their normals fac
 |<a href="https://youtu.be/g5ODVj54HSU"><img src = "https://img.youtube.com/vi/g5ODVj54HSU/0.jpg"/>|
 |:-|
 |<p align = "center"> *A Youtube video of Sphere segment adjustment.* </p>|
+
+### Previous Scene Creation Method 
+
+```
+      //Game.h
+  Scene* m_CurrentScene;
+  ...
+  ...
+      //Game.cpp
+//m_CurrentScene = new MainScene();
+m_CurrentScene = new Light_ModelScene();
+ ```

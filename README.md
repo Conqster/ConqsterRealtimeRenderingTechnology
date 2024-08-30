@@ -18,12 +18,34 @@ Currently, a build script is not included, you can build directly in VS communit
 
 ```
       //Game.h
-  Scene* m_CurrentScene;
+  Scene* m_CurrentScene = nullptr;
+  SceneManager* m_SceneManager = nullptr;
   ...
   ...
-      //Game.cpp
-//m_CurrentScene = new MainScene();
-m_CurrentScene = new Light_ModelScene();
+      //Game.cpp {function Init();}
+m_SceneManger = new SceneManager();
+
+//Resigter new scene in manager my passing a template class, 
+//and a unique character array as key for loading scene.
+m_SceneManger->RegisterNewScene<MainScene>("Main Scene");
+m_SceneManager->RegisterNewScene<Texture_FrameBufferScene>("Haha Frame buffer");
+
+//To load & store/retrive a registered scene
+// ->LoadScene(const char name_key, Window* window_to_use), 
+//returns null if "name_key" scene dont exist.
+m_CurrentScene = m_SceneManager->LoadScene("Haha Frame buffer", m_Window);
+...
+...
+...
+//To dynamically unload scene and load another
+m_CurrentScene->OnDestroy();
+m_CurrentScene = nullptr;
+
+//m_SceneManager->ScenesByName()[1], key_name are stored in an array
+//which can be retieved to load by index .
+m_CurrentScene = m_SceneManager->LoadScene(m_SceneManager->ScenesByName()[1], m_Window);
+		
+
  ```
 
 The Base Scene is a basic wrapper around OpenGL functions and window creation, aiding my learning journey by allowing easy jumps into new rendering techniques without overwriting previous learnt techniques. 
@@ -99,5 +121,5 @@ For more detailed information, please refer to the [Detailed Documentation](Read
 - [learnopengl.com](https://learnopengl.com/Getting-started)
 - [The Cherno C++ videos](https://www.youtube.com/playlist?list=PLlrATfBNZ98dudnM48yfGUldqGD0S4FFb)
 - OpenGl Programming Guide 9th Edition (Red Book)
-- Mathematics for 3D Game Programming and Computer Graphics.
-
+- Mathematics for 3D Game Programming and Computer Graphics - Eric Lengyel.
+- Foundations of Game Engine Development (Volume 2 - Rendering) Eric Lengyel

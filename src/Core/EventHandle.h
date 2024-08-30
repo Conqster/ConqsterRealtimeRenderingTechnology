@@ -30,6 +30,7 @@ public:
 	static glm::vec2 MousePosition();
 
 	static void PollEvents();
+	static void WaitPollEvents();
 	
 private: 
 	static void HandleKeys(GLFWwindow* window, int key, int code, int action, int mode);

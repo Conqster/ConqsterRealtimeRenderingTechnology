@@ -109,6 +109,12 @@ bool Window::Init()
 	return true;
 }
 
+void Window::ClearScreen(glm::vec3 colour) const
+{
+	glClearColor(colour.r, colour.g, colour.b, 0.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
 void Window::SwapBuffers() const
 {
 	glfwSwapBuffers(m_Window);
@@ -161,7 +167,7 @@ glm::vec2 Window::GetMouseScreenPosition()
 	return glm::vec2(x, y);
 }
 
-void Window::OnUpdate()
+void Window::OnUpdate(bool full)
 {
 	if (m_OnResize)
 	{
@@ -172,9 +178,19 @@ void Window::OnUpdate()
 		std::cout << "Window Resized!!!!!!!!!\n";
 	}
 
-	EventHandle::PollEvents();
+	if (full)
+		EventHandle::PollEvents();
+	else
+		EventHandle::WaitPollEvents();
+
 	glfwSwapBuffers(m_Window);
 }
+
+void Window::OnWaitUpdate()
+{
+	OnUpdate(false);
+}
+
 
 Window::~Window()
 {

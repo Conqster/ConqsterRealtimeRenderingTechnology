@@ -15,6 +15,7 @@ class Texture_FrameBufferScene : public Scene
 public:
 	Texture_FrameBufferScene() = default;
 	
+	//static void RegisterSceneImpl(const char* name);
 
 	virtual void OnInit(Window* window) override;
 	virtual void OnUpdate(float delta_time) override;

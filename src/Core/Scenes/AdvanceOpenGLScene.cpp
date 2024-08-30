@@ -5,6 +5,8 @@
 
 #include "Graphics/Meshes/SquareMesh.h"
 
+#include "Scenes/SceneManager.h"
+
 void AdvanceOpenGLScene::OnInit(Window* window)
 {
 	Scene::OnInit(window);
@@ -342,3 +344,11 @@ void AdvanceOpenGLScene::CreateObjects()
 	grassShader.Create("grass_shader", grass_file_path);
 }
  
+//
+//static void RegisterScene(const char* name)
+//{
+//	SceneManager::Instance().RegisterScene(name, []() -> Scene*
+//		{
+//			return new AdvanceOpenGLScene();
+//		});
+//}

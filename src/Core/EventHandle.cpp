@@ -65,6 +65,12 @@ void EventHandle::PollEvents()
 	glfwPollEvents();
 }
 
+void EventHandle::WaitPollEvents()
+{
+	memset(mouseButton, 0, sizeof(mouseButton));
+	glfwWaitEvents();
+}
+
 
 void EventHandle::HandleKeys(GLFWwindow* window, int key, int code, int action, int mode)
 {

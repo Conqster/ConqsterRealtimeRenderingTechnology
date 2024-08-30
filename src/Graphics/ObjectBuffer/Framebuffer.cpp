@@ -15,12 +15,7 @@ Framebuffer::Framebuffer(unsigned int width, unsigned int height) : m_Width(widt
 
 Framebuffer::~Framebuffer()
 {
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glDeleteFramebuffers(1, &m_ID);
-
-	glDeleteRenderbuffers(1, &m_RenderbufferID);
-
-	glDeleteTextures(1, &m_TextureID);        //delete frame texture/ texture attached to frame buffer
+	Delete();
 }
 
 bool Framebuffer::Generate()
@@ -79,6 +74,16 @@ void Framebuffer::Bind()
 void Framebuffer::UnBind()
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void Framebuffer::Delete()
+{
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glDeleteFramebuffers(1, &m_ID);
+
+	glDeleteRenderbuffers(1, &m_RenderbufferID);
+
+	glDeleteTextures(1, &m_TextureID);        //delete frame texture/ texture attached to frame buffer
 }
 
 void Framebuffer::BindTexture(unsigned int slot)
