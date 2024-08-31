@@ -9,8 +9,11 @@
 
 struct ShaderFilePath
 {
-	const std::string& vertexPath;
-	const std::string& fragmentPath;
+	const std::string& vertexPath = "";
+	const std::string& fragmentPath = "";
+
+	//special shaders 
+	const std::string& geometryPath = "";
 };
 
 
@@ -21,6 +24,7 @@ private:
 	//NewShaderFilePath m_ShaderFilePath{"", ""}; do not use
 	std::string m_VertexFilePath = "";
 	std::string m_FragFilePath = "";
+	std::string m_GeometryFilePath = "";
 	const char* m_Name = "";
 
 	std::unordered_map<std::string, int> cacheUniformLocations = std::unordered_map<std::string, int>();
@@ -52,7 +56,7 @@ public:
 private: 
 	unsigned int CompileShader(GLenum shader_type, const std::string& source);
 	std::string ReadFile(const std::string& shader_file);
-	bool CreateFromCode(const char* vCode, const char* fCode);
+	bool CreateFromCode(const char* vCode, const char* fCode, const std::string& gCode); //fix later, passing geometry as string to check .empty
 
 	int GetUniformLocation(const char* name);
 };

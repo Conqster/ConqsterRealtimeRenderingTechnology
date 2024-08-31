@@ -8,8 +8,9 @@
 	{
 		switch (shaderType)
 		{
-		case GL_VERTEX_SHADER: return "Vertex Shader";
-		case GL_FRAGMENT_SHADER: return "Fragmant Shader";
+			case GL_VERTEX_SHADER: return "Vertex Shader";
+			case GL_FRAGMENT_SHADER: return "Fragmant Shader";
+			case GL_GEOMETRY_SHADER: return "Geometry Shader";
 
 			return "Not registed shader type";
 		}
@@ -21,6 +22,7 @@
 		m_Name = name;
 		m_FragFilePath = file_paths.fragmentPath;
 		m_VertexFilePath = file_paths.vertexPath;
+		m_GeometryFilePath = file_paths.geometryPath;
 		return CreateFromFile(file_paths);
 	}
 
@@ -32,7 +34,12 @@
 		std::string vString = ReadFile(file_paths.vertexPath);
 		std::string fString = ReadFile(file_paths.fragmentPath);
 
-		return CreateFromCode(vString.c_str(), fString.c_str());
+		//special shaders 
+		std::string gString = "";
+		if (!file_paths.geometryPath.empty())
+			gString = ReadFile(file_paths.geometryPath);
+
+		return CreateFromCode(vString.c_str(), fString.c_str(), gString);
 	}
 
 
@@ -59,7 +66,7 @@
 	}
 
 
-	bool Shader::CreateFromCode(const char* vCode, const char* fCode)
+	bool Shader::CreateFromCode(const char* vCode, const char* fCode, const std::string& gCode)
 	{
 		m_ProgramID = glCreateProgram();
 		printf("Thge shader program Id is %d\n", m_ProgramID);
@@ -69,6 +76,14 @@
 
 		GLCall(glAttachShader(m_ProgramID, vshader));
 		GLCall(glAttachShader(m_ProgramID, fshader));
+
+		//Special shaders 
+		GLuint gshader;
+		if (!gCode.empty())
+		{
+			gshader = CompileShader(GL_GEOMETRY_SHADER, gCode);
+			GLCall(glAttachShader(m_ProgramID, gshader));
+		}
 
 		glLinkProgram(m_ProgramID);
 		glValidateProgram(m_ProgramID);
@@ -88,6 +103,14 @@
 		//glUseProgram(program);
 		GLCall(glDeleteShader(vshader));
 		GLCall(glDeleteShader(fshader));
+
+
+		//speical shaders
+		if (!gCode.empty())
+		{
+			GLCall(glDeleteShader(gshader));
+		}
+
 
 
 		return true;
@@ -176,6 +199,7 @@
 		{
 			case GL_VERTEX_SHADER: return m_VertexFilePath.c_str();
 			case GL_FRAGMENT_SHADER: return m_FragFilePath.c_str();
+			case GL_GEOMETRY_SHADER: return m_GeometryFilePath.c_str();
 
 			return "Not a registered shader";
 		}

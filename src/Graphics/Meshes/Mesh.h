@@ -52,6 +52,7 @@ public:
 	inline std::vector<Vertex> const GetVertices() { return m_Vertices; }
 
 	inline VertexArray* const GetVAO() { return &VAO; }
+	inline IndexBuffer* const GetIBO() { return &IBO; }
 
 	inline unsigned int const GetVerticesCount() const { return m_Vertices.size();}
 private: 
