@@ -5,50 +5,45 @@ Welcome to my ongoing experimental learning project showcasing rendering techniq
 ## Quick Start
 Visual Studio 2022 was used for the development, with an x86/Debug and Windows build.
 
-<ins>**1. Downloading the repository:**</ins>
+### 1. Downloading the repository
 
 Start by downloading a Zip from the "<> Code" option.
 
-<ins>**2. Usage:**</ins>
+### 2. Building the Project
 
-Currently, a build script is not included, you can build directly in VS community (F5): 
+A build script is not included. You can build the project directly in Visual Studio Community Edition (Press F5): 
 
-- Build in Release/Debug Config, supporting platform x86.
-- Multiple scene are abstracted into multiple classes. To switch scenes, go to the .cpp class ([Game.cpp](src/Core/Game.cpp)) and change the current Scene pointer OnStart function. See current available scenes.
+- Build Configuration: Choose either Release or Debug.
+- Supported Platform: x86.
+### 3. Using Scene Manager
+The project uses a `SceneManager` to handle multiple scene, each abstracted into separate classes. 
 
+#### Registering Scenes
+Scenes are registed with the `SceneManager` using a template class and a uniques string key for later retrieval.
+In `Game.cpp` (within the Init function):
 ```
-      //Game.h
-  Scene* m_CurrentScene = nullptr;
-  SceneManager* m_SceneManager = nullptr;
-  ...
-  ...
-      //Game.cpp {function Init();}
+//Initialise scene manager
 m_SceneManger = new SceneManager();
 
-//Resigter new scene in manager my passing a template class, 
-//and a unique character array as key for loading scene.
+//Register scenes with a unique key
 m_SceneManger->RegisterNewScene<MainScene>("Main Scene");
 m_SceneManager->RegisterNewScene<Texture_FrameBufferScene>("Haha Frame buffer");
-
-//To load & store/retrive a registered scene
-// ->LoadScene(const char name_key, Window* window_to_use), 
-//returns null if "name_key" scene dont exist.
+```
+#### Loading and Storing Scenes:
+To load a registered scene, use `LoadScene(const std::string& name_key, Window* window)`. This method returns `nullptr` if the scene associated with `name_key` doesn't exist:
+ ```
 m_CurrentScene = m_SceneManager->LoadScene("Haha Frame buffer", m_Window);
-...
-...
-...
-//To dynamically unload scene and load another
+```
+#### Dynamically Unloading and Loading Scenes:
+To unload the current scene and load another:
+ ```
 m_CurrentScene->OnDestroy();
 m_CurrentScene = nullptr;
-
-//m_SceneManager->ScenesByName()[1], key_name are stored in an array
-//which can be retieved to load by index .
-m_CurrentScene = m_SceneManager->LoadScene(m_SceneManager->ScenesByName()[1], m_Window);
-		
-
+m_CurrentScene = m_SceneManager->LoadScene(m_SceneManager->ScenesByNamePtr()[1], m_Window);
  ```
-
-The Base Scene is a basic wrapper around OpenGL functions and window creation, aiding my learning journey by allowing easy jumps into new rendering techniques without overwriting previous learnt techniques. 
+You can also access scenes by index: `ScenesByNamePrt()` returns an array of scene names, which can be used to load scenes dynamically by their index.
+### 4. Scene
+The Base `Scene` class is a wrapper around OpenGL functions and window creation, designed to facilitate learning by allowing you to experiment with new rendering techniques without overwriting previous leaned methods.
 
 |<a href="https://www.youtube.com/watch?v=9skO5a-XUGg"><img src = "ReadMe_Docs/Computer Graphics.png"/>|
 |:-|
