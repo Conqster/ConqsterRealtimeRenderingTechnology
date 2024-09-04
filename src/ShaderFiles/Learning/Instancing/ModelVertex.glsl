@@ -9,24 +9,21 @@ layout (std140)  uniform u_CameraMat
 {
 	mat4 projection;
 	mat4 view;
+	vec2 screen_res;
 };
-
-
-out vec4 v_Colour;
 
 out VS_OUT
 {
 	vec4 colour;
+	vec2 tex_coord;
 }vs_out;
 
 uniform mat4 u_Model;
 
-
 void main()
 {
 	gl_Position = projection * view * u_Model * pos;
-	gl_Position = vec4(pos.x, pos.y, 0.0f, 1.0f);
 	
-	v_Colour = col;
 	vs_out.colour = col;
+	vs_out.tex_coord = uv;
 }

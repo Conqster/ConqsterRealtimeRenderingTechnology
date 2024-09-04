@@ -39,11 +39,14 @@ void Texture::UnRegisterUse()
 		Clear();
 }
 
-bool Texture::LoadTexture(const std::string& fileLoc)
+bool Texture::LoadTexture(const std::string& fileLoc, TextureType type)
 {
 	m_FileLocation = fileLoc;
+	m_type = type;
 	//stbi_set_flip_vertically_on_load(0);
-	m_LocalBuffer = stbi_load(fileLoc.c_str(), &m_Width, &m_Height, &m_BitDepth, 4);
+	int nrComponent;
+	//m_LocalBuffer = stbi_load(fileLoc.c_str(), &m_Width, &m_Height, &m_BitDepth, 4);
+	m_LocalBuffer = stbi_load(fileLoc.c_str(), &m_Width, &m_Height, &nrComponent, 0);
 
 	if (!m_LocalBuffer)
 	{
@@ -71,7 +74,25 @@ bool Texture::LoadTexture(const std::string& fileLoc)
 	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
 	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
 
-	GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_Width, m_Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_LocalBuffer));
+	//TO-Do: needs clean up
+	GLenum format;
+	switch (nrComponent)
+	{
+	case 1:
+		format = GL_RED;
+		break;
+	case 3:
+		format = GL_RGB;
+		break;
+	case 4:
+		format = GL_RGBA;
+		break;
+	default:
+		break;
+	}
+
+	//GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_Width, m_Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_LocalBuffer));
+	GLCall(glTexImage2D(GL_TEXTURE_2D, 0, format, m_Width, m_Height, 0, format, GL_UNSIGNED_BYTE, m_LocalBuffer));
 	glGenerateMipmap(GL_TEXTURE_2D);
 
 	GLCall(glBindTexture(GL_TEXTURE_2D, 0));

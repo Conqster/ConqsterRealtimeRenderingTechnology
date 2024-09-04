@@ -13,6 +13,7 @@
 #include "Scenes/FaceCullingScene.h"
 #include "Scenes/Textures_FrameBufferScene.h"
 #include "Scenes/GeometryScene.h"
+#include "Scenes/InstancingScene.h"
 
 //FOR TESTING: Remove later
 #include "External Libs/imgui/imgui.h"
@@ -39,14 +40,16 @@ void Game::OnStart()
 	//Register scenes
 	m_SceneManager = new SceneManager();
 	m_SceneManager->RegisterNewScene<MainScene>("Main Scene");
-	m_SceneManager->RegisterNewScene<Texture_FrameBufferScene>("Texture_FrameBufferScene");
-	m_SceneManager->RegisterNewScene<Light_ModelScene>("Light Model");
-	m_SceneManager->RegisterNewScene<AdvanceOpenGLScene>("Advance Scene");
-	m_SceneManager->RegisterNewScene<FaceCullingScene>("Face Culling");
+	//m_SceneManager->RegisterNewScene<Texture_FrameBufferScene>("Texture_FrameBufferScene");
+	//m_SceneManager->RegisterNewScene<Light_ModelScene>("Light Model");
+	//m_SceneManager->RegisterNewScene<AdvanceOpenGLScene>("Advance Scene");
+	//m_SceneManager->RegisterNewScene<FaceCullingScene>("Face Culling");
 	m_SceneManager->RegisterNewScene<GeometryScene>("Geometry Scene");
+	m_SceneManager->RegisterNewScene<InstancingScene>("Instance Scene");
 
 	//Load
-	m_CurrentScene = m_SceneManager->LoadScene("Geometry Scene", m_Window);
+	m_CurrentScene = m_SceneManager->LoadScene("Instance Scene", m_Window);
+	//m_CurrentScene = m_SceneManager->LoadScene("Geometry Scene", m_Window);
 	//m_CurrentScene = m_SceneManager->CreateScene("Texture_FrameBufferScene");
 
 
@@ -65,7 +68,7 @@ void Game::OnStart()
 
 		if (m_CurrentScene)
 		{
-			m_CurrentScene->OnInit(m_Window);
+			//m_CurrentScene->OnInit(m_Window);
 			m_GameState = State::RUNNINGSCENE;
 		}
 

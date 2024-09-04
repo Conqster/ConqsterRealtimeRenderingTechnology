@@ -10,6 +10,9 @@
 
 #include "Util/MathsHelpers.h"
 
+#include "../Texture.h"
+#include "../Shader.h"
+
 void Mesh::CacheVertices(const float vertices[], size_t size)
 {
 	//unsigned int size = sizeof(vertices);
@@ -56,6 +59,14 @@ void Mesh::Render()
 	IBO.Bind();
 	GLCall(glDrawElements(GL_TRIANGLES, IBO.GetCount(), GL_UNSIGNED_INT, (void*)0));
 }
+
+void Mesh::RenderInstances(int count)
+{
+	VAO.Bind();
+	IBO.Bind();
+	GLCall(glDrawElementsInstanced(GL_TRIANGLES, IBO.GetCount(), GL_UNSIGNED_INT, (void*)0, count));
+}
+
 
 
 void Mesh::RenderDebugOutLine()

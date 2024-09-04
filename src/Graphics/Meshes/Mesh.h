@@ -11,8 +11,8 @@ struct Vertex
 {
 	float position[4];
 	float colour[4];
-	float normals[3];
 	float texCoord[2];
+	float normals[3];
 };
 
 
@@ -39,7 +39,7 @@ public:
 
 	virtual void Create();
 	void Render();
-	void RenderArray();
+	void RenderInstances(int count);
 	void RenderDebugOutLine();
 
 	void Clear();

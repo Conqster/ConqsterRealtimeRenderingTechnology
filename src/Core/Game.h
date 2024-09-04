@@ -25,12 +25,8 @@ private:
 	SceneManager* m_SceneManager = nullptr;
 	UIManager* m_UI = nullptr;
 
-	//std::vector<const char*> scenes = { "Main Scene", "Texture_FrameBufferScene", "Face Culling", "Light Model", "Advance Scene" };
-
-
-
 	bool m_Running = false;
-	bool m_UseFullScreen = false;
+	bool m_UseFullScreen = true;
 
 	State m_GameState;
 public:

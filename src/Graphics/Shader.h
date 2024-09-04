@@ -47,6 +47,7 @@ public:
 	void SetUniformVec3f(const char* name, const float* value);
 	void SetUniform4f(const char* name, float v0, float v1, float v2, float v3);
 	void SetUniformVec3(const char* name, const glm::vec3 vector);
+	void SetUniformVec2(const std::string& name, const glm::vec2 vector);
 	void SetUniformVec4(const char* name, const glm::vec4 vector);
 	void SetUniformMat4f(const char* name, const glm::mat4 matrix);
 

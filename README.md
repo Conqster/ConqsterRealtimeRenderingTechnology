@@ -89,6 +89,8 @@ Implemented foundation game architecture and basic 3D renderer (model-view-proje
   - Directional
   - [Point](ReadMe_Docs/Documentation.md#point-light)
   - [Spot](ReadMe_Docs/Documentation.md#spot-light)
+- Instancing
+- Model loading via Assimp
 
 ## Development Issues
 Issues encounted during development:

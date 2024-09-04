@@ -57,8 +57,9 @@ void GeometryScene::OnRender()
 	//m_SquareMesh.GetIBO()->Bind();
 	m_Shader.SetUniformMat4f("u_Model", model); 
 	m_Shader.SetUniform1f("u_Length", length);
+	m_Shader.SetUniform1i("u_Debug", debugSquare);
 	//m_SquareMesh.Render();
-	glDrawArrays(GL_POINTS, 0, 6);
+	//glDrawArrays(GL_POINTS, 0, 6);
 	//glDrawArrays(GL_TRIANGLES, m_SquareMesh.GetIBO()->GetCount(), 4);
 	//glDrawElements(GL_TRIANGLES, m_SquareMesh.GetIBO()->GetCount(), GL_UNSIGNED_INT, (void*)0);
 	m_Shader.UnBind();
@@ -80,6 +81,35 @@ void GeometryScene::OnRender()
 	m_GroundShader.SetUniform1f("u_Intensity", 1.0f);
 	m_SquareMesh.Render();
 	m_GroundTex->DisActivate();
+
+	//RENDER SPHERE MAKE USE OF GROUND SHADER
+	model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(0.0f, 1.0f, 0.0f));
+	m_GroundShader.SetUniformMat4f("u_model", model);
+	sphereTex->Activate();
+	sphere.Render();
+
+	//TEST CUBE WITH SPHERE PROP
+	glm::mat4 test_cube_model = glm::mat4(1.0f);
+	test_cube_model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f));
+	m_GroundShader.SetUniformMat4f("u_model", test_cube_model);
+	testCube.Render();
+
+
+	////////////////
+	// SECOND PASS ON SPHERE FOR DEBUGGING ITS NORMAL
+	////////////////
+	sphereNormDebugShader.Bind();
+	sphereNormDebugShader.SetUniform1f("u_NorDebugLength", normDebugLength);
+	sphereNormDebugShader.SetUniformVec3("u_DebugColour", normDebugColour);
+	sphereNormDebugShader.SetUniform1i("u_UseDebugColour", useDebugColour);
+	sphereNormDebugShader.SetUniformMat4f("u_Model", model);
+	sphere.Render();
+
+	//TEST CUBE WITH SPHERE PROP
+	sphereNormDebugShader.SetUniformMat4f("u_Model", test_cube_model);
+	testCube.Render();
+
 	m_GroundShader.UnBind();
 }
 
@@ -135,10 +165,20 @@ void GeometryScene::OnRenderUI()
 	ImGui::SeparatorText("Scene Properties");
 	ImGui::ColorEdit3("clear Screen Colour", &m_ClearScreenColour[0]);
 	ImGui::SliderFloat("Length", &length, 0.0f, 10.0f, "%.2f");
+	ImGui::Checkbox("Debug Square", &debugSquare);
+
+	ImGui::Spacing();
 
 	ImGui::DragFloat3("ground pos", &ground_pos[0], 0.1f);
 	ImGui::DragFloat("ground rot", &ground_rot, 0.1f);
 	ImGui::DragFloat3("ground scale", &ground_scale[0], 0.1f);
+
+	ImGui::Spacing();
+
+	ImGui::SeparatorText("Sphere normal debugging");
+	ImGui::Checkbox("Use debug colour", &useDebugColour);
+	ImGui::ColorEdit3("Debug colour", &normDebugColour[0]);
+	ImGui::SliderFloat("Debug length", &normDebugLength, -1.0f, 2.0f, "%.2f");
 
 
 	ImGui::End();
@@ -157,7 +197,7 @@ void GeometryScene::CreateObjects()
 {
 
 	///////////////////////////////////
-	// CREATE SHADER 
+	// CREATE SHADER
 	///////////////////////////////////
 
 	ShaderFilePath shader_file_path
@@ -197,4 +237,28 @@ void GeometryScene::CreateObjects()
 	m_GroundTex = new Texture("Assets/Textures/plain64.png");
 
 	ground_scale = glm::vec3(5.0f);
+
+
+
+	////////////////////////////////////////
+	// CREATE SPHERE MESH
+	////////////////////////////////////////
+	sphere.Create();
+	sphereTex = new Texture("Assets/Textures/brick.png");
+
+	//SPHERE NORMAL DEBUG SHADER
+	ShaderFilePath debug_sphere_shader_file
+				{
+					"src/ShaderFiles/Learning/Geometry/VertexDebugNormal.glsl", //vertex shader
+					"src/ShaderFiles/Learning/Geometry/LineFragment.glsl", //frag shader
+					"src/ShaderFiles/Learning/Geometry/GeometryDebugNormal.glsl"  //geometry shader
+				};
+
+	sphereNormDebugShader.Create("debug_norm_shader", debug_sphere_shader_file);
+
+
+	////////////////////////////////////////
+	// CREATE CUBE MESH
+	////////////////////////////////////////
+	testCube.Create();
 }

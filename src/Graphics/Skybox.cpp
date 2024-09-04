@@ -23,11 +23,20 @@ void Skybox::Create(const std::vector<std::string> faces_image_path)
 	{ "src/ShaderFiles/SkyboxVertex.glsl",
 		//"src/ShaderFiles/Learning/ScreenFrameFrag.glsl" };
 		"src/ShaderFiles/SkyboxFragment.glsl" };
+
 	m_Shader.Create("skybox_shader", skybox_shader_file_path);
 
 	m_Mesh.Create();
 }
 
+
+/// <summary>
+/// when/if using uniform buffer to store camera matrix, it not necssary to pass 
+/// the camera & window into the skybox draw function. their may purpose is to do the 
+/// view & projection matrix calculation. 
+/// </summary>
+/// <param name="camera"></param>
+/// <param name="window"></param>
 void Skybox::Draw(Camera& camera, Window& window) 
 {
 	m_Shader.Bind();

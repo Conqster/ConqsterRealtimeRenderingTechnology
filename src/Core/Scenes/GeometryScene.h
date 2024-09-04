@@ -3,6 +3,8 @@
 
 #include "Graphics/Shader.h"
 #include "Graphics/Meshes/SquareMesh.h"
+#include "Graphics/Meshes/SphereMesh.h"
+#include "Graphics/Meshes/CubeMesh.h"
 
 #include "Graphics/ObjectBuffer/UniformBuffer.h"
 
@@ -29,6 +31,9 @@ private:
 	Shader m_Shader;
 	SquareMesh m_SquareMesh;
 
+	
+	bool debugSquare;
+
 	UniformBuffer m_CameraMatUBO;
 
 	float length = 0.1f;
@@ -39,5 +44,18 @@ private:
 	glm::vec3 ground_pos = glm::vec3();
 	float ground_rot = 90.0f;
 	glm::vec3 ground_scale = glm::vec3(1.0);
+
+
+	//sphere
+	SphereMesh sphere;
+	Texture* sphereTex;
+	Shader sphereNormDebugShader;
+
+	float normDebugLength = 0.2f;
+	glm::vec3 normDebugColour = glm::vec3(1.0f, 0.0f, 1.0f);
+	bool useDebugColour = true;
+
+	//test cube
+	class CubeMesh testCube;
 	
 };
