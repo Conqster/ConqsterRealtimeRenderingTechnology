@@ -9,7 +9,7 @@ layout (std140)  uniform u_CameraMat
 {
 	mat4 projection;
 	mat4 view;
-	vec2 screen_res;
+	vec3 screen_res;  //used for debug colour in AntiAliasing scene
 };
 
 out VS_OUT
@@ -28,6 +28,8 @@ uniform float u_Height;
 //instancing 
 uniform vec2 offsets[100];
 
+//uniform vec3 u_Test;
+
 
 void main()
 {
@@ -44,6 +46,10 @@ void main()
 	vec4 fragPos = u_Model * pos;
 	//gl_Position = vec4(((vec2(fragPos) * 2.0f - screen_res)/screen_res.y), 0.0f, 0.0f);
 	
-	vs_out.colour = col;
+	//vs_out.colour = col;
 	vs_out.tex_coord = uv;
+	
+	//AntiAliasing scene
+	vs_out.colour = vec4(screen_res, 1.0f);
+	//vs_out.colour = vec4(u_Test, 1.0f);
 }

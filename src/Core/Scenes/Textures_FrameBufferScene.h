@@ -2,7 +2,6 @@
 #include "Scene.h"
 
 #include "Graphics/Shader.h"
-#include "LearningOpenGLModel.h"
 
 #include "Graphics/Meshes/SphereMesh.h"
 #include "Graphics/Skybox.h"
@@ -36,7 +35,7 @@ private:
 	bool m_PerfromDepthTest = true;
 
 	Shader screenShader;
-	learning::ObjectVertex m_Quad;
+	LearnVertex m_Quad;
 	float screenTexSampleOffset = 300.0f; //inverted in shader
 	bool specialScreenKernel = false;
 	int specialKernelType = 0;
@@ -48,7 +47,7 @@ private:
 
 	void DrawObjects(bool depth_test, bool get_rear);
 
-	learning::ObjectVertex m_Cube;
+	LearnVertex m_Cube;
 	class Texture* m_CrateTex;
 	Shader m_CrateShader;
 
@@ -69,7 +68,7 @@ private:
 
 	}m_CubeWorTrans;
 
-	learning::ObjectVertex m_Plane;
+	LearnVertex m_Plane;
 	Texture* m_PlaneTex;
 	Transform m_PlaneWorTrans;
 

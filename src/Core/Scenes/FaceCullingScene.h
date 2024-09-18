@@ -1,7 +1,6 @@
 #pragma once
 #include "Scene.h"
 
-#include "LearningOpenGLModel.h"
 #include "Graphics/Shader.h"
 
 #include "Graphics/ObjectBuffer/UniformBuffer.h"
@@ -24,7 +23,7 @@ public:
 
 
 private:
-	learning::ObjectVertex m_Cube;
+	LearnVertex m_Cube;
 	class Texture* crateTex;
 
 	Shader m_DefaultShader;

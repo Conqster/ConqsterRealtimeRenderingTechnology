@@ -2,7 +2,6 @@
 #include "Scene.h"
 
 #include "Graphics/Shader.h"
-#include "LearningOpenGLModel.h"
 
 
 
@@ -26,8 +25,8 @@ public:
 
 private:
 
-	learning::ObjectVertex m_Cube;
-	learning::ObjectVertex m_Plane;
+	LearnVertex m_Cube;
+	LearnVertex m_Plane;
 
 	Texture* metalTex;
 	Texture* marbleTex;

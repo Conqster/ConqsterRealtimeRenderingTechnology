@@ -65,6 +65,8 @@ bool Framebuffer::Generate(unsigned int width, unsigned int height)
 	return Generate();
 }
 
+
+
 void Framebuffer::Bind()
 {
 	glViewport(0, 0, m_Width, m_Height);

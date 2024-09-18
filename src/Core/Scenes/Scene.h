@@ -3,6 +3,13 @@
 #include "Camera.h"
 #include "Window.h"
 
+
+struct LearnVertex
+{
+	unsigned int VAO;
+	unsigned int VBO;
+};
+
 	
 	class Scene
 	{

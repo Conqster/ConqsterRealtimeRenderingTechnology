@@ -19,4 +19,7 @@ void main()
 	
 	if(!u_Debug)
 		o_Colour = texture(u_Texture, fs_in.tex_coord);
+		
+	//for antialiasing
+	o_Colour = (u_Debug) ? vec4(1.0f, 0.0f, 1.0f, 1.0f) : fs_in.colour;
 }

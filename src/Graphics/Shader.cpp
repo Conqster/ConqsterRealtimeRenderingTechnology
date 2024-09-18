@@ -50,7 +50,7 @@
 
 		if (!fileStream.is_open())
 		{
-			printf("[Reading Shader File]: Failed to read %s, file doesn't exist.", shader_file);
+			printf("[Reading Shader File (for %s)]: Failed to read %s, file doesn't exist.\n", m_Name, shader_file.c_str());
 			return "";
 		}
 
@@ -96,7 +96,7 @@
 		if (!result)
 		{
 			glGetProgramInfoLog(m_ProgramID, sizeof(eLog), NULL, eLog);
-			printf("[ERROR VALIDATING PROGRAM]: '%s'\n", eLog);
+			printf("[ERROR VALIDATING PROGRAM (for %s)]: '%s'\n", m_Name, eLog);
 			return false;
 		}
 
