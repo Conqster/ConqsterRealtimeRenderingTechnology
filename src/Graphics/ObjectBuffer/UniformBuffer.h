@@ -14,4 +14,5 @@ public:
 	void UnBind() const;
 	void SetBufferSubData(unsigned offset, signed long long int size, const void* data) const;
 
+	void Delete();
 };

@@ -371,10 +371,13 @@ void MainScene::OnRenderUI()
 void MainScene::OnDestroy()
 {
 
+	m_MainShaderProgram.Clear();
+
 	for (auto& game_object : m_GameObjects)
 		delete game_object;
 
 	m_GameObjects.clear();
+	m_LightManager.Clean();
 
 	Scene::OnDestroy();
 }

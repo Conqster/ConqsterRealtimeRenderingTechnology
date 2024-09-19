@@ -15,6 +15,7 @@ public:
 
 	std::shared_ptr<Model> Load(std::string path, bool flip_uv = false);
 
+	void Clean();
 	~ModelLoader() = default;
 private:
 	void ProcessNode(aiNode* node, const aiScene* scene);

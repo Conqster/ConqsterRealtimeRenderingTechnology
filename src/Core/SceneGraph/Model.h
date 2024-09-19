@@ -13,7 +13,7 @@ public:
 	void Draw();
 	void Draw(class Shader& shader);
 
-
+	void Destroy();
 private: 
 	std::vector<ModelMesh> meshes;
 	std::vector<Texture> textures;

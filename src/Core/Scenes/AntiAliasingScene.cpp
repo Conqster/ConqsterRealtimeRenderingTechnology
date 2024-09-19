@@ -26,14 +26,27 @@ void AntiAliasingScene::OnInit(Window* window)
 
 void AntiAliasingScene::OnUpdate(float delta_time)
 {
+	//hack to keep track of window resize 
+	static int _width;
+	static int _height;
+
+	if (_width != window->GetWidth() || _height != window->GetHeight())
+	{
+		_width = window->GetWidth();
+		_height = window->GetHeight();
+		m_MSAA.Resize(_width, _height);
+		m_MSAA2.Resize(_width, _height);
+	}
+
+
 	OnRender();
 }
 
 void AntiAliasingScene::OnRender()
 {
 	//render
-	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	GLCall(glClearColor(0.1f, 0.1f, 0.1f, 1.0f));
+	GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
 	//Camera prop
 	glm::mat4 view = m_Camera->CalViewMat();
@@ -48,7 +61,9 @@ void AntiAliasingScene::OnRender()
 	cubeShader.SetUniformMat4f("u_Model", model);
 	cubeShader.UnBind();
 
-
+	/////////////////////////////////////////////
+	// Normal Rendering without MSAA
+	/////////////////////////////////////////////
 	if (!m_DoMSAA)
 	{
 		cubeShader.Bind();
@@ -58,14 +73,65 @@ void AntiAliasingScene::OnRender()
 	}
 
 
+	/////////////////////////////////////////////
+	// Do MSAA1 instead
+	/////////////////////////////////////////////
+	if (!m_DoMSAA2)
+	{
+		///////////////////////////////////////////
+		// FIRST RENDER PASS: Draw scene as normal in MSAA buffers
+		///////////////////////////////////////////
+		//draw scene (as normal in MSAA buffer)
+		m_MSAA.Bind();
+		GLCall(glClearColor(0.1f, 0.1f, 0.1f, 1.0f));
+		GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+		GLCall(glEnable(GL_DEPTH_TEST));
+
+
+		//use shader, set trans & draw
+		cubeShader.Bind();
+		cube.Render();
+		cubeShader.UnBind();
+
+		///////////////////////////////////////////
+		// Blit multisample buffers to normal colour buffer of MSAA FBO
+		///////////////////////////////////////////
+		//now blit MSAA buffer to normal colour of intermediate FBO
+		m_MSAA.Blit();
+
+		/////////////////////////////////////////// 
+		// SECOND RENDER PASS: Render quad with scene visual as its texture image 
+		///////////////////////////////////////////
+		m_MSAA.UnBind();
+		GLCall(glClearColor(1.0f, 1.0f, 1.0f, 1.0f));
+		GLCall(glClear(GL_COLOR_BUFFER_BIT));
+		GLCall(glDisable(GL_DEPTH_TEST));
+
+		//DRAW SCREEN QUAD by using texture from first pass
+		screenShader.Bind();
+		screenShader.SetUniform1i("u_Debug", m_DebugScreenTex);
+		screenShader.SetUniformVec3("u_DebugColour", m_DebugScreenTexColour);
+		GLCall(glBindVertexArray(m_Quad.VAO));
+		m_MSAA.BindTexture(0);
+		GLCall(glDrawArrays(GL_TRIANGLES, 0, 6));
+		m_MSAA.UnBindTexture();
+		screenShader.UnBind();
+		return;
+	}
+
+
+
+	/////////////////////////////////////////////
+	// Do MSAA2 instead
+	/////////////////////////////////////////////
 	///////////////////////////////////////////
 	// FIRST RENDER PASS: Draw scene as normal in MSAA buffers
 	///////////////////////////////////////////
 	//draw scene (as normal in MSAA buffer)
-	m_MSAA.Bind();
-	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glEnable(GL_DEPTH_TEST);
+	m_MSAA2.Bind();
+	GLCall(glClearColor(0.1f, 0.1f, 0.1f, 1.0f));
+	GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+	GLCall(glEnable(GL_DEPTH_TEST));
 
 
 	//use shader, set trans & draw
@@ -77,24 +143,31 @@ void AntiAliasingScene::OnRender()
 	// Blit multisample buffers to normal colour buffer of MSAA FBO
 	///////////////////////////////////////////
 	//now blit MSAA buffer to normal colour of intermediate FBO
-	m_MSAA.Blit();
+	m_MSAA2.Blit();
 
 	/////////////////////////////////////////// 
 	// SECOND RENDER PASS: Render quad with scene visual as its texture image 
 	///////////////////////////////////////////
-	m_MSAA.UnBind();
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
-	glDisable(GL_DEPTH_TEST);
+	m_MSAA2.UnBind();
+	GLCall(glClearColor(1.0f, 1.0f, 1.0f, 1.0f));
+	GLCall(glClear(GL_COLOR_BUFFER_BIT));
+	GLCall(glDisable(GL_DEPTH_TEST));
 
 	//DRAW SCREEN QUAD by using texture from first pass
 	screenShader.Bind();
 	screenShader.SetUniform1i("u_Debug", m_DebugScreenTex);
 	screenShader.SetUniformVec3("u_DebugColour", m_DebugScreenTexColour);
-	glBindVertexArray(m_Quad.VAO);
-	m_MSAA.BindTexture(0);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+	screenShader.SetUniform1i("u_ViewWidth", window->GetWidth());
+	screenShader.SetUniform1i("u_ViewHeight", window->GetHeight());
+	screenShader.SetUniform1i("u_SampleCount", m_SampleCount);
+	screenShader.SetUniform1i("u_ScreenCaptureTex", 1);
+	GLCall(glBindVertexArray(m_Quad.VAO));
+	//m_MSAA2.BindTexture(0);
+	m_MSAA2.BindTextureMultiSample(1);
+	GLCall(glDrawArrays(GL_TRIANGLES, 0, 6));
+	screenShader.SetUniform1i("u_ViewWidth", 0); //to fail (if-else check) in shader, as like a reset preventing other use of the shader
 	screenShader.UnBind();
+	m_MSAA2.UnBindTextureMS();
 
 }
 
@@ -140,8 +213,6 @@ void AntiAliasingScene::OnRenderUI()
 			glm::mat4 new_proj = m_Camera->CalculateProjMatrix(window->GetAspectRatio());
 			//m_MainRenderer2.UpdateShaderViewProjection(new_proj);
 		}
-
-
 		ImGui::TreePop();
 	}
 
@@ -151,6 +222,11 @@ void AntiAliasingScene::OnRenderUI()
 	ImGui::Spacing();
 	ImGui::SeparatorText("Scene Properties");
 	ImGui::Checkbox("Do MSAA", &m_DoMSAA);
+	if (m_DoMSAA)
+	{
+		ImGui::Checkbox("Do MSAA 2 instead", &m_DoMSAA2);
+		ImGui::SliderInt("MSAA 2 Sample Count", &m_SampleCount, 1, 8);
+	}
 	ImGui::ColorEdit3("Clear Screen", &m_ClearScreenColour[0]);
 	ImGui::Checkbox("Debug Scene", &useDebugColour);
 	ImGui::ColorEdit3("Debug", &debugColour[0]);
@@ -166,6 +242,18 @@ void AntiAliasingScene::OnRenderUI()
 
 void AntiAliasingScene::OnDestroy()
 {
+	cubeShader.Clear();
+	cube.Clear();
+	GLCall(glDeleteBuffers(1, &m_Quad.VBO));
+	GLCall(glDeleteVertexArrays(1, &m_Quad.VAO));
+	screenShader.Clear();
+	m_MSAA.Delete();
+	m_MSAA2.Delete();
+
+	//GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
+	//GLCall(glBindVertexArray(0));
+
+	Scene::OnDestroy();
 }
 
 AntiAliasingScene::~AntiAliasingScene()
@@ -178,7 +266,8 @@ void AntiAliasingScene::CreateObjects()
 	////////////////////////////////////////
 	// CREATE MSAA
 	////////////////////////////////////////
-	m_MSAA.Generate(window->GetWidth(), window->GetHeight());
+	m_MSAA.Generate(window->GetWidth(), window->GetHeight(), 2);
+	m_MSAA2.Generate(window->GetWidth(), window->GetHeight(), 8);
 
 
 	///////////////////////////////////
@@ -211,19 +300,19 @@ void AntiAliasingScene::CreateObjects()
 		 1.0f,  1.0,	1.0f, 1.0f
 	};
 
-	glGenVertexArrays(1, &m_Quad.VAO);
-	glGenBuffers(1, &m_Quad.VBO);
+	GLCall(glGenVertexArrays(1, &m_Quad.VAO));
+	GLCall(glGenBuffers(1, &m_Quad.VBO));
 
-	glBindBuffer(GL_ARRAY_BUFFER, m_Quad.VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(quad_vertices), quad_vertices, GL_STATIC_DRAW);
+	GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_Quad.VBO));
+	GLCall(glBufferData(GL_ARRAY_BUFFER, sizeof(quad_vertices), quad_vertices, GL_STATIC_DRAW));
 
-	glBindVertexArray(m_Quad.VAO);
+	GLCall(glBindVertexArray(m_Quad.VAO));
 
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(quad_vertices[0]) * 4, (void*)0);
+	GLCall(glEnableVertexAttribArray(0));
+	GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(quad_vertices[0]) * 4, (void*)0));
 
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(quad_vertices[0]) * 4, (void*)(sizeof(quad_vertices[0]) * 2));
+	GLCall(glEnableVertexAttribArray(1));
+	GLCall(glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(quad_vertices[0]) * 4, (void*)(sizeof(quad_vertices[0]) * 2)));
 
 
 	///////////////////////////////////////////////////////////////////////

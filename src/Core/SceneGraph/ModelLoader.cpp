@@ -49,6 +49,15 @@ std::shared_ptr<Model> ModelLoader::Load(std::string path, bool flip_uv)
 	return std::make_shared<Model>(meshes);
 }
 
+void ModelLoader::Clean()
+{
+	for (auto& t : cacheLoadedTextures)
+		t.DisActivate();
+
+	for (auto& m : meshes)
+		m.Clear();
+}
+
 
 /// <summary>
 /// Process Node, processes starting from the root node:

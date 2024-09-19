@@ -26,7 +26,7 @@ private:
 	UIManager* m_UI = nullptr;
 
 	bool m_Running = false;
-	bool m_UseFullScreen = true;
+	bool m_UseFullScreen = false;
 
 	State m_GameState;
 public:

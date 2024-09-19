@@ -1,5 +1,6 @@
 #include "FaceCullingScene.h"
 
+#include "Graphics/RendererErrorAssertion.h"
 #include "External Libs/imgui/imgui.h"
 
 #include "Graphics/Texture.h"
@@ -157,6 +158,16 @@ void FaceCullingScene::OnDestroy()
 	crateTex->UnRegisterUse();
 	delete crateTex;
 	crateTex = nullptr;
+
+	GLCall(glDeleteVertexArrays(1, &m_Cube.VAO));
+	GLCall(glDeleteBuffers(1, &m_Cube.VBO));
+
+	m_DefaultShader.Clear();
+	m_Obj1Shader.Clear();
+	m_Obj2Shader.Clear();
+	m_Obj3Shader.Clear();
+
+	m_CameraMatUBO.Delete();
 
 	Scene::OnDestroy();
 

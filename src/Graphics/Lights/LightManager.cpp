@@ -6,6 +6,7 @@ LightManager::LightManager()
 
 LightManager::~LightManager()
 {
+	Clean();
 }
 
 void LightManager::Add(std::shared_ptr<NewLight> light)
@@ -43,4 +44,9 @@ void LightManager::Add(std::shared_ptr<NewLight> light)
 		printf("Light type does not exist!!!!!!!\n");
 		break;
 	}
+}
+
+void LightManager::Clean()
+{
+	m_Lights.clear();
 }

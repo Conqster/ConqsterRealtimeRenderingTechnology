@@ -44,6 +44,9 @@ private:
 
 
 	MSAA m_MSAA;
+	MSAA m_MSAA2;
 	bool m_DoMSAA = true;
+	bool m_DoMSAA2 = false;
+	int m_SampleCount = 8;
 	
 };

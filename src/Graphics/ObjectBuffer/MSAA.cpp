@@ -3,20 +3,21 @@
 
 #include <iostream>
 
-MSAA::MSAA() : m_Width(500), m_Height(500), m_ID(0), m_RenderbufferID(0), 
+MSAA::MSAA() : m_Width(500), m_Height(500), m_SampleCount(0), m_ID(0), m_RenderbufferID(0), 
 			m_TextureID(0), m_MultiSampleTex(0), m_IntermidateFBO(0)
 {}
 
-MSAA::MSAA(unsigned int width, unsigned int height) : m_Width(width), m_Height(height), m_ID(0), 
+MSAA::MSAA(unsigned int width, unsigned int height, unsigned int sample) : m_Width(width), m_Height(height), m_SampleCount(sample), m_ID(0), 
 			m_RenderbufferID(0), m_TextureID(0), m_MultiSampleTex(0), m_IntermidateFBO(0)
 {
-	Generate(width, height);
+	Generate();
 }
 
-bool MSAA::Generate(unsigned int width, unsigned int height)
+bool MSAA::Generate(unsigned int width, unsigned int height, unsigned int samples)
 {
 	m_Width = width;
 	m_Height = height;
+	m_SampleCount = samples;
 	return Generate();
 }
 
@@ -28,13 +29,13 @@ bool MSAA::Generate()
 	//create a multisampled colour attachment tecxture 
 	GLCall(glGenTextures(1, &m_MultiSampleTex));
 	GLCall(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, m_MultiSampleTex));
-	GLCall(glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGB, m_Width, m_Height, GL_TRUE));
+	GLCall(glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, m_SampleCount, GL_RGB, m_Width, m_Height, GL_TRUE));
 	GLCall(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0));
 	GLCall(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, m_MultiSampleTex, 0));
 	//Create a renderobject object for depth & stencil attachments
 	GLCall(glGenRenderbuffers(1, &m_RenderbufferID));
 	GLCall(glBindRenderbuffer(GL_RENDERBUFFER, m_RenderbufferID));
-	GLCall(glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH24_STENCIL8, m_Width, m_Height));
+	GLCall(glRenderbufferStorageMultisample(GL_RENDERBUFFER, m_SampleCount, GL_DEPTH24_STENCIL8, m_Width, m_Height));
 	GLCall(glBindRenderbuffer(GL_RENDERBUFFER, 0));
 	GLCall(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_RenderbufferID));
 
@@ -71,6 +72,65 @@ bool MSAA::Generate()
 	return true;
 }
 
+bool MSAA::Resize(unsigned int width, unsigned int height)
+{
+	m_Width = width;
+	m_Height = height;
+
+	//Recreate MSAA FBO
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_ID));
+
+	//Resize multisample colour attachment texture
+	GLCall(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, m_MultiSampleTex));
+	GLCall(glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, m_SampleCount, GL_RGB, m_Width, m_Height, GL_TRUE));
+	GLCall(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0));
+
+	//GLCall(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, m_MultiSampleTex, 0));
+	//Create a renderobject object for depth & stencil attachments
+	//GLCall(glGenRenderbuffers(1, &m_RenderbufferID));
+	//Resize multisampled depth/stencil renderbuffer
+	GLCall(glBindRenderbuffer(GL_RENDERBUFFER, m_RenderbufferID));
+	GLCall(glRenderbufferStorageMultisample(GL_RENDERBUFFER, m_SampleCount, GL_DEPTH24_STENCIL8, m_Width, m_Height));
+	GLCall(glBindRenderbuffer(GL_RENDERBUFFER, 0));
+	//GLCall(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_RenderbufferID));
+
+
+	//Check if the FBO is complete
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	{
+		printf("[ERROR MSAA FRAMEBUFFER]: Framebuffer is not complete!\n");
+		return false;
+	}
+
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+
+
+	/////////////////////////////////////
+	// MIGHT CHANGE OR REPLACE LATER
+	/////////////////////////////////////
+	//configure second post-processing framebuffer
+	//GLCall(glGenFramebuffers(1, &m_IntermidateFBO));
+	//Resize the intermediate FBO texture for post-poscessing
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_IntermidateFBO));
+	//create colour attachment
+	//GLCall(glGenTextures(1, &m_TextureID));
+	GLCall(glBindTexture(GL_TEXTURE_2D, m_TextureID));
+	GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_Width, m_Height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr));
+	//GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+	//GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+	//GLCall(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_TextureID, 0));
+
+	//Check if the intermediate FBO is complete
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	{
+		printf("[ERROR INTERMEDIATE FRAMEBUFFER]: intermediate Framebuffer is not complete!\n");
+		return false;
+	}
+
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+	return true;
+}
+
 
 
 void MSAA::Bind()
@@ -97,14 +157,30 @@ void MSAA::BindTexture(unsigned int slot)
 	GLCall(glBindTexture(GL_TEXTURE_2D, m_TextureID));
 }
 
+void MSAA::UnBindTexture()
+{
+	GLCall(glBindTexture(GL_TEXTURE_2D, 0));
+}
+
+void MSAA::BindTextureMultiSample(unsigned int slot)
+{
+	GLCall(glActiveTexture(GL_TEXTURE0 + slot));
+	GLCall(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, m_MultiSampleTex));
+}
+
+void MSAA::UnBindTextureMS()
+{
+	GLCall(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0));
+}
+
 void MSAA::Delete()
 {
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glDeleteFramebuffers(1, &m_ID);
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+	GLCall(glDeleteFramebuffers(1, &m_ID));
 
-	glDeleteRenderbuffers(1, &m_RenderbufferID);
+	GLCall(glDeleteRenderbuffers(1, &m_RenderbufferID));
 
-	glDeleteTextures(1, &m_TextureID);        //delete frame texture/ texture attached to frame buffer
+	GLCall(glDeleteTextures(1, &m_TextureID));        //delete frame texture/ texture attached to frame buffer
 
 	GLCall(glDeleteFramebuffers(1, &m_IntermidateFBO));
 	GLCall(glDeleteTextures(1, &m_MultiSampleTex));

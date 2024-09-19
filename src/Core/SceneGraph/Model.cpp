@@ -21,3 +21,13 @@ void Model::Draw(Shader& shader)
 		mesh.NewRender(shader);
 }
 
+void Model::Destroy()
+{
+	for (auto& m : meshes)
+		m.Clear();
+
+	for (auto& t : textures)
+		t.UnRegisterUse();
+		
+}
+

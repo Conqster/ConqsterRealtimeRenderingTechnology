@@ -45,14 +45,14 @@ bool TextureCube::LoadTexture(const std::vector<std::string>& fileLoc)
 	int width,
 		height,
 		nrChannels;
-	for (size_t i = 0; i < fileLoc.size(); i++)
+	for(size_t i = 0; i < fileLoc.size(); i++)
 	{
 		//m_LocalBuffer = stbi_load(fileLoc[i].c_str(), &width, &height, &nrChannels, 0);
 
 		unsigned char* data = stbi_load(fileLoc[i].c_str(), &width, &height, &nrChannels, 0);
 
 
-		if (data)
+		if(data)
 		{
 			GLCall(glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB,
 				width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data));
@@ -94,5 +94,15 @@ void TextureCube::DisActivate() const
 
 void TextureCube::Clear()
 {
+	std::cout << "Cleared texture\n";
+	GLCall(glDeleteTextures(1, &m_Id));
+
+	m_Id = 0;
+	for (auto& f : m_FaceTextureFiles)
+		f = " ";
+	m_LocalBuffer = nullptr;
+	m_Width = 0;
+	m_Height = 0;
+	m_BitDepth = 0;
 }
 

@@ -200,6 +200,15 @@ void InstancingScene::OnRenderUI()
 
 void InstancingScene::OnDestroy()
 {
+	m_Shader.Clear();
+	m_SquareMesh.Clear();
+	m_CameraMatUBO.Delete();
+	m_Skybox.Destroy();
+	sphereMesh.Clear();
+	sampleModel->Destroy();
+	modelLoader.Clean();
+	modelShader.Clear();
+	debugNorShader.Clear();
 }
 
 InstancingScene::~InstancingScene()

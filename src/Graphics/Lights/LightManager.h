@@ -17,6 +17,7 @@ public:
 	~LightManager();
 
 	void Add(std::shared_ptr<NewLight> light);
+	void Clean();
 
 	inline const std::vector<std::shared_ptr<NewLight>>& GetLights() const { return m_Lights; }
 

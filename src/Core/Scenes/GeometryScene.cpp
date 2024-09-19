@@ -1,6 +1,7 @@
 #include "GeometryScene.h"
 
 #include "External Libs/imgui/imgui.h"
+#include "Graphics/RendererErrorAssertion.h"
 
 
 void GeometryScene::OnInit(Window* window)
@@ -187,6 +188,21 @@ void GeometryScene::OnRenderUI()
 
 void GeometryScene::OnDestroy()
 {
+	m_Shader.Clear();
+	m_SquareMesh.Clear();
+	m_CameraMatUBO.Delete();
+	m_GroundShader.Clear();
+	m_GroundTex->UnRegisterUse();
+	delete m_GroundTex;
+	m_GroundTex = nullptr;
+	sphere.Clear();
+	sphereTex->UnRegisterUse();
+	delete sphereTex;
+	sphereTex = nullptr;
+	sphereNormDebugShader.Clear();
+	testCube.Clear();
+
+	GLCall(glBindTexture(GL_TEXTURE_2D, 0)); 
 }
 
 GeometryScene::~GeometryScene()

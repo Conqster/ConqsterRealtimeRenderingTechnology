@@ -6,6 +6,7 @@
 #include "Graphics/Meshes/SquareMesh.h"
 
 #include "Scenes/SceneManager.h"
+#include "Graphics/RendererErrorAssertion.h"
 
 void AdvanceOpenGLScene::OnInit(Window* window)
 {
@@ -221,6 +222,17 @@ void AdvanceOpenGLScene::OnDestroy()
 	delete metalTex;
 	metalTex = nullptr;
 
+
+	GLCall(glDeleteBuffers(1, &m_Cube.VBO));
+	GLCall(glDeleteVertexArrays(1, &m_Cube.VAO));
+	GLCall(glDeleteBuffers(1, &m_Plane.VBO));
+	GLCall(glDeleteVertexArrays(1, &m_Plane.VAO));
+
+	objectShaders.Clear();
+	outlineShader.Clear();
+
+	grassMesh->Clear();
+	grassShader.Clear();
 
 	Scene::OnDestroy();
 }

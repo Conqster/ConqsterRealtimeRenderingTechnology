@@ -70,5 +70,6 @@ void Skybox::DisActivate()
 
 void Skybox::Destroy()
 {
+	m_TextureMap.DisActivate();
 	m_TextureMap.UnRegisterUse();
 }

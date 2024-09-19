@@ -1,17 +1,8 @@
 #pragma once
 #include "Scene.h"
+#include "Graphics/RendererErrorAssertion.h"
 
 
-//void Scene::RegisterScene(const char* name)
-//{
-//	printf("Register base scene!!!!!!!!!!!!!\n");
-//}
-
-
-
-//Scene::Scene()
-//{
-//}
 
 void Scene::SetWindow(Window* window)
 {
@@ -22,6 +13,7 @@ void Scene::SetWindow(Window* window)
 void Scene::OnInit(Window* window)
 {
 	this->window = window;
+	GLCall(glViewport(0, 0, window->GetWidth(), window->GetHeight()));
 }
 
 
@@ -44,10 +36,14 @@ void Scene::OnRenderUI()
 
 
 void Scene::OnDestroy()
-	{
-		delete m_Camera;
-		m_Camera = nullptr;
+{
+	delete m_Camera;
+	m_Camera = nullptr;
 
-		window = nullptr;
+	window = nullptr;
 
-	}
+	//for now hard reset 
+	GLCall(glDisable(GL_DEPTH_TEST));
+	GLCall(glDisable(GL_CULL_FACE));
+
+}
