@@ -10,7 +10,7 @@ x64/
 *.exe
 //might be dangerous because of external files i am using
 *.dll 
-*.obj  
+//*.obj  
 *.lib
 *.pdb
 *.idb
