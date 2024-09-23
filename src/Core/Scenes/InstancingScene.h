@@ -51,6 +51,9 @@ private:
 
 	//Load Model 
 	std::shared_ptr<Model> sampleModel;
+	Texture* samplePlainTexture;
+	float modelScale = 1.0f;
+	//bool noTexture = true;
 	ModelLoader modelLoader;
 	Shader modelShader;
 	Shader debugNorShader;

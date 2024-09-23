@@ -152,6 +152,7 @@
     <ClInclude Include="External Libs\stb_image\stb_image.h" />
     <ClInclude Include="src\Core\SceneGraph\Model.h" />
     <ClInclude Include="src\Core\SceneGraph\ModelLoader.h" />
+    <ClInclude Include="src\Core\Scenes\AdvanceLightingScene.h" />
     <ClInclude Include="src\Core\Scenes\AdvanceOpenGLScene.h" />
     <ClInclude Include="src\Core\Scenes\AntiAliasingScene.h" />
     <ClInclude Include="src\Core\Scenes\FaceCullingScene.h" />
@@ -204,6 +205,7 @@
     <ClCompile Include="External Libs\imgui\imgui_widgets.cpp" />
     <ClCompile Include="src\Core\SceneGraph\Model.cpp" />
     <ClCompile Include="src\Core\SceneGraph\ModelLoader.cpp" />
+    <ClCompile Include="src\Core\Scenes\AdvanceLightingScene.cpp" />
     <ClCompile Include="src\Core\Scenes\AdvanceOpenGLScene.cpp" />
     <ClCompile Include="src\Core\Camera.cpp" />
     <ClCompile Include="src\Core\GameObject.cpp" />

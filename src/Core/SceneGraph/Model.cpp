@@ -21,6 +21,12 @@ void Model::Draw(Shader& shader)
 		mesh.NewRender(shader);
 }
 
+void Model::DebugWireDraw()
+{
+	for (auto& mesh : meshes)
+		mesh.RenderDebugOutLine();
+}
+
 void Model::Destroy()
 {
 	for (auto& m : meshes)

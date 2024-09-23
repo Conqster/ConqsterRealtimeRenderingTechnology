@@ -58,11 +58,15 @@ void ModelMesh::NewRender(Shader& shader)
 	//	m_Textures[i].Activate();
 	//}
 
-	m_Textures[0].Activate();
+	if(m_Textures.size() > 0)
+		m_Textures[0].Activate();
 
 	VAO.Bind();
 	IBO.Bind();
 	GLCall(glDrawElements(GL_TRIANGLES, IBO.GetCount(), GL_UNSIGNED_INT, (void*)0));
+
+	VAO.Unbind();
+	IBO.Unbind();
 
 	//for (unsigned int i = 0; i < m_Textures.size(); i++)
 	//	m_Textures[i].DisActivate();

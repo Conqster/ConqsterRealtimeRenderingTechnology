@@ -8,6 +8,7 @@ in VS_OUT
 {
 	vec3 normal;
 	vec4 colour;
+	vec4 pos_debug_colour;
 }gs_in[];
 
 
@@ -23,6 +24,7 @@ layout (std140)  uniform u_CameraMat
 uniform float u_NorDebugLength;
 uniform vec3 u_DebugColour;
 uniform bool u_UseDebugColour;
+uniform bool u_DebugPosColour;
 
 
 void GenerateVertexLine(int idx)
@@ -36,6 +38,9 @@ void GenerateVertexLine(int idx)
 		f_Colour = gs_in[idx].colour;
 		f_Colour.a = 1.0f;
 	}
+	
+	if(u_DebugPosColour)
+		f_Colour = gs_in[idx].pos_debug_colour;
 	
 	gl_Position = projection * v_pos;
 	EmitVertex();

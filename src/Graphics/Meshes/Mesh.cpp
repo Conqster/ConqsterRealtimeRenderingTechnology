@@ -58,6 +58,8 @@ void Mesh::Render()
 	VAO.Bind();
 	IBO.Bind();
 	GLCall(glDrawElements(GL_TRIANGLES, IBO.GetCount(), GL_UNSIGNED_INT, (void*)0));
+	VAO.Unbind();
+	IBO.Unbind();
 }
 
 void Mesh::RenderInstances(int count)
@@ -73,9 +75,9 @@ void Mesh::RenderDebugOutLine()
 {
 	VAO.Bind();
 	IBO.Bind();
-	glLineWidth(2.0f);
+	GLCall(glLineWidth(2.0f));
 	GLCall(glDrawElements(GL_LINE_LOOP, IBO.GetCount(), GL_UNSIGNED_INT, (void*)0));
-	glLineWidth(1.0f);
+	GLCall(glLineWidth(1.0f));
 }
 
 

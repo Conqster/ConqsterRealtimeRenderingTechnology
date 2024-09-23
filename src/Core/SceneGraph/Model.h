@@ -12,11 +12,13 @@ public:
 
 	void Draw();
 	void Draw(class Shader& shader);
+	void DebugWireDraw();
 
 	void Destroy();
+	//~Model() = default;
 private: 
 	std::vector<ModelMesh> meshes;
 	std::vector<Texture> textures;
 
-	std::string dir;
+	std::string dir = "";
 };

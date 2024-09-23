@@ -15,6 +15,7 @@
 #include "Scenes/GeometryScene.h"
 #include "Scenes/InstancingScene.h"
 #include "Scenes/AntiAliasingScene.h"
+#include "Scenes/AdvanceLightingScene.h"
 
 //FOR TESTING: Remove later
 #include "External Libs/imgui/imgui.h"
@@ -43,18 +44,19 @@ void Game::OnStart()
 	m_SceneManager->RegisterNewScene<MainScene>("Main Scene");
 	m_SceneManager->RegisterNewScene<Texture_FrameBufferScene>("Texture_FrameBufferScene");
 	//m_SceneManager->RegisterNewScene<Light_ModelScene>("Light Model");
-	m_SceneManager->RegisterNewScene<AdvanceOpenGLScene>("Advance Scene");
+	//m_SceneManager->RegisterNewScene<AdvanceOpenGLScene>("Advance Scene");
 	//m_SceneManager->RegisterNewScene<FaceCullingScene>("Face Culling");
 	m_SceneManager->RegisterNewScene<GeometryScene>("Geometry Scene");
 	m_SceneManager->RegisterNewScene<InstancingScene>("Instance Scene");
 	m_SceneManager->RegisterNewScene<AntiAliasingScene>("AntiAliasing Scene");
+	m_SceneManager->RegisterNewScene<AdvanceLightingScene>("Advance Lighting Scene");
 
 	//Load
 	//m_CurrentScene = m_SceneManager->LoadScene("Instance Scene", m_Window);
+	m_CurrentScene = m_SceneManager->LoadScene("Advance Lighting Scene", m_Window);
 	//m_CurrentScene = m_SceneManager->LoadScene("Texture_FrameBufferScene", m_Window);
-	m_CurrentScene = m_SceneManager->LoadScene("AntiAliasing Scene", m_Window);
+	//m_CurrentScene = m_SceneManager->LoadScene("AntiAliasing Scene", m_Window);
 	//m_CurrentScene = m_SceneManager->LoadScene("Main Scene", m_Window);
-	//m_CurrentScene = m_SceneManager->CreateScene("Texture_FrameBufferScene");
 
 
 

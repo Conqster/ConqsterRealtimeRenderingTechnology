@@ -11,6 +11,7 @@ void InstancingScene::OnInit(Window* window)
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
 
+
 	if (!m_Camera)
 		m_Camera = new Camera(glm::vec3(0.0f, /*5.0f*/7.0f, -36.0f), glm::vec3(0.0f, 1.0f, 0.0f), 90.0f, 0.0f, 35.0f, 1.0f/*0.5f*/);
 
@@ -103,11 +104,14 @@ void InstancingScene::OnRender()
 
 	modelShader.Bind();
 	model = glm::mat4(1.0f);
-	model = glm::scale(model, glm::vec3(1.0f) * 0.1f);
+	//model = glm::scale(model, glm::vec3(1.0f) * 0.1f);
+	model = glm::scale(model, glm::vec3(1.0f) * modelScale);
 	//model = glm::translate(model, glm::vec3(4.0f, 0.0f, 0.0f));
+	samplePlainTexture->Activate();
 	modelShader.SetUniformMat4f("u_Model", model);
 	modelShader.SetUniform1i("u_Debug", debugColour);
 	sampleModel->Draw(modelShader);
+	samplePlainTexture->DisActivate();
 	modelShader.UnBind();
 
 
@@ -194,6 +198,9 @@ void InstancingScene::OnRenderUI()
 	ImGui::ColorEdit3("Debug colour", &normDebugColour[0]);
 	ImGui::SliderFloat("Debug length", &normDebugLength, -1.0f, 2.0f, "%.2f");
 
+	ImGui::Spacing();
+	ImGui::SliderFloat("Sample model scale", &modelScale, 0.1f, 50.0f);
+
 
 	ImGui::End();
 }
@@ -209,6 +216,9 @@ void InstancingScene::OnDestroy()
 	modelLoader.Clean();
 	modelShader.Clear();
 	debugNorShader.Clear();
+
+	samplePlainTexture->UnRegisterUse();
+	samplePlainTexture = nullptr;
 }
 
 InstancingScene::~InstancingScene()
@@ -222,10 +232,10 @@ void InstancingScene::CreateObjects()
 	///////////////////////////////////
 
 	ShaderFilePath shader_file_path
-					{
-						"src/ShaderFiles/Learning/Instancing/Vertex.glsl", //vertex shader
-						"src/ShaderFiles/Learning/Instancing/Fragment.glsl", //fragment shader
-					};
+	{
+		"src/ShaderFiles/Learning/Instancing/Vertex.glsl", //vertex shader
+		"src/ShaderFiles/Learning/Instancing/Fragment.glsl", //fragment shader
+	};
 
 	m_Shader.Create("shader_1", shader_file_path);
 
@@ -273,12 +283,17 @@ void InstancingScene::CreateObjects()
 	/////////////////////////////////////////
 	//sampleModel = modelLoader.Load("Assets/Textures/backpack/backpack.obj");
 	sampleModel = modelLoader.Load("Assets/Textures/sci-fi_electrical_charger/scene.gltf", true);
+	sampleModel = modelLoader.Load("Assets/Models/stanford-bunny.obj", true);
+
+
+	//Sample Texture
+	samplePlainTexture = new Texture("Assets/Textures/plain64.png");
 
 	ShaderFilePath shader_file_path2
-				{
-					"src/ShaderFiles/Learning/Instancing/ModelVertex.glsl", //vertex shader
-					"src/ShaderFiles/Learning/Instancing/Fragment.glsl", //fragment shader
-				};
+	{
+		"src/ShaderFiles/Learning/Instancing/ModelVertex.glsl", //vertex shader
+		"src/ShaderFiles/Learning/Instancing/Fragment.glsl", //fragment shader
+	};
 
 	modelShader.Create("model_shader", shader_file_path2);
 

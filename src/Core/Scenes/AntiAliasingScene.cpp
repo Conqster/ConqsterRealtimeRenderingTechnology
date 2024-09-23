@@ -45,7 +45,7 @@ void AntiAliasingScene::OnUpdate(float delta_time)
 void AntiAliasingScene::OnRender()
 {
 	//render
-	GLCall(glClearColor(0.1f, 0.1f, 0.1f, 1.0f));
+	GLCall(glClearColor(m_ClearScreenColour.r, m_ClearScreenColour.g, m_ClearScreenColour.b, 1.0f));
 	GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
 	//Camera prop
@@ -83,7 +83,7 @@ void AntiAliasingScene::OnRender()
 		///////////////////////////////////////////
 		//draw scene (as normal in MSAA buffer)
 		m_MSAA.Bind();
-		GLCall(glClearColor(0.1f, 0.1f, 0.1f, 1.0f));
+		GLCall(glClearColor(m_ClearScreenColour.r, m_ClearScreenColour.g, m_ClearScreenColour.b, 1.0f));
 		GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 		GLCall(glEnable(GL_DEPTH_TEST));
 
@@ -103,7 +103,8 @@ void AntiAliasingScene::OnRender()
 		// SECOND RENDER PASS: Render quad with scene visual as its texture image 
 		///////////////////////////////////////////
 		m_MSAA.UnBind();
-		GLCall(glClearColor(1.0f, 1.0f, 1.0f, 1.0f));
+		//GLCall(glClearColor(1.0f, 1.0f, 1.0f, 1.0f));
+		GLCall(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
 		GLCall(glClear(GL_COLOR_BUFFER_BIT));
 		GLCall(glDisable(GL_DEPTH_TEST));
 
@@ -129,7 +130,7 @@ void AntiAliasingScene::OnRender()
 	///////////////////////////////////////////
 	//draw scene (as normal in MSAA buffer)
 	m_MSAA2.Bind();
-	GLCall(glClearColor(0.1f, 0.1f, 0.1f, 1.0f));
+	GLCall(glClearColor(m_ClearScreenColour.r, m_ClearScreenColour.g, m_ClearScreenColour.b, 1.0f));
 	GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 	GLCall(glEnable(GL_DEPTH_TEST));
 
@@ -149,7 +150,8 @@ void AntiAliasingScene::OnRender()
 	// SECOND RENDER PASS: Render quad with scene visual as its texture image 
 	///////////////////////////////////////////
 	m_MSAA2.UnBind();
-	GLCall(glClearColor(1.0f, 1.0f, 1.0f, 1.0f));
+	//GLCall(glClearColor(1.0f, 1.0f, 1.0f, 1.0f));
+	GLCall(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
 	GLCall(glClear(GL_COLOR_BUFFER_BIT));
 	GLCall(glDisable(GL_DEPTH_TEST));
 
@@ -325,7 +327,6 @@ void AntiAliasingScene::CreateObjects()
 		"src/ShaderFiles/Learning/MSAA/AA_PostProcess_Frag.glsl" 
 	};
 	screenShader.Create("screen_shader", screen_shader_file_path);
-
 
 	//screenShader.Bind();
 	//screenShader.SetUniform1i("u_ScreenTex", 0);

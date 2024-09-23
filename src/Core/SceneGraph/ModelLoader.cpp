@@ -25,6 +25,9 @@ TextureType ConvertType(aiTextureType ai_type)
 
 std::shared_ptr<Model> ModelLoader::Load(std::string path, bool flip_uv)
 {
+	//(Quick Fix): bleeding mesh, when loader is used for multiple model
+	meshes.clear();		
+
 	Assimp::Importer import; 
 
 	int process_step = aiProcess_Triangulate;
@@ -51,6 +54,8 @@ std::shared_ptr<Model> ModelLoader::Load(std::string path, bool flip_uv)
 
 void ModelLoader::Clean()
 {
+	dir = "";
+
 	for (auto& t : cacheLoadedTextures)
 		t.DisActivate();
 
@@ -70,6 +75,11 @@ void ModelLoader::Clean()
 /// <param name="scene"></param>
 void ModelLoader::ProcessNode(aiNode* node, const aiScene* scene)
 {
+	///////////////
+	// LOG
+	///////////////
+	printf("[PROCESS NODE] Mesh count: %d from %s\n", node->mNumMeshes, dir.c_str());
+	printf("[PROCESS NODE] Mesh children count: %d from %s\n", node->mNumChildren, dir.c_str());
 
 	//process all node in current node
 	for (unsigned int i = 0; i < node->mNumMeshes; i++)
@@ -93,24 +103,20 @@ ModelMesh ModelLoader::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 	std::vector<unsigned int> indices;
 	std::vector<Texture> textures;
 
+	aiVector3D vp;     //position
+	aiVector3D vn;	   //normal
+	aiVector2D st;     //texture coord
+
 	////////////////////////////
 	// VERTICES
 	////////////////////////////
 	for (unsigned int i = 0; i < mesh->mNumVertices; i++)
 	{
-		//Vertex vertex;
-		//postion vp
-		//normal  vn
-		//texture coord st
-
-
-		aiVector3D vp = mesh->mVertices[i];
-		aiVector3D vn = aiVector3D();
+		vp = mesh->mVertices[i];
+		vn = aiVector3D();
 
 		if (mesh->HasNormals())
 			vn = mesh->mNormals[i];
-
-		aiVector2D st;
 
 		if (mesh->mTextureCoords[0])
 		{
@@ -130,10 +136,10 @@ ModelMesh ModelLoader::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 
 		Vertex vertex
 		{
-			{vp.x, vp.y, vp.z, 1.0f},     //layout 1 => pos
-			{1.0f, 0.0f, 1.0f, 1.0f}, //magenta   //layout 2 => col
-			{st.x, st.y},				//layout 2 => uv
-			{vn.x, vn.y, vn.z},         //layout 3 => nor
+			{vp.x, vp.y, vp.z, 1.0f},    //layout 0 => pos
+			{1.0f, 0.0f, 1.0f, 1.0f},	//layout 1 => col  //magenta for debugging
+			{st.x, st.y},			   //layout 2 => uv
+			{vn.x, vn.y, vn.z},       //layout 3 => nor
 		};
 		vertices.push_back(vertex);
 	}
@@ -146,9 +152,10 @@ ModelMesh ModelLoader::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 	{
 		aiFace face = mesh->mFaces[i];
 		for (unsigned int j = 0; j < face.mNumIndices; j++)
+		{
 			indices.push_back(face.mIndices[j]);
+		}
 	}
-
 
 
 	////////////////////////////
@@ -167,6 +174,96 @@ ModelMesh ModelLoader::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 		std::vector<Texture> emission_map = LoadMaterialTextures(mat, aiTextureType_EMISSIVE);
 		textures.insert(textures.end(), emission_map.begin(), emission_map.end());
 
+	}
+
+
+	////////////////////////
+	// (Quick Hack): if model doesnt have normal generate from face & its associate vertices
+	////////////////////////
+	if (!mesh->HasNormals())
+	{
+		aiVector3D v0;
+		aiVector3D v1;
+		aiVector3D v2;
+
+		glm::vec3 n0;
+		glm::vec3 n1;
+		glm::vec3 n2;
+
+		/////////v2///////// v21 = (v1 - v2)
+		//////////#///////// v20 = (v0 - p2) 
+		////////#//#//////// n2 = Cross(v21, v20)
+		///////#////#///////
+		//////#//////#//////
+		/////#///F////#/////
+		////#//////////#////
+		///##############///
+		//v0/////////////v1/
+
+		aiVector3D v02;
+		aiVector3D v01;
+		aiVector3D v12;
+		//aiVector3D v10; == -v01
+		//aiVector3D v21; == -v12
+		//aiVector3D v20; == -v02
+
+		for (unsigned int i = 0; i < mesh->mNumFaces; i++)
+		{
+			aiFace face = mesh->mFaces[i];
+
+			if (face.mNumIndices > 0)
+			{
+				v0 = mesh->mVertices[face.mIndices[0]];
+				v1 = mesh->mVertices[face.mIndices[1]];
+				v2 = mesh->mVertices[face.mIndices[2]];
+
+				//new
+				v02 = v2 - v0;
+				v01 = v1 - v0;
+				v12 = v2 - v1;
+
+				//n0
+				n0 = glm::cross(glm::vec3(v02.x, v02.y, v02.z), glm::vec3(v01.x, v01.y, v01.z));
+				vertices[face.mIndices[0]].normals[0] += n0.x;
+				vertices[face.mIndices[0]].normals[1] += n0.y;
+				vertices[face.mIndices[0]].normals[2] += n0.z;
+
+				//n1
+				n1 = glm::cross(glm::vec3(v12.x, v12.y, v12.z), glm::vec3(-v01.x, -v01.y, -v01.z));
+				vertices[face.mIndices[1]].normals[0] += n1.x;
+				vertices[face.mIndices[1]].normals[1] += n1.y;
+				vertices[face.mIndices[1]].normals[2] += n1.z;
+
+				//n2
+				n2 = glm::cross(glm::vec3(-v12.x, -v12.y, -v12.z), glm::vec3(-v02.x, -v02.y, -v02.z));
+				vertices[face.mIndices[2]].normals[0] += n2.x;
+				vertices[face.mIndices[2]].normals[1] += n2.y;
+				vertices[face.mIndices[2]].normals[2] += n2.z;
+
+				//old 
+				//aiVector3D v02 = v2 - v0;
+				//aiVector3D v01 = v1 - v0;
+				//n0 = glm::cross(glm::vec3(v02.x, v02.y, v02.z), glm::vec3(v01.x, v01.y, v01.z));
+				//vertices[face.mIndices[0]].normals[0] += n0.x;
+				//vertices[face.mIndices[0]].normals[1] += n0.y;
+				//vertices[face.mIndices[0]].normals[2] += n0.z;
+
+				//aiVector3D v12 = v2 - v1;
+				//aiVector3D v10 = v0 - v1;
+				//n1 = glm::cross(glm::vec3(v12.x, v12.y, v12.z), glm::vec3(v10.x, v10.y, v10.z));
+				//vertices[face.mIndices[1]].normals[0] += n1.x;
+				//vertices[face.mIndices[1]].normals[1] += n1.y;
+				//vertices[face.mIndices[1]].normals[2] += n1.z;
+
+				//aiVector3D v21 = v1 - v2;
+				//aiVector3D v20 = v0 - v2;
+				//n2 = glm::cross(glm::vec3(v21.x, v21.y, v21.z), glm::vec3(v20.x, v20.y, v20.z));
+				//vertices[face.mIndices[2]].normals[0] += n2.x;
+				//vertices[face.mIndices[2]].normals[1] += n2.y;
+				//vertices[face.mIndices[2]].normals[2] += n2.z;
+			}
+
+		}
 	}
 
 	//Generate Necessary data for Mesh

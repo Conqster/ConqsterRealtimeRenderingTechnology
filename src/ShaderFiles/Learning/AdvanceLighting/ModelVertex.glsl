@@ -5,12 +5,12 @@ layout (location = 1) in vec4 col;
 layout (location = 2) in vec2 uv;
 layout (location = 3) in vec3 nor;
 
+
 out VS_OUT
 {
-	vec3 normal;
-	vec4 colour;
-	vec4 pos_debug_colour;
+	vec2 texCoords;
 }vs_out;
+
 
 layout (std140)  uniform u_CameraMat
 {
@@ -23,10 +23,7 @@ uniform mat4 u_Model;
 
 void main()
 {
-	gl_Position = view * u_Model * pos;
-	mat3 nor_mat = mat3(transpose(inverse(view * u_Model)));
-	vs_out.normal = normalize(vec3(vec4(nor_mat * nor, 0.0f)));
+	gl_Position = projection * view * u_Model * pos;
 	
-	vs_out.colour = col;
-	vs_out.pos_debug_colour = pos;
+	vs_out.texCoords = uv;
 }

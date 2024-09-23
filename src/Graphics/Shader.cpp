@@ -137,7 +137,7 @@
 			//Error message was generic syntax error, unexpected IDENTIFIER, expecting
 			// LEFT_BRACE or COMMA or SEMICOLON.
 			glGetShaderInfoLog(shaderid, sizeof(eLog), NULL, eLog);
-			printf("[SHADER]: Couldn't create a %s, %s SOURCE: %s\n", LogShaderTypeName2(type), eLog, GetShaderFilePath(type));
+			printf("[SHADER]: Couldn't create a %s, %sSOURCE: %s\n", LogShaderTypeName2(type), eLog, GetShaderFilePath(type));
 			exit(-1);
 		}
 
