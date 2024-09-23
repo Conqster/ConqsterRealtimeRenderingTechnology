@@ -78,6 +78,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)\External Libs\glfw\include;$(SolutionDir)\External Libs\glew\include;$(SolutionDir)\External Libs\GLM;$(SolutionDir)\src;$(SolutionDir)\src\Core;$(SolutionDir)External Libs\Assimp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -95,6 +96,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)\External Libs\glfw\include;$(SolutionDir)\External Libs\glew\include;$(SolutionDir)\External Libs\GLM;$(SolutionDir)\src;$(SolutionDir)\src\Core;$(SolutionDir)External Libs\Assimp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -112,6 +114,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)\External Libs\glfw\include;$(SolutionDir)\External Libs\glew\include;$(SolutionDir)\External Libs\GLM;$(SolutionDir)\src;$(SolutionDir)\src\Core;$(SolutionDir)External Libs\Assimp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -129,6 +132,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)\External Libs\glfw\include;$(SolutionDir)\External Libs\glew\include;$(SolutionDir)\External Libs\GLM;$(SolutionDir)\src;$(SolutionDir)\src\Core;$(SolutionDir)External Libs\Assimp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -187,6 +191,7 @@
     <ClInclude Include="src\Core\EventHandle.h" />
     <ClInclude Include="src\Graphics\Texture.h" />
     <ClInclude Include="src\Graphics\Meshes\SquareMesh.h" />
+    <ClInclude Include="src\Util\FilePaths.h" />
     <ClInclude Include="src\Util\GameTime.h" />
     <ClInclude Include="src\Util\MathsHelpers.h" />
     <ClInclude Include="src\Util\Vector.h" />

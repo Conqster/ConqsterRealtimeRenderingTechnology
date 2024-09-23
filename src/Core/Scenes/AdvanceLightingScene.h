@@ -39,6 +39,7 @@ private:
 	glm::vec3 normDebugColour = glm::vec3(1.0f, 0.0f, 1.0f);
 	bool useDebugColour = true;
 	bool debugVertexPosColour = false;
+	Texture* plainTex;
 
 	std::shared_ptr<Model> model_2;
 	glm::vec3 model_2Pos = glm::vec3(1.0f, 0.0f, 0.0f);
@@ -50,7 +51,7 @@ private:
 
 	//sphere
 	SphereMesh sphere;
-	Texture* sphereTex;
+	Texture* brickTex;
 
 	//ground
 	SquareMesh ground;

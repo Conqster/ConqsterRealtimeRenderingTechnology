@@ -5,6 +5,7 @@
 #include "Graphics/RendererErrorAssertion.h"
 
 #include "External Libs/imgui/imgui.h"
+#include "Util/FilePaths.h"
 
 
 void AdvanceLightingScene::SetWindow(Window* window)
@@ -149,8 +150,8 @@ void AdvanceLightingScene::CreateObjects()
 	///////////////
 	// Create model
 	///////////////
-	model_1 = modelLoader.Load("Assets/Textures/sci-fi_electrical_charger/scene.gltf", true);
-	model_2 = modelLoader.Load("Assets/Models/stanford-bunny.obj", true);
+	model_1 = modelLoader.Load(FilePaths::Instance().GetPath("electrical-charger"), true);
+	model_2 = modelLoader.Load(FilePaths::Instance().GetPath("bunny"), true);
 	//model_1 = modelLoader.Load("Assets/Textures/backpack/backpack.obj", true);
 
 
@@ -175,7 +176,15 @@ void AdvanceLightingScene::CreateObjects()
 	// CREATE SPHERE MESH
 	////////////////////////////////////////
 	sphere.Create();
-	sphereTex = new Texture("Assets/Textures/brick.png");
+	
+
+	////////////////////////////////////////
+	// CREATE TEXTURES 
+	////////////////////////////////////////
+	//brick texture 
+	brickTex = new Texture(FilePaths::Instance().GetPath("brick"));
+	//plain texture
+	plainTex = new Texture(FilePaths::Instance().GetPath("plain"));
 
 
 
@@ -206,7 +215,7 @@ void AdvanceLightingScene::DrawObjects(Shader& shader)
 	model = glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 	model = glm::scale(model, glm::vec3(20.0f));
 	shader.SetUniformMat4f("u_Model", model);
-	sphereTex->Activate();
+	brickTex->Activate();
 	//ground 1
 	ground.Render();
 	//ground 2
@@ -216,7 +225,7 @@ void AdvanceLightingScene::DrawObjects(Shader& shader)
 	//ground 3
 	model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	ground.Render();
-	sphereTex->DisActivate();
+	brickTex->DisActivate();
 	//modelShader.UnBind();
 
 
@@ -230,6 +239,7 @@ void AdvanceLightingScene::DrawObjects(Shader& shader)
 
 
 	//modelShader.Bind();
+	plainTex->Activate();
 	model = glm::mat4(1.0f);
 	model = glm::translate(model, model_2Pos);
 	model = glm::scale(model, glm::vec3(1.0f) * model_2Scale);
@@ -237,5 +247,6 @@ void AdvanceLightingScene::DrawObjects(Shader& shader)
 	//model_2->Draw(modelShader);
 	model_2->Draw();
 	//model_2->DebugWireDraw();
+	plainTex->DisActivate();
 	shader.UnBind();
 }

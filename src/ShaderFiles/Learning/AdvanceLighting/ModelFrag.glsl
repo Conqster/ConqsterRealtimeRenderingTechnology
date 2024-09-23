@@ -9,10 +9,12 @@ in VS_OUT
 
 uniform sampler2D u_Texture;
 
+
 void main()
 {
 	FragColour = vec4(0.0f, 0.0f, 1.0f, 1.0f) * texture(u_Texture, fs_in.texCoords);
 	//FragColour = texture(u_Texture, fs_in.texCoords);
+	
 	
 	//FragColour = vec4(1.0f, 0.0f, 1.0f, 1.0f);
 }

@@ -19,6 +19,7 @@
 
 //FOR TESTING: Remove later
 #include "External Libs/imgui/imgui.h"
+#include "Util/FilePaths.h"
 
 
 void Game::OnStart()
@@ -37,6 +38,31 @@ void Game::OnStart()
 
 
 	m_Window = new Window(m_WindowProp);
+
+
+	/////////////////////////
+	// FILE PATHS
+	/////////////////////////
+	{
+		TimeTaken FilePathRegistation("File Path Registeration");
+		//Register file path
+		FilePaths::Instance().RegisterPath("brick", "Assets/Textures/brick.png");
+		FilePaths::Instance().RegisterPath("manchester-image", "Assets/Textures/At Manchester.jpg");
+		FilePaths::Instance().RegisterPath("container", "Assets/Textures/container.png");
+		FilePaths::Instance().RegisterPath("container-specular", "Assets/Textures/container_specular.png");
+		FilePaths::Instance().RegisterPath("dirt", "Assets/Textures/dirt.png");
+		FilePaths::Instance().RegisterPath("grass", "Assets/Textures/grass.png");
+		FilePaths::Instance().RegisterPath("marble", "Assets/Textures/marble.jpeg");
+		FilePaths::Instance().RegisterPath("metal", "Assets/Textures/metal.jpeg");
+		FilePaths::Instance().RegisterPath("plain", "Assets/Textures/plain64.png");
+
+
+		FilePaths::Instance().RegisterPath("bunny", "Assets/Models/stanford-bunny.obj");
+		FilePaths::Instance().RegisterPath("backpack", "Assets/Models/backpack/backpack.obj");
+		FilePaths::Instance().RegisterPath("electrical-charger", "Assets/Textures/sci-fi_electrical_charger/scene.gltf");
+	}
+
+
 
 
 	//Register scenes
@@ -61,6 +87,11 @@ void Game::OnStart()
 
 
 
+
+
+
+	//Sample to get file path with key
+	std::cout << FilePaths::Instance().GetPath("bunny") << "\n";
 
 	if (m_Window)
 	{
