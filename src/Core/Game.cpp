@@ -109,6 +109,11 @@ void Game::OnStart()
 			m_GameState = State::RUNNINGSCENE;
 		}
 
+
+		std::cout << "/////////////////////////////////////////////////////////////////////\n";
+		std::cout << "LOAD COMPLETION\n";
+		std::cout << "/////////////////////////////////////////////////////////////////////\n";
+
 		return;
 	}
 	std::cout << "Failed to init window &/ Scene!!!!!\n";

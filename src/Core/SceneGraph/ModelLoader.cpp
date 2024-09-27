@@ -182,88 +182,13 @@ ModelMesh ModelLoader::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 	////////////////////////
 	if (!mesh->HasNormals())
 	{
-		aiVector3D v0;
-		aiVector3D v1;
-		aiVector3D v2;
+		bool generateWcFace = false;
 
-		glm::vec3 n0;
-		glm::vec3 n1;
-		glm::vec3 n2;
-
-		/////////v2///////// v21 = (v1 - v2)
-		//////////#///////// v20 = (v0 - p2) 
-		////////#//#//////// n2 = Cross(v21, v20)
-		///////#////#///////
-		//////#//////#//////
-		/////#///F////#/////
-		////#//////////#////
-		///##############///
-		//v0/////////////v1/
-
-		aiVector3D v02;
-		aiVector3D v01;
-		aiVector3D v12;
-		//aiVector3D v10; == -v01
-		//aiVector3D v21; == -v12
-		//aiVector3D v20; == -v02
-
-		for (unsigned int i = 0; i < mesh->mNumFaces; i++)
-		{
-			aiFace face = mesh->mFaces[i];
-
-			if (face.mNumIndices > 0)
-			{
-				v0 = mesh->mVertices[face.mIndices[0]];
-				v1 = mesh->mVertices[face.mIndices[1]];
-				v2 = mesh->mVertices[face.mIndices[2]];
-
-				//new
-				v02 = v2 - v0;
-				v01 = v1 - v0;
-				v12 = v2 - v1;
-
-				//n0
-				n0 = glm::cross(glm::vec3(v02.x, v02.y, v02.z), glm::vec3(v01.x, v01.y, v01.z));
-				vertices[face.mIndices[0]].normals[0] += n0.x;
-				vertices[face.mIndices[0]].normals[1] += n0.y;
-				vertices[face.mIndices[0]].normals[2] += n0.z;
-
-				//n1
-				n1 = glm::cross(glm::vec3(v12.x, v12.y, v12.z), glm::vec3(-v01.x, -v01.y, -v01.z));
-				vertices[face.mIndices[1]].normals[0] += n1.x;
-				vertices[face.mIndices[1]].normals[1] += n1.y;
-				vertices[face.mIndices[1]].normals[2] += n1.z;
-
-				//n2
-				n2 = glm::cross(glm::vec3(-v12.x, -v12.y, -v12.z), glm::vec3(-v02.x, -v02.y, -v02.z));
-				vertices[face.mIndices[2]].normals[0] += n2.x;
-				vertices[face.mIndices[2]].normals[1] += n2.y;
-				vertices[face.mIndices[2]].normals[2] += n2.z;
-
-				//old 
-				//aiVector3D v02 = v2 - v0;
-				//aiVector3D v01 = v1 - v0;
-				//n0 = glm::cross(glm::vec3(v02.x, v02.y, v02.z), glm::vec3(v01.x, v01.y, v01.z));
-				//vertices[face.mIndices[0]].normals[0] += n0.x;
-				//vertices[face.mIndices[0]].normals[1] += n0.y;
-				//vertices[face.mIndices[0]].normals[2] += n0.z;
-
-				//aiVector3D v12 = v2 - v1;
-				//aiVector3D v10 = v0 - v1;
-				//n1 = glm::cross(glm::vec3(v12.x, v12.y, v12.z), glm::vec3(v10.x, v10.y, v10.z));
-				//vertices[face.mIndices[1]].normals[0] += n1.x;
-				//vertices[face.mIndices[1]].normals[1] += n1.y;
-				//vertices[face.mIndices[1]].normals[2] += n1.z;
-
-				//aiVector3D v21 = v1 - v2;
-				//aiVector3D v20 = v0 - v2;
-				//n2 = glm::cross(glm::vec3(v21.x, v21.y, v21.z), glm::vec3(v20.x, v20.y, v20.z));
-				//vertices[face.mIndices[2]].normals[0] += n2.x;
-				//vertices[face.mIndices[2]].normals[1] += n2.y;
-				//vertices[face.mIndices[2]].normals[2] += n2.z;
-			}
-
-		}
+		if (!generateWcFace)
+			vertices = CalcAverageNormalsWcIndices(vertices, indices);
+		else
+			vertices = CalcNormalsWcMeshFace(vertices, mesh);
+		
 	}
 
 	//Generate Necessary data for Mesh
@@ -315,3 +240,136 @@ std::vector<Texture> ModelLoader::LoadMaterialTextures(aiMaterial* mat, aiTextur
 
 	return temp;
 }
+
+std::vector<Vertex> ModelLoader::CalcAverageNormalsWcIndices(std::vector<Vertex>& vertices, std::vector<unsigned int> indices)
+{
+	std::vector<Vertex> temp = vertices;
+
+	for (size_t i = 0; i < indices.size(); i += 3)
+	{
+		unsigned int in0 = indices[i];    
+		unsigned int in1 = indices[i + 1]; 
+		unsigned int in2 = indices[i + 2]; 
+	
+		glm::vec3 v1;
+		glm::vec3 v2;
+	
+		v1 = glm::vec3(temp[in1].position[0] - temp[in0].position[0], 
+					   temp[in1].position[1] - temp[in0].position[1], 
+					   temp[in1].position[2] - temp[in0].position[2]);
+	
+		v2 = glm::vec3(temp[in2].position[0] - temp[in0].position[0], 
+					   temp[in2].position[1] - temp[in0].position[1], 
+					   temp[in2].position[2] - temp[in0].position[2]);
+		
+		glm::vec3 nor = glm::cross(v1, v2);
+		nor = glm::normalize(nor);
+	
+		//(accumulate) add current normally to all current vertices
+		temp[in0].normals[0] += nor.x;
+		temp[in0].normals[1] += nor.y;
+		temp[in0].normals[2] += nor.z;
+	
+		temp[in1].normals[0] += nor.x;
+		temp[in1].normals[1] += nor.y;
+		temp[in1].normals[2] += nor.z;
+	
+		temp[in2].normals[0] += nor.x;
+		temp[in2].normals[1] += nor.y;
+		temp[in2].normals[2] += nor.z;
+	}
+
+	//re-normalizing
+	//for (size_t i = 0; i < temp.size(); i++)
+	//{
+	//	glm::vec3 vec(temp[i].normals[0], temp[i].normals[1], temp[i].normals[2]);
+	//	vec = glm::normalize(vec);
+	//	temp[i].normals[0] = vec.x;
+	//	temp[i].normals[1] = vec.y;
+	//	temp[i].normals[2] = vec.z;
+	//}
+
+	return temp;
+}
+
+std::vector<Vertex> ModelLoader::CalcNormalsWcMeshFace(std::vector<Vertex>& vertices, aiMesh* mesh)
+{
+	std::vector<Vertex> temp = vertices;
+
+	aiVector3D v0;
+	aiVector3D v1;
+	aiVector3D v2;
+
+	glm::vec3 n0;
+	glm::vec3 n1;
+	glm::vec3 n2;
+
+	/////////v2///////// v21 = (v1 - v2)
+	//////////#///////// v20 = (v0 - p2) 
+	////////#//#//////// n2 = Cross(v21, v20)
+	///////#////#///////
+	//////#//////#//////
+	/////#///F////#/////
+	////#//////////#////
+	///##############///
+	//v0/////////////v1/
+
+	aiVector3D v02;
+	aiVector3D v01;
+	aiVector3D v12;
+	//aiVector3D v10; == -v01
+	//aiVector3D v21; == -v12
+	//aiVector3D v20; == -v02
+
+	//Expensive but for testing 
+	//std::vector<aiVector3D> cache_vectors;
+	int count = 0;
+
+	for (unsigned int i = 0; i < mesh->mNumFaces; i++)
+	{
+		aiFace face = mesh->mFaces[i];
+
+		if (face.mNumIndices > 0)
+		{
+			v0 = mesh->mVertices[face.mIndices[0]];
+			v1 = mesh->mVertices[face.mIndices[1]];
+			v2 = mesh->mVertices[face.mIndices[2]];
+			
+
+			//new
+			v02 = v2 - v0;
+			v01 = v1 - v0;
+			v12 = v2 - v1;
+
+			v02.Normalize();
+			v01.Normalize();
+			v12.Normalize();
+
+			//n0
+			n0 = glm::cross(glm::vec3(v02.x, v02.y, v02.z), glm::vec3(v01.x, v01.y, v01.z));
+			//glm::normalize(n0);
+			temp[face.mIndices[0]].normals[0] += n0.x;
+			temp[face.mIndices[0]].normals[1] += n0.y;
+			temp[face.mIndices[0]].normals[2] += n0.z;
+
+			//n1
+			n1 = glm::cross(glm::vec3(v12.x, v12.y, v12.z), glm::vec3(-v01.x, -v01.y, -v01.z));
+			//glm::normalize(n1);
+			temp[face.mIndices[1]].normals[0] += n1.x;
+			temp[face.mIndices[1]].normals[1] += n1.y;
+			temp[face.mIndices[1]].normals[2] += n1.z;
+
+			//n2
+			n2 = glm::cross(glm::vec3(-v12.x, -v12.y, -v12.z), glm::vec3(-v02.x, -v02.y, -v02.z));
+			//glm::normalize(n2);
+			temp[face.mIndices[2]].normals[0] += n2.x;
+			temp[face.mIndices[2]].normals[1] += n2.y;
+			temp[face.mIndices[2]].normals[2] += n2.z;
+		}
+
+	}
+
+	return temp;
+}
+
+
