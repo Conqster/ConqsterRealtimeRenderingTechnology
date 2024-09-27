@@ -136,7 +136,7 @@ ModelMesh ModelLoader::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 
 		Vertex vertex
 		{
-			{vp.x, vp.y, vp.z, 1.0f},    //layout 0 => pos
+			 {vp.x, vp.y, vp.z, 1.0f},    //layout 0 => pos
 			{1.0f, 0.0f, 1.0f, 1.0f},	//layout 1 => col  //magenta for debugging
 			{st.x, st.y},			   //layout 2 => uv
 			{vn.x, vn.y, vn.z},       //layout 3 => nor
@@ -280,14 +280,19 @@ std::vector<Vertex> ModelLoader::CalcAverageNormalsWcIndices(std::vector<Vertex>
 	}
 
 	//re-normalizing
-	//for (size_t i = 0; i < temp.size(); i++)
-	//{
-	//	glm::vec3 vec(temp[i].normals[0], temp[i].normals[1], temp[i].normals[2]);
-	//	vec = glm::normalize(vec);
-	//	temp[i].normals[0] = vec.x;
-	//	temp[i].normals[1] = vec.y;
-	//	temp[i].normals[2] = vec.z;
-	//}
+	for (size_t i = 0; i < temp.size(); i++)
+	{
+		glm::vec3 vec(temp[i].normals[0], temp[i].normals[1], temp[i].normals[2]);
+		vec = glm::normalize(vec);
+
+		if (glm::length(vec) > 0.0f)
+			vec = glm::normalize(vec);
+
+
+		temp[i].normals[0] = vec.x;
+		temp[i].normals[1] = vec.y;
+		temp[i].normals[2] = vec.z;
+	}
 
 	return temp;
 }

@@ -31,6 +31,103 @@ void Mesh::CacheVertices(const float vertices[], size_t size)
 	}
 }
 
+void Mesh::ReCalcNormalsWcIndices(float* vertices, unsigned int* indices, unsigned int vertices_count, unsigned int indices_count, unsigned int vertex_stride, unsigned int normal_offset, bool reset_normals)
+{
+	//return;
+	//(Quick hack): set all normals to zero
+	if (reset_normals)
+	{
+		for (unsigned int i = normal_offset; i < vertices_count; i += vertex_stride)
+		{
+			vertices[i] = vertices[i + 1] = vertices[i + 2] = 0.0f;
+		}
+	}
+
+
+	for (size_t i = 0; i < indices_count; i += 3)
+	{
+		//base on the idx, get the first (pos-x) of the current indices i, i+1, i+2 (3 indices makes triangle/face)
+		unsigned int v_in0 = indices[i] * vertex_stride;     //pointer tracker -> pos_x of vertex of indice i (v_in0)
+		unsigned int v_in1 = indices[i + 1] * vertex_stride; //pointer tracker -> next == pos_x of vertex of indice i+1  (v_in1)
+		unsigned int v_in2 = indices[i + 2] * vertex_stride; //pointer tracker -> next == pos_x of vertex of indice i+2  (v_in2)
+
+		glm::vec3 v01;  //vec v_in0 to v_in1 i.e v_in1 - v_in0
+		glm::vec3 v02; //vec v_in0 to v_in2
+		//Luxury that all the array data in vertex are packed contagoiusly 
+		v01 = glm::vec3(vertices[v_in1] - vertices[v_in0],         //v_in1.x - v_in0.x
+			vertices[v_in1 + 1] - vertices[v_in0 + 1],     //v_in1.y - v_in0.y
+			vertices[v_in1 + 2] - vertices[v_in0 + 2]);    //v_in1.z - v_in0.z
+
+		v02 = glm::vec3(vertices[v_in2] - vertices[v_in0],         //v_in2.x - v_in0.x
+			vertices[v_in2 + 1] - vertices[v_in0 + 1],     //v_in2.y - v_in0.y
+			vertices[v_in2 + 2] - vertices[v_in0 + 2]);    //v_in2.z - v_in0.z
+
+
+		//normals for all 3 current vertices (i.e all contribute to make a face)
+		/////////v_in0//////// v01 = v_in1 - v_in0
+		////////////#///////// v02 = v_in0 to v_in2
+		//////////#//#//////// n for F = Cross(v01, v02)
+		/////////#////#///////
+		////////#//////#//////
+		///////#///F////#/////
+		//////#//////////#////
+		////##############////
+		//v_in1//////////v_in2
+		glm::vec3 nor = glm::cross(v01, v02);
+		nor = glm::normalize(nor);
+
+		//accumuate normals of all current vertices as other faces indice might also contribute
+		v_in0 += normal_offset;  //move pointer tracker -> from pos_x to nor_x of vertex of indice i
+		v_in1 += normal_offset;  //move pointer tracker -> from pos_x to nor_x of vertex of indice i+1
+		v_in2 += normal_offset;  //move pointer tracker -> from pos_x to nor_x of vertex of indice i+2
+
+		//Smooth shading
+		vertices[v_in0] += nor.x;
+		vertices[v_in0 + 1] += nor.y;
+		vertices[v_in0 + 2] += nor.z;
+
+		vertices[v_in1] += nor.x;
+		vertices[v_in1 + 1] += nor.y;
+		vertices[v_in1 + 2] += nor.z;
+
+		vertices[v_in2] += nor.x;
+		vertices[v_in2 + 1] += nor.y;
+		vertices[v_in2 + 2] += nor.z;
+
+		//looks Flat shaded
+		//vertices[v_in0] = nor.x;
+		//vertices[v_in0 + 1] = nor.y;
+		//vertices[v_in0 + 2] = nor.z;
+
+		//vertices[v_in1] = nor.x;
+		//vertices[v_in1 + 1] = nor.y;
+		//vertices[v_in1 + 2] = nor.z;
+
+		//vertices[v_in2] = nor.x;
+		//vertices[v_in2 + 1] = nor.y;
+		//vertices[v_in2 + 2] = nor.z;
+	}
+
+	//normalize all acculated normals for each vertex
+	for (unsigned int i = normal_offset; i < vertices_count; i += vertex_stride)
+	{
+		glm::vec3 acc_nor(vertices[i],
+			vertices[i + 1],
+			vertices[i + 2]);
+
+		if (glm::length(acc_nor) > 0.0f)
+			acc_nor = glm::normalize(acc_nor);
+
+		vertices[i] = acc_nor.x;
+		vertices[i + 1] = acc_nor.y;
+		vertices[i + 2] = acc_nor.z;
+	}
+}
+
+
+
+
+
 Mesh::Mesh()
 {
 	//Create();

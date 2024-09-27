@@ -21,6 +21,9 @@ void AdvanceLightingScene::OnInit(Window* window)
 
 	glEnable(GL_DEPTH_TEST);
 
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+
 	if (!m_Camera)
 		m_Camera = new Camera(glm::vec3(0.0f, /*5.0f*/7.0f, -36.0f), glm::vec3(0.0f, 1.0f, 0.0f), 90.0f, 0.0f, 20.0f, 1.0f/*0.5f*/);
 
@@ -49,7 +52,7 @@ void AdvanceLightingScene::OnRender()
 	//general debug parameters for model shader
 	modelShader.Bind();
 	modelShader.SetUniform1i("u_DebugScene", debugScene);
-	modelShader.SetUniform1i("u_DebugWcModelSpace", debugWcModelSpace);
+	modelShader.SetUniform1i("u_DebugWcType", debugModelType);
 	modelShader.SetUniform1i("u_DisableTex", disableTexture);
 	LightPass(modelShader);
 	DrawObjects(modelShader);
@@ -210,7 +213,7 @@ void AdvanceLightingScene::OnRenderUI()
 	if (ImGui::TreeNode("Lights"))
 	{
 		ImGui::SeparatorText("Light Global Properties");
-		ImGui::SliderInt("Specular Shinness", &specShinness, 0, 64);
+		ImGui::SliderInt("Specular Shinness", &specShinness, 0, 128);
 		ImGui::Checkbox("Debug Lights Pos", &debugLightPos);
 
 		ImGui::SeparatorText("Point Light");
@@ -227,8 +230,14 @@ void AdvanceLightingScene::OnRenderUI()
 	ImGui::Spacing();
 	ImGui::SeparatorText("General Debugging");
 	ImGui::Checkbox("Debug Scene", &debugScene);
-	if(debugScene)
-		ImGui::Checkbox("Debug Scene Wc Model Space", &debugWcModelSpace);
+	if (debugScene)
+	{
+		static int cur_sel = 0;
+		const char* element_name[] = {"Model Space", "Model Normal", "Model Abs Normal","Model Colour", "Default Colour"};
+		ImGui::Combo("Debug Colour Type", &cur_sel, element_name, IM_ARRAYSIZE(element_name));
+
+		debugModelType = (DebugModelType)cur_sel;
+	}
 	ImGui::Checkbox("Disable Texture", &disableTexture);
 	ImGui::SeparatorText("Normal debugging");
 	ImGui::Checkbox("Use debug colour", &useDebugColour);
@@ -248,8 +257,8 @@ void AdvanceLightingScene::CreateObjects()
 	///////////////
 	// Create Objects & model
 	///////////////
-	model_2 = modelLoader.Load(FilePaths::Instance().GetPath("bunny-2"), true);
 	model_1 = modelLoader.Load(FilePaths::Instance().GetPath("bunny"), true);
+	model_2 = modelLoader.Load(FilePaths::Instance().GetPath("backpack"), true);
 	//model_1 = modelLoader.Load("Assets/Textures/backpack/backpack.obj", true);
 
 	////////////////////////////////////////
@@ -278,6 +287,8 @@ void AdvanceLightingScene::CreateObjects()
 		cubesPos[i] = origin + glm::vec3(0.0f, 0.0f, offset_units * i);
 		cubesScale[i] = 2.0f;
 	}
+
+	cubesScale[0] = 100.0f;
 
 	//generate pos&scale for sphere
 	//(4.5f, 0.5f, 5.0f)
@@ -334,6 +345,8 @@ void AdvanceLightingScene::CreateObjects()
 	brickTex = new Texture(FilePaths::Instance().GetPath("brick"));
 	//plain texture
 	plainTex = new Texture(FilePaths::Instance().GetPath("plain"));
+	//manchester-image
+	manchesterTex = new Texture(FilePaths::Instance().GetPath("manchester-image"));
 
 
 
@@ -343,9 +356,9 @@ void AdvanceLightingScene::CreateObjects()
 	/////////////////////////////////////////
 	pointLight.colour = glm::vec3(1.0f, 0.0f, 1.0f);
 	pointLight.position = glm::vec3(0.0f, 3.0f, 0.0f);
-	debugScene = true;
-	debugWcModelSpace = true;
 
+	debugScene = true;
+	debugModelType = MODEL_NORMAL;
 }
 
 void AdvanceLightingScene::DrawObjects(Shader& shader)
@@ -358,10 +371,12 @@ void AdvanceLightingScene::DrawObjects(Shader& shader)
 	model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 	model = glm::scale(model, glm::vec3(1.0f) * groundScale);
 	shader.SetUniformMat4f("u_Model", model);
-	brickTex->Activate();
+	//brickTex->Activate();
+	manchesterTex->Activate();
 	//ground 1
 	ground.Render();
-	brickTex->DisActivate();
+	//brickTex->DisActivate();
+	manchesterTex->DisActivate();
 	//modelShader.UnBind();
 
 
@@ -403,7 +418,8 @@ void AdvanceLightingScene::DrawObjects(Shader& shader)
 
 
 	//CUBES
-	plainTex->Activate();
+	//plainTex->Activate();
+	manchesterTex->Activate();
 	for (int i = 0; i < MAX_CUBE; i++)
 	{
 		model = glm::mat4(1.0f);
@@ -412,7 +428,8 @@ void AdvanceLightingScene::DrawObjects(Shader& shader)
 		shader.SetUniformMat4f("u_Model", model);
 		cube.Render();
 	}
-	plainTex->DisActivate();
+	//plainTex->DisActivate();
+	manchesterTex->DisActivate();
 
 
 

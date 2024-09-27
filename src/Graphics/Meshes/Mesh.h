@@ -32,6 +32,8 @@ protected:
 
 	int m_RefCount = 0;
 	void CacheVertices(const float vertices[], size_t size);
+	void ReCalcNormalsWcIndices(float* vertices, unsigned int* indices, unsigned int vertices_count,unsigned int indices_count, 
+								unsigned int vertex_stride, unsigned int normal_offset, bool reset_normals = true);
 public:
 	Mesh();
 	Mesh(const VertexArray vao, VertexBuffer vbo);

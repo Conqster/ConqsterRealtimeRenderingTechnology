@@ -47,9 +47,17 @@ private:
 	bool useDebugColour = true;
 	bool debugLightPos = true;
 	bool debugScene = false;
-	bool debugWcModelSpace = false;
+	//bool debugWcModelSpace = false;
 	bool debugVertexPosColour = false;
 	bool disableTexture = true;
+	enum DebugModelType : int
+	{
+		MODEL_SPACE,
+		MODEL_NORMAL,
+		MODEL_ABS_NORMAL,
+		MODEL_COLOUR,
+		DEFAULT_COLOUR
+	}debugModelType;
 
 	//////////////
 	// Objects
@@ -66,7 +74,7 @@ private:
 	float cubesScale[MAX_CUBE]; 
 	//ground
 	SquareMesh ground;
-	float groundScale = 500.0f;
+	float groundScale = 50.0f;
 	//cube 
 	CubeMesh cube;
 	//model1 (stanford-bunny)
@@ -90,6 +98,7 @@ private:
 	//////Textures
 	Texture* brickTex;
 	Texture* plainTex;
+	Texture* manchesterTex;
 
 
 	///////////////////////

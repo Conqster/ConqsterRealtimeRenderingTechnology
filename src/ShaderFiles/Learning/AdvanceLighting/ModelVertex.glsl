@@ -12,6 +12,7 @@ out VS_OUT
 	vec3 fragPos;
 	vec3 normal;
 	vec4 colour;
+	vec4 position;
 }vs_out;
 
 
@@ -32,4 +33,5 @@ void main()
 	vs_out.fragPos = vec3(u_Model * pos);
 	vs_out.normal = nor;
 	vs_out.colour = col;
+	vs_out.position = pos;
 }

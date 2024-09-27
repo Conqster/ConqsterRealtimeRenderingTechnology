@@ -8,6 +8,7 @@ in VS_OUT
 	vec3 fragPos;
 	vec3 normal;
 	vec4 colour;
+	vec4 position;
 }fs_in;
 
 //////////////////////////////
@@ -32,8 +33,14 @@ uniform int u_Shininess;
 //debuggers
 uniform bool u_DebugLightLocation; 
 uniform bool u_DebugScene;
-uniform bool u_DebugWcModelSpace;
 uniform bool u_DisableTex;
+uniform int u_DebugWcType;
+
+#define DEBUG_WC_MODEL_SPACE 0
+#define DEBUG_WC_MODEL_NOR 1
+#define DEBUG_WC_MODEL_ABS_NOR 2
+#define DEBUG_WC_MODEL_COLOUR 3
+#define DEBUG_DEFAULT_COLOUR 4
 
 
 
@@ -77,6 +84,15 @@ void main()
 	
 	if(u_DebugScene)
 	{
-		FragColour = (u_DebugWcModelSpace) ? fs_in.colour : vec4(1.0f, 0.0f, 1.0f, 1.0f);
+		if(u_DebugWcType == DEBUG_WC_MODEL_SPACE)
+			FragColour = abs(fs_in.position);
+		else if(u_DebugWcType == DEBUG_WC_MODEL_NOR)
+			FragColour = vec4((fs_in.normal), 1.0f);
+		else if(u_DebugWcType == DEBUG_WC_MODEL_ABS_NOR)
+			FragColour = vec4(abs(fs_in.normal), 1.0f);
+		else if(u_DebugWcType == DEBUG_WC_MODEL_COLOUR)
+			FragColour = fs_in.colour;
+		else
+			FragColour = vec4(1.0f, 0.0f, 1.0f, 1.0f);//default to magenta
 	}
 }

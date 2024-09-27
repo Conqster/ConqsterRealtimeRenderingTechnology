@@ -10,32 +10,26 @@ void SquareMesh::Create()
 	//50.0f >> 1.0f
 	float vertices[] =
 	{//			  x		 y	   z	 w      	 r      g    b     a		u     v      nx     ny      nz
-		/*0*/	-0.05f, -0.05f, 0.0f, 1.0f,		1.0f, 0.0f, 0.0f, 1.0f,    0.0f, 1.0f,  0.0f,  0.0f,  1.0f, 
-		/*1*/	0.0f, 0.05f, 0.0f, 1.0f,			0.0f, 1.0f, 0.0f, 1.0f,    0.5f, 0.0f,  0.0f,  0.0f,  1.0f,
-		/*2*/	0.05f, -0.05f, 0.0f, 1.0f,		0.0f, 0.0f, 1.0f, 1.0f,    1.0f, 1.0f,  0.0f,  0.0f,  1.0f,
-
-		//EXTRA POS
-		/*3*/	0.05f, 0.05f, 0.0f, 1.0f,			0.2f, 0.8f, 0.0f, 1.0f,	   1.0f, 0.0f,	0.0f,  0.0f,  1.0f,	//top-right
-		/*4*/	-0.05f, 0.05f, 0.0f, 1.0f,	 	0.0f, 0.2f, 0.8f, 1.0f,    0.0f, 0.0f,	0.0f,  0.0f,  1.0f,		//top-left
+		/*0*/	-0.5f, -0.5f, 0.0f, 1.0f,		1.0f, 0.0f, 0.0f, 1.0f,    0.0f, 1.0f,  0.0f,  0.0f,  1.0f, 
+		/*2*/	0.5f, -0.5f, 0.0f, 1.0f,		0.0f, 0.0f, 1.0f, 1.0f,    1.0f, 1.0f,  0.0f,  0.0f,  1.0f,
+		/*1*/	0.5f, 0.5f, 0.0f, 1.0f,			0.0f, 1.0f, 0.0f, 1.0f,    0.5f, 0.0f,  0.0f,  0.0f,  1.0f,
+		/*3*/	-0.5f, 0.5f, 0.0f, 1.0f,	 	0.0f, 0.2f, 0.8f, 1.0f,    0.0f, 0.0f,	0.0f,  0.0f,  1.0f,	
 
 	};
-
-	CacheVertices(vertices, sizeof(vertices));
 
 
 	//m_Vertices[0].position[0] = 0.0f;
 
 	unsigned int indices[] =
 	{
-
-		//0, 1, 3,
-		//3, 0, 4,
-		//0, 2, 3,
-		4, 0, 3, 
-		0, 2, 3,
-		//3, 0, 4,
+		0, 1, 2,
+		0, 2, 3
 	};
 
+	int vertices_count = sizeof(vertices) / sizeof(vertices[0]);
+	int indice_count = sizeof(indices) / sizeof(indices[0]);
+	ReCalcNormalsWcIndices(vertices, indices, vertices_count, indice_count, 13, 10);
+	CacheVertices(vertices, sizeof(vertices));
 
 	GLCall(glEnable(GL_BLEND));
 	GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
