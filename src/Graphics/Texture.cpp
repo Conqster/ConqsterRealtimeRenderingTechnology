@@ -4,18 +4,34 @@
 #include "External Libs/stb_image/stb_image.h"
 #include <iostream>
 
+
+static GLint OpenGLTexFormat(TextureFormat format)
+{
+	switch (format)
+	{
+		case TextureFormat::RGB: return GL_RGB;
+		case TextureFormat::RGBA: return GL_RGBA;
+		case TextureFormat::SRGB: return GL_SRGB;
+		case TextureFormat::SRGBA: return GL_SRGB_ALPHA;
+	}
+
+	std::cout << "[TEXTURE]: Format not supported yet !!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+}
+
 Texture::Texture()
 	:m_Id(0), m_LocalBuffer(nullptr), m_Height(0),
-	m_Width(0), m_BitDepth(0), m_RefCount(0)
+	m_Width(0), m_BitDepth(0), m_RefCount(0),
+	m_TexFormat(TextureFormat::RGBA), m_TexType(TextureType::TextureType_NONE)
 {
 }
 
-Texture::Texture(const std::string& fileLoc)
+Texture::Texture(const std::string& fileLoc, TextureFormat format, TextureType type)
 	:m_Id(0), m_FileLocation(fileLoc),
 	 m_LocalBuffer(nullptr), m_Height(0), 
-	 m_Width(0), m_BitDepth(0), m_RefCount(0)
+	 m_Width(0), m_BitDepth(0), m_RefCount(0),
+	 m_TexFormat(format), m_TexType(type)
 {
-	LoadTexture(fileLoc);
+	LoadTexture(fileLoc, m_TexFormat);
 }
 
 Texture::~Texture()
@@ -39,20 +55,25 @@ void Texture::UnRegisterUse()
 		Clear();
 }
 
-bool Texture::LoadTexture(const std::string& fileLoc, TextureType type)
+bool Texture::LoadTexture(const std::string& fileLoc, TextureFormat format, TextureType type)
 {
 	m_FileLocation = fileLoc;
-	m_type = type;
+	m_TexType = type;
+	m_TexFormat = format;
 	//stbi_set_flip_vertically_on_load(0);
-	int nrComponent;
+	int desire_channel = (type == TextureType_NONE) ? 4 : 0;
+		//m_LocalBuffer = stbi_load(fileLoc.c_str(), &m_Width, &m_Height, &m_BitDepth, desire_channel);
 
-	if (m_type == TextureType_NONE)
+	if (type == TextureType_NONE)
 	{
-		m_LocalBuffer = stbi_load(fileLoc.c_str(), &m_Width, &m_Height, &m_BitDepth, 4);
+		m_LocalBuffer = stbi_load(fileLoc.c_str(), &m_Width, &m_Height, &m_BitDepth, 4); 
+
 	}
 	else
 	{
-		m_LocalBuffer = stbi_load(fileLoc.c_str(), &m_Width, &m_Height, &nrComponent, 0);
+		m_LocalBuffer = stbi_load(fileLoc.c_str(), &m_Width, &m_Height, &m_BitDepth, 0);
+		//m_LocalBuffer = stbi_load(fileLoc.c_str(), &m_Width, &m_Height, &channel, 0);
+
 	}
 
 	if (!m_LocalBuffer)
@@ -81,34 +102,20 @@ bool Texture::LoadTexture(const std::string& fileLoc, TextureType type)
 	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
 	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
 
-
-
-
-	if (m_type == TextureType_NONE)
+	if (type == TextureType_NONE)
 	{
-		GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_Width, m_Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_LocalBuffer));
+		//GLCall(glTexImage2D(GL_TEXTURE_2D, 0, OpenGLTexFormat(m_TexFormat), m_Width, m_Height, 0, GL_RGB, GL_UNSIGNED_BYTE, m_LocalBuffer));
+		GLCall(glTexImage2D(GL_TEXTURE_2D, 0, OpenGLTexFormat(m_TexFormat), m_Width, m_Height, 0, OpenGLTexFormat(m_TexFormat), GL_UNSIGNED_BYTE, m_LocalBuffer));
+		//GLCall(glTexImage2D(GL_TEXTURE_2D, 0, OpenGLTexFormat(m_TexFormat), m_Width, m_Height, 0, OpenGLTexFormat((TextureFormat)m_BitDepth), GL_UNSIGNED_BYTE, m_LocalBuffer));
+
 	}
 	else
 	{
-		//TO-Do: needs clean up
-		GLenum format;
-		switch (nrComponent)
-		{
-		case 1:
-			format = GL_RED;
-			break;
-		case 3:
-			format = GL_RGB;
-			break;
-		case 4:
-			format = GL_RGBA;
-			break;
-		default:
-			break;
-		}
+		GLCall(glTexImage2D(GL_TEXTURE_2D, 0, OpenGLTexFormat(m_TexFormat), m_Width, m_Height, 0, OpenGLTexFormat((TextureFormat)m_BitDepth), GL_UNSIGNED_BYTE, m_LocalBuffer));
 
-		GLCall(glTexImage2D(GL_TEXTURE_2D, 0, format, m_Width, m_Height, 0, format, GL_UNSIGNED_BYTE, m_LocalBuffer));
 	}
+	//GLCall(glTexImage2D(GL_TEXTURE_2D, 0, OpenGLTexFormat(m_TexFormat), m_Width, m_Height, 0, OpenGLTexFormat(m_TexFormat), GL_UNSIGNED_BYTE, m_LocalBuffer));
+	
 	glGenerateMipmap(GL_TEXTURE_2D);
 
 	GLCall(glBindTexture(GL_TEXTURE_2D, 0));

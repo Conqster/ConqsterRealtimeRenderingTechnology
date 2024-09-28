@@ -12,6 +12,14 @@ enum TextureType
 	TextureType_EMISSIVE,
 };
 
+enum class TextureFormat
+{
+	RGB = 3,  //for now because of model loading
+	RGBA,
+	SRGB,
+	SRGBA
+};
+
 
 //std::string TypeToString(TextureType type)
 //{
@@ -45,26 +53,20 @@ enum TextureType
 class Texture
 {
 private:
-	unsigned int m_Id;
-	std::string m_FileLocation;
+	unsigned int m_Id = 0;
+	std::string m_FileLocation = "";
 	unsigned char* m_LocalBuffer;
 	int m_Width, m_Height, m_BitDepth;
-
-	int m_RefCount;
-
-	std::string relativePath = "";
-	TextureType m_type;
-
 public:
 	Texture();
-	Texture(const std::string& fileLoc);
+	Texture(const std::string& fileLoc, TextureFormat format = TextureFormat::RGBA, TextureType type = TextureType_NONE);
 	~Texture();
 
 	void RegisterUse();
 	void UnRegisterUse();
 	inline int const RefCount() const { return m_RefCount; }
 
-	bool LoadTexture(const std::string& fileLoc, TextureType type = TextureType_NONE);
+	bool LoadTexture(const std::string& fileLoc, TextureFormat format = TextureFormat::RGBA, TextureType type = TextureType_NONE);
 	void Activate(unsigned int slot = 0) const;
 	void DisActivate() const;
 	void Clear();
@@ -76,6 +78,12 @@ public:
 	inline std::string GetRelativePath() { return relativePath; }
 
 	inline std::string GetFilePath() { return m_FileLocation; }
-	inline TextureType GetType() { return m_type; }
+	inline TextureType GetType() { return m_TexType; }
+	inline TextureFormat GetFormat() { return m_TexFormat; }
+private:
+	int m_RefCount = 0;
+	std::string relativePath = "";
+	TextureFormat m_TexFormat = TextureFormat::RGBA;
+	TextureType m_TexType = TextureType_NONE;
 };
 

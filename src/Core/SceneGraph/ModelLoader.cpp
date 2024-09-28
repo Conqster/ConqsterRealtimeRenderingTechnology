@@ -230,7 +230,7 @@ std::vector<Texture> ModelLoader::LoadMaterialTextures(aiMaterial* mat, aiTextur
 			std::string file_repath = dir + '/' + path.C_Str();
 
 
-			tex.LoadTexture(file_repath, ConvertType(type));
+			tex.LoadTexture(file_repath, TextureFormat::RGBA, ConvertType(type));
 			tex.RelativePath(path.C_Str());
 			temp.push_back(tex);
 			cacheLoadedTextures.push_back(tex);
@@ -287,7 +287,6 @@ std::vector<Vertex> ModelLoader::CalcAverageNormalsWcIndices(std::vector<Vertex>
 
 		if (glm::length(vec) > 0.0f)
 			vec = glm::normalize(vec);
-
 
 		temp[i].normals[0] = vec.x;
 		temp[i].normals[1] = vec.y;

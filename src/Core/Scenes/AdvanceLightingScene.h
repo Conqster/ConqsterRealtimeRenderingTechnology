@@ -12,6 +12,7 @@
 #include "Graphics/Meshes/CubeMesh.h"
 
 #include "Graphics/Lights/NewLights.h"
+#include "Util/Constants.h"
 
 class AdvanceLightingScene : public Scene
 {
@@ -38,11 +39,13 @@ private:
 	////////////////
 	ModelLoader modelLoader;
 	UniformBuffer m_CameraMatUBO;
+	bool doGammaCorrection = false;
+	float gamma = 2.2f;
 
 	/////////////////
 	//Debugging datas
 	/////////////////
-	float normDebugLength = 0.03f;
+	float normDebugLength = 0.0f; // 0.03f;
 	glm::vec3 normDebugColour = glm::vec3(1.0f, 0.0f, 1.0f);
 	bool useDebugColour = true;
 	bool debugLightPos = true;
@@ -50,9 +53,11 @@ private:
 	//bool debugWcModelSpace = false;
 	bool debugVertexPosColour = false;
 	bool disableTexture = true;
+	bool useBlinnPhong = true;
 	enum DebugModelType : int
 	{
 		MODEL_SPACE,
+		NORMAL,
 		MODEL_NORMAL,
 		MODEL_ABS_NORMAL,
 		MODEL_COLOUR,
@@ -74,6 +79,7 @@ private:
 	float cubesScale[MAX_CUBE]; 
 	//ground
 	SquareMesh ground;
+	glm::vec3 groundPos = glm::vec3();
 	float groundScale = 50.0f;
 	//cube 
 	CubeMesh cube;
@@ -86,8 +92,8 @@ private:
 	float bunnysScale[MAX_BUNNY_MODEL];
 	//model2 (unknown) 
 	std::shared_ptr<Model> model_2;
-	glm::vec3 model_2Pos = glm::vec3(1.0f, 0.0f, 0.0f);
-	float model_2Scale = 0.1f;
+	glm::vec3 model_2Pos = glm::vec3(-10.0f, 1.5f, 10.0f);
+	float model_2Scale = 1.0f;
 
 	///////////////
 	// Shaders
@@ -104,6 +110,10 @@ private:
 	///////////////////////
 	// Lights
 	///////////////////////
-	NewPointLight pointLight;
-	int specShinness = 16;
+	//NewPointLight pointLights[Shader_Constants::MAX_POINT_LIGHTS];
+	const static int MAX_LIGHT = 5;
+	NewPointLight pointLights[MAX_LIGHT];
+	int availablePtLightCount = 0;
+	int specShinness = 64;
+
 };

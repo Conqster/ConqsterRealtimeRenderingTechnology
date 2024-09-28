@@ -24,6 +24,17 @@ void AdvanceLightingScene::OnInit(Window* window)
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 
+
+	//for gamma correction 
+	//glEnable(GL_FRAMEBUFFER_SRGB);
+
+	//////////////////////
+	// To do gamma correction manually
+	// best way is to have a pipline which includes 
+	// post-processing at the end then apply gamma correction 
+	// to the post-process image 
+	//////////////////////
+
 	if (!m_Camera)
 		m_Camera = new Camera(glm::vec3(0.0f, /*5.0f*/7.0f, -36.0f), glm::vec3(0.0f, 1.0f, 0.0f), 90.0f, 0.0f, 20.0f, 1.0f/*0.5f*/);
 
@@ -54,6 +65,8 @@ void AdvanceLightingScene::OnRender()
 	modelShader.SetUniform1i("u_DebugScene", debugScene);
 	modelShader.SetUniform1i("u_DebugWcType", debugModelType);
 	modelShader.SetUniform1i("u_DisableTex", disableTexture);
+	modelShader.SetUniform1i("u_GammaCorrection", doGammaCorrection);
+	modelShader.SetUniform1f("u_Gamma", gamma);
 	LightPass(modelShader);
 	DrawObjects(modelShader);
 
@@ -138,6 +151,7 @@ void AdvanceLightingScene::OnRenderUI()
 	if (ImGui::TreeNode("Scene Objects"))
 	{
 		ImGui::SeparatorText("Ground");
+		ImGui::DragFloat3("Ground Pos", &groundPos[0], 0.1f);
 		ImGui::SliderFloat("Ground Scale", &groundScale, 100.0f, 1000.0f);
 
 		//ImGui::SeparatorText("Model 1");
@@ -213,12 +227,29 @@ void AdvanceLightingScene::OnRenderUI()
 	if (ImGui::TreeNode("Lights"))
 	{
 		ImGui::SeparatorText("Light Global Properties");
+		ImGui::Checkbox("Do Gamma Correction", &doGammaCorrection);
+		ImGui::SliderFloat("Gamma Value", &gamma, 1.9f, 2.5f);
 		ImGui::SliderInt("Specular Shinness", &specShinness, 0, 128);
 		ImGui::Checkbox("Debug Lights Pos", &debugLightPos);
+		ImGui::Checkbox("Use Blinn-Phong", &useBlinnPhong);
 
-		ImGui::SeparatorText("Point Light");
-		ImGui::DragFloat3("Point Light position", &pointLight.position[0], 0.1f);
-		ImGui::ColorEdit3("Point Light colour", &pointLight.colour[0]);
+		if (ImGui::TreeNode("Points Lights"))
+		{
+			for (int i = 0; i < availablePtLightCount; i++)
+			{
+				//u_Lights[i].position....
+				std::string label = "point idx: " + std::to_string(i);
+				ImGui::SeparatorText(label.c_str());
+				ImGui::Checkbox((label + " Enable light").c_str(), &pointLights[i].enable);
+				ImGui::DragFloat3((label + " position").c_str(), &pointLights[i].position[0], 0.1f);
+				ImGui::ColorEdit3((label + " colour").c_str(), &pointLights[i].colour[0]);
+				ImGui::SliderFloat((label + " constant attenuation").c_str(), &pointLights[i].attenuation[0], 0.0f, 1.0f);
+				ImGui::SliderFloat((label + " linear attenuation").c_str(), &pointLights[i].attenuation[1], 0.0f, 1.0f);
+				ImGui::SliderFloat((label + " quadratic attenuation").c_str(), &pointLights[i].attenuation[2], 0.0f, 1.0f);
+			}
+
+			ImGui::TreePop();
+		}
 
 		ImGui::TreePop();
 	}
@@ -233,7 +264,7 @@ void AdvanceLightingScene::OnRenderUI()
 	if (debugScene)
 	{
 		static int cur_sel = 0;
-		const char* element_name[] = {"Model Space", "Model Normal", "Model Abs Normal","Model Colour", "Default Colour"};
+		const char* element_name[] = {"Model Space", "Normal", "Model Normal", "Model Abs Normal","Model Colour", "Default Colour"};
 		ImGui::Combo("Debug Colour Type", &cur_sel, element_name, IM_ARRAYSIZE(element_name));
 
 		debugModelType = (DebugModelType)cur_sel;
@@ -288,7 +319,6 @@ void AdvanceLightingScene::CreateObjects()
 		cubesScale[i] = 2.0f;
 	}
 
-	cubesScale[0] = 100.0f;
 
 	//generate pos&scale for sphere
 	//(4.5f, 0.5f, 5.0f)
@@ -342,11 +372,11 @@ void AdvanceLightingScene::CreateObjects()
 	// CREATE TEXTURES 
 	////////////////////////////////////////
 	//brick texture 
-	brickTex = new Texture(FilePaths::Instance().GetPath("brick"));
+	brickTex = new Texture(FilePaths::Instance().GetPath("brick"), TextureFormat::SRGBA);
 	//plain texture
-	plainTex = new Texture(FilePaths::Instance().GetPath("plain"));
+	plainTex = new Texture(FilePaths::Instance().GetPath("plain"), TextureFormat::SRGBA);
 	//manchester-image
-	manchesterTex = new Texture(FilePaths::Instance().GetPath("manchester-image"));
+	manchesterTex = new Texture(FilePaths::Instance().GetPath("manchester-image"), TextureFormat::SRGBA);
 
 
 
@@ -354,9 +384,24 @@ void AdvanceLightingScene::CreateObjects()
 	/////////////////////////////////////////
 	// DEFINE LIGHT NECESSARY PROP
 	/////////////////////////////////////////
-	pointLight.colour = glm::vec3(1.0f, 0.0f, 1.0f);
-	pointLight.position = glm::vec3(0.0f, 3.0f, 0.0f);
-
+	origin = glm::vec3(0.0f, 3.0f, 0.0f);
+	glm::vec3 colours[5] =
+				{
+					glm::vec3(0.3f, 0.3f, 1.0f),
+					glm::vec3(1.0f, 0.3f, 0.3f),
+					glm::vec3(0.3f, 0.0f, 0.3f),
+					glm::vec3(0.3f, 1.0f, 0.3f),
+					glm::vec3(0.3f, 0.3f, 0.3f)
+				};
+	offset_units = -4.0f;
+	for (int i = 0; i < MAX_LIGHT; i++)
+	{
+		pointLights[i].position = origin + glm::vec3(0.0f, 0.0f, offset_units * i);
+		pointLights[i].colour = (i < 5) ? colours[i] : glm::vec3(0.3f, 0.0f, 0.3f);
+		//pointLights[i].colour = glm::vec3(0.3f, 0.0f, 0.3f);
+		pointLights[i].enable = true;
+		availablePtLightCount++;
+	}
 	debugScene = true;
 	debugModelType = MODEL_NORMAL;
 }
@@ -367,16 +412,16 @@ void AdvanceLightingScene::DrawObjects(Shader& shader)
 
 	//ground 
 	glm::mat4 model = glm::mat4(1.0f);
-	model = glm::translate(model, glm::vec3(0.0f));
+	model = glm::translate(model, groundPos);
 	model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 	model = glm::scale(model, glm::vec3(1.0f) * groundScale);
 	shader.SetUniformMat4f("u_Model", model);
-	//brickTex->Activate();
-	manchesterTex->Activate();
+	brickTex->Activate();
+	//manchesterTex->Activate();
 	//ground 1
 	ground.Render();
-	//brickTex->DisActivate();
-	manchesterTex->DisActivate();
+	brickTex->DisActivate();
+	//manchesterTex->DisActivate();
 	//modelShader.UnBind();
 
 
@@ -425,6 +470,8 @@ void AdvanceLightingScene::DrawObjects(Shader& shader)
 		model = glm::mat4(1.0f);
 		model = glm::translate(model, cubesPos[i]);
 		model = glm::scale(model, glm::vec3(1.0f) * cubesScale[i]);
+		if(i == 0)
+			model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 		shader.SetUniformMat4f("u_Model", model);
 		cube.Render();
 	}
@@ -442,23 +489,42 @@ void AdvanceLightingScene::LightPass(Shader& shader)
 	shader.Bind();
 
 	shader.SetUniformVec3("u_ViewPos", m_Camera->GetPosition());
+	shader.SetUniform1i("u_Blinn_Phong", useBlinnPhong);
 
 	////////////////////////
 	// Point Light 
 	////////////////////////
 	shader.SetUniform1i("u_Shininess", specShinness);
-	shader.SetUniformVec3("u_Light.position", pointLight.position);
-	shader.SetUniformVec3("u_Light.colour", pointLight.colour);
+	shader.SetUniform1i("u_LightCount", availablePtLightCount);
+	//shader.SetUniform1i("u_LightCount", testLight);
+
+
+	for (int i = 0; i < availablePtLightCount; i++)
+	{
+		//u_Lights[i].position....
+		std::string name = "u_Lights[" + std::to_string(i) + "].";
+		shader.SetUniform1i((name + "is_enable").c_str(), pointLights[i].enable);
+		shader.SetUniformVec3((name + "position").c_str(), pointLights[i].position);
+		shader.SetUniformVec3((name + "colour").c_str(), pointLights[i].colour);
+		shader.SetUniformVec3f((name + "attenuation").c_str(), pointLights[i].attenuation);
+	}
+
 
 	shader.SetUniform1i("u_DebugLightLocation", debugLightPos);
 	if (debugLightPos)
 	{
 		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::translate(model, pointLight.position);
-		model = glm::scale(model, glm::vec3(0.2f));
 
-		shader.SetUniformMat4f("u_Model", model);
-		sphere.RenderDebugOutLine();
+		for(auto& p : pointLights)
+		{
+			model = glm::mat4(1.0f);
+			model = glm::translate(model, p.position);
+			model = glm::scale(model, glm::vec3(0.2f));
+
+			shader.SetUniformMat4f("u_Model", model);
+			sphere.RenderDebugOutLine();
+		}
+
 	}
 
 	shader.SetUniform1i("u_DebugLightLocation", 0);

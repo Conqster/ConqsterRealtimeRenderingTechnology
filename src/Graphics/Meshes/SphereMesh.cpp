@@ -112,18 +112,10 @@ void SphereMesh::Create()
 				m_Indices.push_back(k2 + 1);
 			}
 
-			////store indeice for lines
-			// //vertice lines for all stacks, k1 => k2
-			//line_indices.push_back(k1);
-			//line_indices.push_back(k2);
-			//if (1 != 0)		//horizontal lines expect 1st stack, k1 => k + 1
-			//{
-			//	line_indices.push_back(k1);
-			//	line_indices.push_back(k1 + 1);
-			//}
 		}
 	}
 
+	//ReCalcNormalsWcIndices(&m_Vertices[0], &m_Indices[0], m_Vertices.size(), m_Indices.size(), 13, 10);
 	CacheVertices(&m_Vertices[0], m_Vertices.size());
 
 	GLCall(glEnable(GL_BLEND));
