@@ -243,6 +243,7 @@ void AdvanceLightingScene::OnRenderUI()
 				ImGui::Checkbox((label + " Enable light").c_str(), &pointLights[i].enable);
 				ImGui::DragFloat3((label + " position").c_str(), &pointLights[i].position[0], 0.1f);
 				ImGui::ColorEdit3((label + " colour").c_str(), &pointLights[i].colour[0]);
+				ImGui::SliderFloat((label + " ambinentIntensity").c_str(), &pointLights[i].ambientIntensity, 0.0f, 1.0f);
 				ImGui::SliderFloat((label + " constant attenuation").c_str(), &pointLights[i].attenuation[0], 0.0f, 1.0f);
 				ImGui::SliderFloat((label + " linear attenuation").c_str(), &pointLights[i].attenuation[1], 0.0f, 1.0f);
 				ImGui::SliderFloat((label + " quadratic attenuation").c_str(), &pointLights[i].attenuation[2], 0.0f, 1.0f);
@@ -358,6 +359,13 @@ void AdvanceLightingScene::CreateObjects()
 		"src/ShaderFiles/Learning/Geometry/GeometryDebugNormal.glsl"  //geometry shader
 	};
 	debugShader.Create("debug_norm_shader", debug_sphere_shader_file);
+	//DEBUG LIGHT POS SHADER
+	ShaderFilePath debug_shader_file_path
+	{
+		"src/ShaderFiles/Learning/AdvanceLighting/DebuggingVertex.glsl", //vertex shader
+		"src/ShaderFiles/Learning/AdvanceLighting/DebuggingFrag.glsl", //fragment shader
+	};
+	posDebugShader.Create("light_pos_shader", debug_shader_file_path);
 
 
 
@@ -398,6 +406,7 @@ void AdvanceLightingScene::CreateObjects()
 	{
 		pointLights[i].position = origin + glm::vec3(0.0f, 0.0f, offset_units * i);
 		pointLights[i].colour = (i < 5) ? colours[i] : glm::vec3(0.3f, 0.0f, 0.3f);
+		pointLights[i].ambientIntensity = 0.05f;
 		//pointLights[i].colour = glm::vec3(0.3f, 0.0f, 0.3f);
 		pointLights[i].enable = true;
 		availablePtLightCount++;
@@ -416,16 +425,19 @@ void AdvanceLightingScene::DrawObjects(Shader& shader)
 	model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 	model = glm::scale(model, glm::vec3(1.0f) * groundScale);
 	shader.SetUniformMat4f("u_Model", model);
-	brickTex->Activate();
+	//brickTex->Activate();
 	//manchesterTex->Activate();
+	plainTex->Activate();
 	//ground 1
 	ground.Render();
-	brickTex->DisActivate();
+	//brickTex->DisActivate();
+	plainTex->DisActivate();
 	//manchesterTex->DisActivate();
 	//modelShader.UnBind();
 
 
 	//BUNNY MODELS
+	plainTex->Activate();
 	for (int i = 0; i < MAX_CUBE; i++)
 	{
 		model = glm::mat4(1.0f);
@@ -434,6 +446,8 @@ void AdvanceLightingScene::DrawObjects(Shader& shader)
 		shader.SetUniformMat4f("u_Model", model);
 		model_1->Draw();
 	}
+	plainTex->DisActivate();
+
 
 
 	plainTex->Activate();
@@ -506,11 +520,16 @@ void AdvanceLightingScene::LightPass(Shader& shader)
 		shader.SetUniform1i((name + "is_enable").c_str(), pointLights[i].enable);
 		shader.SetUniformVec3((name + "position").c_str(), pointLights[i].position);
 		shader.SetUniformVec3((name + "colour").c_str(), pointLights[i].colour);
+		shader.SetUniform1f((name + "ambinentIntensity").c_str(), pointLights[i].ambientIntensity);
 		shader.SetUniformVec3f((name + "attenuation").c_str(), pointLights[i].attenuation);
 	}
 
+	shader.UnBind();
 
-	shader.SetUniform1i("u_DebugLightLocation", debugLightPos);
+
+	//DEBUGGING
+	posDebugShader.Bind();
+	posDebugShader.SetUniform1i("u_Active", debugLightPos);
 	if (debugLightPos)
 	{
 		glm::mat4 model = glm::mat4(1.0f);
@@ -519,14 +538,13 @@ void AdvanceLightingScene::LightPass(Shader& shader)
 		{
 			model = glm::mat4(1.0f);
 			model = glm::translate(model, p.position);
-			model = glm::scale(model, glm::vec3(0.2f));
+			model = glm::scale(model, glm::vec3(0.1f));
 
-			shader.SetUniformMat4f("u_Model", model);
+			posDebugShader.SetUniformMat4f("u_Model", model);
+			posDebugShader.SetUniformVec3f("u_DebugColour", &p.colour[0]);
 			sphere.RenderDebugOutLine();
 		}
-
 	}
+	posDebugShader.UnBind();
 
-	shader.SetUniform1i("u_DebugLightLocation", 0);
-	shader.UnBind();
 }

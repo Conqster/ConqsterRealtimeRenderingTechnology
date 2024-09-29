@@ -18,9 +18,11 @@ in VS_OUT
 const int MAX_LIGHTS = 5;
 struct Light
 {
+	bool is_enable;
 	vec3 position;
 	vec3 colour;
-	bool is_enable;
+	
+	float ambinentIntensity;
 	
 	//float constantAttenuation;
 	//float linearAttenuation;
@@ -44,7 +46,6 @@ uniform bool u_GammaCorrection;
 uniform float u_Gamma;
 
 //debuggers
-uniform bool u_DebugLightLocation; 
 uniform bool u_DebugScene;
 uniform bool u_DisableTex;
 uniform int u_DebugWcType;
@@ -70,6 +71,12 @@ vec3 CalculatePointLight(vec3 object_ambient_colour)
 			
 		if(!u_Lights[i].is_enable)
 			continue;
+			
+			
+		///////////
+		//Ambinent
+		///////////
+		vec3 amb_colour = u_Lights[i].ambinentIntensity * u_Lights[i].colour;
 		
 		///////////
 		//Diffuse
@@ -106,9 +113,11 @@ vec3 CalculatePointLight(vec3 object_ambient_colour)
 		//vec3 scatteredLight = object_ambient_colour + u_Lights[i].colour * diffuse;
 		vec3 scatteredLight = u_Lights[i].colour * diffuse;
 		vec3 reflectedLight = u_Lights[i].colour * spec;
-		result_colour += ((scatteredLight + reflectedLight)/total_attenuation);
+		result_colour += amb_colour + ((scatteredLight + reflectedLight)/total_attenuation);
+		
 	}
 	
+	//result_colour += object_ambient_colour;
 	result_colour *= object_ambient_colour;
 	return result_colour;
 }
@@ -117,7 +126,7 @@ vec3 CalculatePointLight(vec3 object_ambient_colour)
 void main()
 {
 	//ambiency with object texture
-	float ambiencyStrength = 1.0f;
+	float ambiencyStrength = 1.0f;//0.05f;//1.0f;
 	vec3 tex_colour = texture(u_Texture, fs_in.texCoords).rgb;
 	
 	//if performming gamma correction to shader to pervent texture contribute to be correction twice
@@ -140,13 +149,7 @@ void main()
 	diffuse_spec = CalculatePointLight(ambinent);
 		
 	FragColour = vec4(diffuse_spec, 1.0f);
-	
 
-	if(u_DebugLightLocation)
-	{
-		FragColour += fs_in.colour;
-	}
-	
 	
 	
 	if(u_DebugScene)

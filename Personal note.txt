@@ -34,3 +34,5 @@ Naïve Scene Loading
 
 Rendering Primitives
 	- Line, Trinagle, Line_strip etc
+
+Experiment with the CPU's Transposing Model vertex (for scaled &/ rotated models) to avoid complex/expensive inverse matrix calculation in GPU shader.

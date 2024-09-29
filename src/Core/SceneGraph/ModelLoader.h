@@ -29,7 +29,7 @@ private:
 	std::vector<ModelMesh> meshes = std::vector<ModelMesh>();
 
 
-	
+	//Helpers
 	std::vector<Vertex> CalcAverageNormalsWcIndices(std::vector<Vertex>& vertices, std::vector<unsigned int> indices);
 	std::vector<Vertex> CalcNormalsWcMeshFace(std::vector<Vertex>& vertices, aiMesh* mesh);
 };

@@ -100,6 +100,7 @@ private:
 	///////////////
 	Shader modelShader;
 	Shader debugShader;
+	Shader posDebugShader;
 
 	//////Textures
 	Texture* brickTex;
