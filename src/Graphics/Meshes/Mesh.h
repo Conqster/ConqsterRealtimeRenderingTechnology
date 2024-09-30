@@ -42,7 +42,7 @@ public:
 	virtual void Create();
 	void Render();
 	void RenderInstances(int count);
-	void RenderDebugOutLine();
+	void RenderDebugOutLine(float thickness = 1.5f);
 
 	void Clear();
 

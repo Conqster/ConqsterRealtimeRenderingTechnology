@@ -1,10 +1,7 @@
 #version 400
 
 layout (location = 0) in vec4 pos;
-layout (location = 1) in vec4 col;
-layout (location = 2) in vec2 uv;
-layout (location = 3) in vec3 nor;
-
+layout (location = 1) in vec4 col; //just if needed
 
 layout (std140)  uniform u_CameraMat
 {
@@ -12,8 +9,8 @@ layout (std140)  uniform u_CameraMat
 	mat4 view;
 };
 
-uniform mat4 u_Model;
 
+uniform mat4 u_Model;
 
 void main()
 {

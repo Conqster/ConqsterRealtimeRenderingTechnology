@@ -7,6 +7,7 @@
 #include "External Libs/imgui/imgui.h"
 #include "Util/FilePaths.h"
 
+#include "Graphics/DebugGizmos.h"
 
 void AdvanceLightingScene::SetWindow(Window* window)
 {
@@ -43,6 +44,35 @@ void AdvanceLightingScene::OnInit(Window* window)
 
 void AdvanceLightingScene::OnUpdate(float delta_time)
 {
+	//object updating 
+
+
+	for (auto& lb : lightObject)
+	{
+		//Using cross product 
+		//vec_light2center << vec_l2c
+		//glm::vec3 vec_l2c = glm::normalize(pointLights[0].position - pointLocalWorldPosition[0]);
+		glm::vec3 vec_l2c = glm::normalize(lb.objectPosition - lb.light.position);
+		///////////////////up///
+		/////////////////#//////
+		/////////////////#//////
+		/////////////////#//////
+		////////##########//////
+		///vec_l2c////////#//////
+		///////////////////#/////
+		////////////////////#////
+		/////////////////////#reflected dir///
+
+		glm::vec3 movedir_wc_reflect = glm::vec3(0.0f);
+		if(glm::length(vec_l2c) > 0.0f)
+			movedir_wc_reflect = glm::cross(vec_l2c, glm::vec3(0.0f, 1.0f, 0.0f));
+		lb.light.position += movedir_wc_reflect * lb.moveSpeed;
+		//test_pos_light_1 = lightObject[i].light.position;
+		//clamp pos for over shotting
+		lb.light.position = glm::clamp(lb.light.position, lb.objectPosition + glm::vec3(-1.0f, 0.0f, -1.0f) * lb.childLightOffset, lb.objectPosition + glm::vec3(1.0f, 0.0f, 1.0f) * lb.childLightOffset);
+
+	}
+
 	OnRender();
 }
 
@@ -259,13 +289,27 @@ void AdvanceLightingScene::OnRenderUI()
 				//u_Lights[i].position....
 				std::string label = "point idx: " + std::to_string(i);
 				ImGui::SeparatorText(label.c_str());
-				ImGui::Checkbox((label + " Enable light").c_str(), &pointLights[i].enable);
-				ImGui::DragFloat3((label + " position").c_str(), &pointLights[i].position[0], 0.1f);
-				ImGui::ColorEdit3((label + " colour").c_str(), &pointLights[i].colour[0]);
-				ImGui::SliderFloat((label + " ambinentIntensity").c_str(), &pointLights[i].ambientIntensity, 0.0f, 1.0f);
-				ImGui::SliderFloat((label + " constant attenuation").c_str(), &pointLights[i].attenuation[0], 0.0f, 1.0f);
-				ImGui::SliderFloat((label + " linear attenuation").c_str(), &pointLights[i].attenuation[1], 0.0f, 1.0f);
-				ImGui::SliderFloat((label + " quadratic attenuation").c_str(), &pointLights[i].attenuation[2], 0.0f, 1.0f);
+				ImGui::Checkbox((label + " Enable light").c_str(), &lightObject[i].light.enable);
+
+				ImGui::DragFloat3((label + " position").c_str(), &lightObject[i].objectPosition[0], 0.1f);
+				ImGui::DragFloat3((label + " DEBUG position").c_str(), &lightObject[i].light.position[0], 0.1f);
+				if (ImGui::SliderFloat((label + " light offset").c_str(), &lightObject[i].childLightOffset, 0.0f, 30.0f))
+				{
+					if(glm::length(lightObject[i].light.position) == glm::length(lightObject[i].objectPosition))
+						lightObject[i].light.position = lightObject[i].objectPosition + (glm::vec3(1.0f, 0.0f, 0.0f) * lightObject[i].childLightOffset);
+					else
+					{
+						glm::vec3 vec = glm::normalize(lightObject[i].light.position - lightObject[i].objectPosition);
+						lightObject[i].light.position = vec * lightObject[i].childLightOffset;
+					}
+				}
+				ImGui::SliderFloat((label + " move speed").c_str(), &lightObject[i].moveSpeed, 0.0f, 5.0f);
+
+				ImGui::ColorEdit3((label + " colour").c_str(), &lightObject[i].light.colour[0]);
+				ImGui::SliderFloat((label + " ambinentIntensity").c_str(), &lightObject[i].light.ambientIntensity, 0.0f, 1.0f);
+				ImGui::SliderFloat((label + " constant attenuation").c_str(), &lightObject[i].light.attenuation[0], 0.0f, 1.0f);
+				ImGui::SliderFloat((label + " linear attenuation").c_str(), &lightObject[i].light.attenuation[1], 0.0f, 1.0f);
+				ImGui::SliderFloat((label + " quadratic attenuation").c_str(), &lightObject[i].light.attenuation[2], 0.0f, 1.0f);
 			}
 
 			ImGui::TreePop();
@@ -301,6 +345,7 @@ void AdvanceLightingScene::OnRenderUI()
 
 void AdvanceLightingScene::OnDestroy()
 {
+	DebugGizmos::Cleanup();
 }
 
 void AdvanceLightingScene::CreateObjects()
@@ -402,13 +447,6 @@ void AdvanceLightingScene::CreateObjects()
 		"src/ShaderFiles/Learning/Geometry/GeometryDebugNormal.glsl"  //geometry shader
 	};
 	debugShader.Create("debug_norm_shader", debug_sphere_shader_file);
-	//DEBUG LIGHT POS SHADER
-	ShaderFilePath debug_shader_file_path
-	{
-		"src/ShaderFiles/Learning/AdvanceLighting/DebuggingVertex.glsl", //vertex shader
-		"src/ShaderFiles/Learning/AdvanceLighting/DebuggingFrag.glsl", //fragment shader
-	};
-	posDebugShader.Create("light_pos_shader", debug_shader_file_path);
 	//INSTANCING OBJECT SHADER
 	ShaderFilePath instance_shader_file_path
 	{
@@ -425,6 +463,8 @@ void AdvanceLightingScene::CreateObjects()
 	long long int buf_size = 2 * sizeof(glm::mat4) + sizeof(glm::vec2);   //to store view, projection & screenRes(vec2)
 	m_CameraMatUBO.Generate(buf_size);
 
+
+	//DebugGizmos::Startup();
 
 	////////////////////////////////////////
 	// CREATE TEXTURES 
@@ -454,14 +494,43 @@ void AdvanceLightingScene::CreateObjects()
 	offset_units = -4.0f;
 	for (int i = 0; i < MAX_LIGHT; i++)
 	{
-		pointLights[i].position = origin + glm::vec3(0.0f, 0.0f, offset_units * i);
-		pointLights[i].colour = (i < 5) ? colours[i] : glm::vec3(0.3f, 0.0f, 0.3f);
-		pointLights[i].ambientIntensity = 0.05f;
+		lightObject[i].objectPosition = origin + glm::vec3(0.0f, 0.0f, offset_units * i);
+		if (i == 0)
+		{
+			lightObject[i].childLightOffset = 20.0f;
+			lightObject[i].moveSpeed = 0.18f;
+		}
+		else if (i == 1)
+		{
+			lightObject[i].childLightOffset = 7.0f;
+			lightObject[i].moveSpeed = 0.2f;
+		}
+		else if (i == 2)
+		{
+			lightObject[i].childLightOffset = 6.0f;
+			lightObject[i].moveSpeed = 0.1f;
+			lightObject[i].objectPosition = glm::vec3(-9.5f, 5.9f, 11.2f);
+		}
+		lightObject[i].light.position = (glm::vec3(1.0f, 0.0f, 0.0f) * lightObject[i].childLightOffset) + lightObject[i].objectPosition;
+		//lightObject[i].objectPosition = glm::vec3(0.0f);
+		lightObject[i].light.colour = (i < 5) ? colours[i] : glm::vec3(0.3f, 0.0f, 0.3f);
+		lightObject[i].light.ambientIntensity = 0.05f;
 		//pointLights[i].colour = glm::vec3(0.3f, 0.0f, 0.3f);
-		pointLights[i].enable = true;
+		lightObject[i].light.enable = true;
 		availablePtLightCount++;
+
+		//pointLights[i].position = origin + glm::vec3(0.0f, 0.0f, offset_units * i);
+		//if (i == 0)
+		//	pointLocalWorldPosition[0] = (glm::vec3(1.0f, 0.0f, 0.0f) * 4.0f) + pointLights[i].position;
+		//else
+		//	pointLocalWorldPosition[i] = pointLights[i].position;
+		//pointLights[i].colour = (i < 5) ? colours[i] : glm::vec3(0.3f, 0.0f, 0.3f);
+		//pointLights[i].ambientIntensity = 0.05f;
+		////pointLights[i].colour = glm::vec3(0.3f, 0.0f, 0.3f);
+		//pointLights[i].enable = true;
+		//availablePtLightCount++;
 	}
-	debugScene = true;
+	//debugScene = true;
 	debugModelType = MODEL_NORMAL;
 
 
@@ -565,39 +634,35 @@ void AdvanceLightingScene::LightPass(Shader& shader)
 	//shader.SetUniform1i("u_LightCount", testLight);
 
 
+
 	for (int i = 0; i < availablePtLightCount; i++)
 	{
 		//u_Lights[i].position....
 		std::string name = "u_Lights[" + std::to_string(i) + "].";
-		shader.SetUniform1i((name + "is_enable").c_str(), pointLights[i].enable);
-		shader.SetUniformVec3((name + "position").c_str(), pointLights[i].position);
-		shader.SetUniformVec3((name + "colour").c_str(), pointLights[i].colour);
-		shader.SetUniform1f((name + "ambinentIntensity").c_str(), pointLights[i].ambientIntensity);
-		shader.SetUniformVec3f((name + "attenuation").c_str(), pointLights[i].attenuation);
+		shader.SetUniform1i((name + "is_enable").c_str(), lightObject[i].light.enable);
+		//shader.SetUniformVec3((name + "position").c_str(), pointLights[i].position);
+		//convert to world space  pos
+		shader.SetUniformVec3((name + "position").c_str(), lightObject[i].light.position);
+		shader.SetUniformVec3((name + "colour").c_str(), lightObject[i].light.colour);
+		shader.SetUniform1f((name + "ambinentIntensity").c_str(), lightObject[i].light.ambientIntensity);
+		shader.SetUniformVec3f((name + "attenuation").c_str(), lightObject[i].light.attenuation);
 	}
 
 	shader.UnBind();
 
 
 	//DEBUGGING
-	posDebugShader.Bind();
-	posDebugShader.SetUniform1i("u_Active", debugLightPos);
 	if (debugLightPos)
 	{
-		glm::mat4 model = glm::mat4(1.0f);
-
-		for(auto& p : pointLights)
+		for (int i = 0; i < availablePtLightCount; i++)
 		{
-			model = glm::mat4(1.0f);
-			model = glm::translate(model, p.position);
-			model = glm::scale(model, glm::vec3(0.1f));
+			auto& lb = lightObject[i];
+			DebugGizmos::DrawWireSphere(lb.objectPosition, 0.5f, lb.light.colour, 0.01f);
+			DebugGizmos::DrawSphere(lb.light.position, 0.1f, lb.light.colour);
+			DebugGizmos::DrawLine(lb.objectPosition, lb.light.position, lb.light.colour, 2.0f);
 
-			posDebugShader.SetUniformMat4f("u_Model", model);
-			posDebugShader.SetUniformVec3f("u_DebugColour", &p.colour[0]);
-			sphere.RenderDebugOutLine();
 		}
 	}
-	posDebugShader.UnBind();
 
 }
 

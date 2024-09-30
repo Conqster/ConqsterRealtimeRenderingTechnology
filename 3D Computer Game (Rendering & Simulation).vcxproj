@@ -169,6 +169,7 @@
     <ClInclude Include="src\Core\Scenes\Textures_FrameBufferScene.h" />
     <ClInclude Include="src\Core\UIManager.h" />
     <ClInclude Include="src\Core\Window.h" />
+    <ClInclude Include="src\Graphics\DebugGizmos.h" />
     <ClInclude Include="src\Graphics\Lights\LightManager.h" />
     <ClInclude Include="src\Graphics\Lights\NewLights.h" />
     <ClInclude Include="src\Graphics\Meshes\ModelMesh.h" />
@@ -226,6 +227,7 @@
     <ClCompile Include="src\Core\Scenes\Textures_FrameBufferScene.cpp" />
     <ClCompile Include="src\Core\UIManager.cpp" />
     <ClCompile Include="src\Core\Window.cpp" />
+    <ClCompile Include="src\Graphics\DebugGizmos.cpp" />
     <ClCompile Include="src\Graphics\Lights\LightManager.cpp" />
     <ClCompile Include="src\Graphics\Lights\NewLights.cpp" />
     <ClCompile Include="src\Graphics\Meshes\ModelMesh.cpp" />

@@ -103,7 +103,6 @@ private:
 	///////////////
 	Shader modelShader;
 	Shader debugShader;
-	Shader posDebugShader;
 	Shader instancingShader;
 
 	//////Textures
@@ -117,7 +116,15 @@ private:
 	///////////////////////
 	//NewPointLight pointLights[Shader_Constants::MAX_POINT_LIGHTS];
 	const static int MAX_LIGHT = 5;
-	NewPointLight pointLights[MAX_LIGHT];
+	struct LightObject
+	{
+		glm::vec3 objectPosition;
+		float childLightOffset = 0.0f;
+		float moveSpeed = 0.0f;
+		NewPointLight light;
+	}lightObject[MAX_LIGHT];
+	//NewPointLight pointLights[MAX_LIGHT];
+	//glm::vec3 pointLocalWorldPosition[MAX_LIGHT]; //probably change later to local relative to parent
 	int availablePtLightCount = 0;
 	int specShinness = 64;
 

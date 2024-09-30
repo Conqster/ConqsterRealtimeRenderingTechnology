@@ -148,12 +148,14 @@
 
 	void Shader::Bind() const
 	{
+		//GLCall(glUseProgram(m_ProgramID));
 		glUseProgram(m_ProgramID);
 	}
 
 	void Shader::UnBind() const
 	{
 		glUseProgram(0);
+		GLCall(glUseProgram(0));
 	}
 
 
