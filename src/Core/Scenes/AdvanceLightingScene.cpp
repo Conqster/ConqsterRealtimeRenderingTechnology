@@ -70,6 +70,10 @@ void AdvanceLightingScene::OnRender()
 	LightPass(modelShader);
 	DrawObjects(modelShader);
 
+	//Pass Instance Objects
+	LightPass(instancingShader);
+	InstanceObjectPass();
+
 	/////////////////////
 	// Second Pass : Draw Debug normal
 	/////////////////////
@@ -79,6 +83,7 @@ void AdvanceLightingScene::OnRender()
 	debugShader.SetUniform1i("u_UseDebugColour", useDebugColour);
 	debugShader.SetUniform1i("u_DebugPosColour", debugVertexPosColour);
 	DrawObjects(debugShader);
+	InstanceObjectPass(&debugShader);  //pass the debug shader for object instances
 	
 
 	//model2 = glm::translate(model2, glm::vec3(0.0f, 1.0f, 0.0f));
@@ -187,6 +192,20 @@ void AdvanceLightingScene::OnRenderUI()
 				ImGui::SliderFloat((label + " scale").c_str(), &spheresScale[i], 0.1f, 10.f);
 				//ImGui::PopID();
 			}
+
+			//INSTANCE SPHERE UI
+			ImGui::Spacing();
+			ImGui::Text("SPHERE INSTANCE");
+			ImGui::Spacing();
+			int usecount = (sphereInstancePos.size() < MAX_SPHERE_INSTANCE) ? sphereInstancePos.size() : MAX_SPHERE_INSTANCE;
+			for (int i = 0; i < usecount; i++)
+			{
+				std::string label = "sphere instance index " + std::to_string(i);
+				ImGui::SeparatorText(label.c_str());
+				ImGui::DragFloat3((label + " pos").c_str(), &sphereInstancePos[i][0], 0.1f);
+			}
+
+
 			ImGui::TreePop();
 		}
 
@@ -320,6 +339,15 @@ void AdvanceLightingScene::CreateObjects()
 		cubesScale[i] = 2.0f;
 	}
 
+	//generate pos&scale for sphere
+	//(0.0f, 0.0f, 5.0f)
+	//move backwards (-Z) by 4 units
+	origin = glm::vec3(0.0f, 0.0f, 5.0f);
+	for (int i = 0; i < MAX_BUNNY_MODEL; i++)
+	{
+		bunnysPos[i] = origin + glm::vec3(0.0f, 0.0f, offset_units * i);
+		bunnysScale[i] = 10.0f;
+	}
 
 	//generate pos&scale for sphere
 	//(4.5f, 0.5f, 5.0f)
@@ -331,15 +359,30 @@ void AdvanceLightingScene::CreateObjects()
 		spheresScale[i] = 1.0f;
 	}
 
-	//generate pos&scale for sphere
-	//(0.0f, 0.0f, 5.0f)
-	//move backwards (-Z) by 4 units
-	origin = glm::vec3(0.0f, 0.0f, 5.0f);
-	for (int i = 0; i < MAX_BUNNY_MODEL; i++)
+	///////////////////////////
+	// CREATE SPHERE INSTANCE OFFSET POS
+	//////////////////////////
+	origin = glm::vec3(-15.0f, 1.0f, 15.0f);
+	glm::vec3 ins_pos = glm::vec3(0.0f);
+	glm::vec3 offset = glm::vec3(4.0f, 4.0f, -4.0f);
+	int count = 3;
+	for (int y = 0; y < count; y++)
 	{
-		bunnysPos[i] = origin + glm::vec3(0.0f, 0.0f, offset_units * i);
-		bunnysScale[i] = 10.0f;
+		ins_pos.y = origin.y + ((float)y * offset.y);
+		for (int x = 0; x < count; x++)
+		{
+			ins_pos.x = origin.x + ((float)x * offset.x);
+			for (int z = 0; z < count; z++)
+			{
+				if (sphereInstancePos.size() >= MAX_SPHERE_INSTANCE)
+					break;
+
+				ins_pos.z = origin.z + ((float)z * offset.z);
+				sphereInstancePos.push_back(ins_pos);
+			}
+		}
 	}
+
 
 	//////////////////////////////////////
 	// GENERATE SHADERS
@@ -366,6 +409,13 @@ void AdvanceLightingScene::CreateObjects()
 		"src/ShaderFiles/Learning/AdvanceLighting/DebuggingFrag.glsl", //fragment shader
 	};
 	posDebugShader.Create("light_pos_shader", debug_shader_file_path);
+	//INSTANCING OBJECT SHADER
+	ShaderFilePath instance_shader_file_path
+	{
+		"src/ShaderFiles/Learning/AdvanceLighting/InstancingVertex.glsl", //vertex shader
+		"src/ShaderFiles/Learning/AdvanceLighting/ModelFrag.glsl", //fragment shader
+	};
+	instancingShader.Create("instance_shader", instance_shader_file_path);
 
 
 
@@ -413,6 +463,8 @@ void AdvanceLightingScene::CreateObjects()
 	}
 	debugScene = true;
 	debugModelType = MODEL_NORMAL;
+
+
 }
 
 void AdvanceLightingScene::DrawObjects(Shader& shader)
@@ -546,5 +598,51 @@ void AdvanceLightingScene::LightPass(Shader& shader)
 		}
 	}
 	posDebugShader.UnBind();
+
+}
+
+void AdvanceLightingScene::InstanceObjectPass(Shader* debug_shader)
+{
+	//if not debugging use normal calculation
+	if (!debug_shader)
+	{
+		instancingShader.Bind();
+
+		//generate parameters
+		instancingShader.SetUniform1i("u_DebugScene", debugScene);
+		instancingShader.SetUniform1i("u_DebugWcType", debugModelType);
+		instancingShader.SetUniform1i("u_DisableTex", disableTexture);
+		instancingShader.SetUniform1i("u_GammaCorrection", doGammaCorrection);
+		instancingShader.SetUniform1f("u_Gamma", gamma);
+
+		plainTex->Activate();
+		glm::mat4 model = glm::mat4(1.0f); //reset model 
+		instancingShader.SetUniformMat4f("u_Model", model);
+		int usecount = (sphereInstancePos.size() < MAX_SPHERE_INSTANCE) ? sphereInstancePos.size() : MAX_SPHERE_INSTANCE;
+		for (int i = 0; i < usecount; i++)
+		{
+			instancingShader.SetUniformVec3(("u_InstPosOffset[" + std::to_string(i) + "]").c_str(), sphereInstancePos[i]);
+		}
+		sphere.RenderInstances(usecount);
+		instancingShader.UnBind();
+
+		return;
+	}
+
+	//DEBUGGING FUNCTION
+
+	debug_shader->Bind();
+
+	glm::mat4 model = glm::mat4(1.0f);
+	//glm::vec3 origin = sphereInstancePos[0]; //first locatio
+	for (int i = 0; i < sphereInstancePos.size(); i++)
+	{
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, sphereInstancePos[i]);
+		debug_shader->SetUniformMat4f("u_Model", model);
+		sphere.Render();
+	}
+
+	debug_shader->UnBind();
 
 }

@@ -32,6 +32,7 @@ private:
 	void CreateObjects();
 	void DrawObjects(Shader& shader);
 	void LightPass(Shader& shader);
+	void InstanceObjectPass(Shader* shader = nullptr);
 
 
 	////////////////
@@ -74,6 +75,8 @@ private:
 #define MAX_SPHERE 5
 	glm::vec3 spheresPos[MAX_SPHERE];
 	float spheresScale[MAX_SPHERE];
+#define MAX_SPHERE_INSTANCE 100
+	std::vector<glm::vec3> sphereInstancePos = std::vector<glm::vec3>();
 #define MAX_CUBE 5 //current max cube = 5
 	glm::vec3 cubesPos[MAX_CUBE]; 
 	float cubesScale[MAX_CUBE]; 
@@ -92,7 +95,7 @@ private:
 	float bunnysScale[MAX_BUNNY_MODEL];
 	//model2 (unknown) 
 	std::shared_ptr<Model> model_2;
-	glm::vec3 model_2Pos = glm::vec3(-10.0f, 1.5f, 10.0f);
+	glm::vec3 model_2Pos = glm::vec3(20.0f, 1.5f, 10.0f);
 	float model_2Scale = 1.0f;
 
 	///////////////
@@ -101,6 +104,7 @@ private:
 	Shader modelShader;
 	Shader debugShader;
 	Shader posDebugShader;
+	Shader instancingShader;
 
 	//////Textures
 	Texture* brickTex;
