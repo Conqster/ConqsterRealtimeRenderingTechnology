@@ -15,6 +15,7 @@ private:
 public:
 	SphereMesh();
 	virtual void Create() override;
+	void Create(unsigned int segment);
 
 	int SectorCount;
 	int SpanCount;

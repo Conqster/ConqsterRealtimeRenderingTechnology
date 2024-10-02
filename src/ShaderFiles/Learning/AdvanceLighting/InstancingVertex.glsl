@@ -21,6 +21,7 @@ out VS_OUT
 	vec3 modelNor;
 	vec4 colour;
 	vec4 position;
+	vec4 fragPosLightSpace;
 }vs_out;
 
 uniform mat4 u_Model;
@@ -28,6 +29,7 @@ uniform mat4 u_Model;
 //instancing 
 const int MAX_INSTANCE = 100;
 uniform vec3 u_InstPosOffset[MAX_INSTANCE];
+uniform mat4 u_LightSpaceMatrix;
 
 
 void main()
@@ -54,4 +56,6 @@ void main()
 	vs_out.colour = col;
 	//vs_out.position = vec4(instance_pos, 1.0f);
 	vs_out.position = pos;
+	
+	vs_out.fragPosLightSpace = u_LightSpaceMatrix * inst_model * pos;
 }

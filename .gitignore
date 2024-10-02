@@ -9,7 +9,7 @@ x64/
 #C++ outputs
 *.exe
 //might be dangerous because of external files i am using
-*.dll 
+//*.dll 
 //*.obj  
 *.lib
 *.pdb

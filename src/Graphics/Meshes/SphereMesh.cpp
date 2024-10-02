@@ -140,6 +140,14 @@ void SphereMesh::Create()
 
 }
 
+void SphereMesh::Create(unsigned int segment)
+{
+	Clear();
+	m_SectorCount = segment;
+	m_SpanCount = segment / 2;
+	Create();
+}
+
 void SphereMesh::Update()
 {
 	if (SectorCount != m_SectorCount || SpanCount != m_SpanCount)

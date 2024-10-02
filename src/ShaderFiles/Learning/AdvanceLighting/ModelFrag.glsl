@@ -10,17 +10,21 @@ in VS_OUT
 	vec3 modelNor;
 	vec4 colour;
 	vec4 position;
+	vec4 fragPosLightSpace;
 }fs_in;
 
 //////////////////////////////
 //LIGHTS
 //////////////////////////////
-const int MAX_LIGHTS = 5;
+const int MAX_LIGHTS = 7;
 struct Light
 {
 	bool is_enable;
-	vec3 position;
+	vec3 position;     
 	vec3 colour;
+	
+	bool is_directional;
+	vec3 direction;
 	
 	float ambinentIntensity;
 	
@@ -37,6 +41,7 @@ struct Light
 //UNIFORMS
 ///////////////////////////////
 uniform sampler2D u_Texture;
+uniform sampler2D u_ShadowMap;
 uniform Light u_Lights[MAX_LIGHTS];
 uniform int u_LightCount; 
 uniform vec3 u_ViewPos;  //in-use camera pos
@@ -58,11 +63,85 @@ uniform int u_DebugWcType;
 #define DEBUG_DEFAULT_COLOUR 5
 
 
+float ShadowCalculation(vec4 fragPosLightSpace)
+{
+	vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+	
+	projCoords = projCoords * 0.5f + 0.5f;
+	float closestDepth = texture(u_ShadowMap, projCoords.xy).r;
+	float currentDepth = projCoords.z;
+	float bias = 0.005f;
+	bias = max(0.05f * (1.0f - dot(normalize(fs_in.normal), u_Lights[5].direction)), 0.005f);
+	bias = 0.0f;
+	float shadow = currentDepth - bias > closestDepth ? 1.0f : 0.0f;
+	
+	return shadow;
+}
+
+
+//For Quick test 
+vec3 CalculateDirLight(Light light)
+{
+	vec3 result_colour = vec3(0.0f);
+	
+	//if(light.is_directional)
+	//{
+		if(!light.is_enable)
+			return vec3(0.0f);
+		
+		//////////////////////
+		//Ambinent
+		//////////////////////
+		vec3 amb_colour = light.ambinentIntensity * light.colour;
+		
+		/////////////////////
+		//Diffuse
+		/////////////////////
+		//vec3 light_dir = normalize(light.position - fs_in.fragPos);
+		vec3 light_dir = normalize(light.direction);
+		vec3 nor = normalize(fs_in.normal);
+		//float diffuse = max(dot(light.direction, nor), 0.0f);
+		float diff_factor = max(dot(nor, light_dir), 0.0f);
+		
+		if(diff_factor <= 0.0f)
+			return amb_colour + (light.colour * diff_factor);
+		
+		///////////////
+		//Spec
+		///////////////
+		float spec = 0.0f;
+		vec3 view_dir = normalize(u_ViewPos - fs_in.fragPos);
+		if(u_Blinn_Phong)
+		{
+			vec3 halway_dir = normalize(light_dir + view_dir);
+			spec = pow(max(dot(nor, halway_dir), 0.0f), u_Shininess);
+		}
+		else
+		{
+			vec3 reflectDir = reflect(-light_dir, nor);
+			spec = pow(max(dot(view_dir, reflectDir), 0.0f), u_Shininess);
+		}
+		
+		float shadow = ShadowCalculation(fs_in.fragPosLightSpace);
+		vec3 lighting = (amb_colour + (1.0f - shadow) * (diff_factor + spec)) * light.colour;
+	
+		return lighting;
+		vec3 scatteredLight = light.colour * diff_factor;
+		vec3 reflectedLight = light.colour * spec;
+		return amb_colour + scatteredLight + reflectedLight;
+	//}
+	
+	
+	//Not a directional light;
+	//return vec3(0.0f);
+}
+
 
 vec3 CalculatePointLight(vec3 object_ambient_colour)
 {
 	vec3 result_colour = vec3(0.0f);
 	
+	//return CalculateDirLight(u_Lights[5]) * object_ambient_colour;
 	
 	for(int i = 0; i < u_LightCount; i++)
 	{
@@ -71,6 +150,12 @@ vec3 CalculatePointLight(vec3 object_ambient_colour)
 			
 		if(!u_Lights[i].is_enable)
 			continue;
+			
+		if(u_Lights[i].is_directional)
+		{
+			result_colour += CalculateDirLight(u_Lights[i]);
+			break;
+		}
 			
 			
 		///////////
@@ -121,6 +206,9 @@ vec3 CalculatePointLight(vec3 object_ambient_colour)
 	result_colour *= object_ambient_colour;
 	return result_colour;
 }
+
+
+
 
 
 void main()

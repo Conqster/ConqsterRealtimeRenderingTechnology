@@ -90,7 +90,8 @@ void DebugGizmos::Generate()
 	};
 	m_Shader.Create("debug_shader", debug_shader_file_path);
 
-	sphere.Create();
+	//sphere.Create();
+	sphere.Create(12);
 
 	active = true;
 

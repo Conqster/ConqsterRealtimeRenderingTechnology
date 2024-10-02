@@ -10,9 +10,17 @@ layout (std140)  uniform u_CameraMat
 };
 
 
+out VS_OUT
+{
+	vec3 colour; //vertex point colour
+}vs_out;
+
+
 uniform mat4 u_Model;
 
 void main()
 {
 	gl_Position = projection * view * u_Model * pos;
+	
+	vs_out.colour = col.rgb;
 }

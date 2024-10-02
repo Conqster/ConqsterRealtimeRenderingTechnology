@@ -14,6 +14,11 @@
 #include "Graphics/Lights/NewLights.h"
 #include "Util/Constants.h"
 
+#include "Graphics/ObjectBuffer/ShadowMap.h"
+
+
+
+
 class AdvanceLightingScene : public Scene
 {
 public:
@@ -33,6 +38,7 @@ private:
 	void DrawObjects(Shader& shader);
 	void LightPass(Shader& shader);
 	void InstanceObjectPass(Shader* shader = nullptr);
+	void ShadowPass();
 
 
 	////////////////
@@ -42,6 +48,7 @@ private:
 	UniformBuffer m_CameraMatUBO;
 	bool doGammaCorrection = false;
 	float gamma = 2.2f;
+	LearnVertex m_Quad;
 
 	/////////////////
 	//Debugging datas
@@ -104,6 +111,7 @@ private:
 	Shader modelShader;
 	Shader debugShader;
 	Shader instancingShader;
+	Shader screenShader;
 
 	//////Textures
 	Texture* brickTex;
@@ -116,7 +124,7 @@ private:
 	///////////////////////
 	//NewPointLight pointLights[Shader_Constants::MAX_POINT_LIGHTS];
 	const static int MAX_LIGHT = 5;
-	struct LightObject
+	struct PointLightObject
 	{
 		glm::vec3 objectPosition;
 		float childLightOffset = 0.0f;
@@ -128,4 +136,23 @@ private:
 	int availablePtLightCount = 0;
 	int specShinness = 64;
 
+	
+	NewDirectionalLight dirlight;
+	struct DirShadowMap
+	{
+		glm::mat4 lightProj;
+		glm::mat4 lightView;
+		glm::mat4 lightSpaceMatrix;
+		ShadowMap map;
+		Shader debugShader;
+	}dirShadowMap;
+
+
+	struct ShadowInfo
+	{
+		float cam_near = 0.1f;
+		float cam_far = 20.0f;
+		float cam_size = 50.0f;
+		float dirLight_offset = 50.0f;
+	}shadowCameraInfo;
 };

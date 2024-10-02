@@ -176,6 +176,7 @@
     <ClInclude Include="src\Graphics\NewMaterial.h" />
     <ClInclude Include="src\Graphics\ObjectBuffer\Framebuffer.h" />
     <ClInclude Include="src\Graphics\ObjectBuffer\MSAA.h" />
+    <ClInclude Include="src\Graphics\ObjectBuffer\ShadowMap.h" />
     <ClInclude Include="src\Graphics\ObjectBuffer\UniformBuffer.h" />
     <ClInclude Include="src\Graphics\Shader.h" />
     <ClInclude Include="src\Graphics\Skybox.h" />
@@ -234,6 +235,7 @@
     <ClCompile Include="src\Graphics\NewMaterial.cpp" />
     <ClCompile Include="src\Graphics\ObjectBuffer\Framebuffer.cpp" />
     <ClCompile Include="src\Graphics\ObjectBuffer\MSAA.cpp" />
+    <ClCompile Include="src\Graphics\ObjectBuffer\ShadowMap.cpp" />
     <ClCompile Include="src\Graphics\ObjectBuffer\UniformBuffer.cpp" />
     <ClCompile Include="src\Graphics\Shader.cpp" />
     <ClCompile Include="src\Graphics\Meshes\CubeMesh.cpp" />
