@@ -113,7 +113,71 @@ void DebugGizmos::DrawSquare(glm::vec3 center, glm::vec3 forward, float left, fl
 	m_Shader.UnBind();
 }
 
-void DebugGizmos::DrawOrthoCameraFrustrm(glm::vec3 pos, glm::vec3 forward, float cam_near, float cam_far, float left, float right, float bottom, float top, glm::vec3 colour, float thickness)
+void DebugGizmos::DrawBox(AABB aabb, glm::vec3 colour, float thickness)
+{
+	if (!active)
+		Generate();
+
+	//Debug center
+	DrawSphere(aabb.GetCenter(), 0.2f);
+
+	m_Shader.Bind();
+	m_Shader.SetUniformMat4f("u_Model", glm::mat4(1.0f));
+	m_Shader.SetUniformVec3("u_Colour", colour);
+
+	GLCall(glLineWidth(thickness));
+	glBegin(GL_LINE_LOOP);
+
+	//v1/////////v2//
+	//############///
+	//#//////////#///
+	//#//////////#///
+	//############///
+	//v3/////////v4//
+	//front box/square  v1>>v2>>v4>>v3
+	glm::vec3 a = aabb.m_Min;
+	glm::vec3 b = aabb.m_Max;
+	glVertex3fv(&a[0]);
+	glVertex3fv(&glm::vec3(b.x, a.y, a.z)[0]);
+	glVertex3fv(&glm::vec3(b.x, b.y, a.z)[0]);
+	glVertex3fv(&glm::vec3(a.x, b.y, a.z)[0]);
+	//v3>>v7
+	//v5/////////v6//
+	//############///
+	//#//////////#///
+	//#//////////#///
+	//############///
+	//v7/////////v8//
+	//back box/square v7>>v8>>v6>>v5
+	glVertex3fv(&glm::vec3(a.x, b.y, b.z)[0]);
+	glVertex3fv(&b[0]);
+	glVertex3fv(&glm::vec3(b.x, a.y, b.z)[0]);
+	glVertex3fv(&glm::vec3(a.x, a.y, b.z)[0]);
+	glEnd();
+
+	glBegin(GL_LINES);
+	//front left v1>>v3
+	glVertex3f(a.x, a.y, a.z);
+	glVertex3f(a.x, b.y, a.z);
+
+	//back left v5>>v7
+	glVertex3f(a.x, a.y, b.z);
+	glVertex3f(a.x, b.y, b.z);
+
+	//front top >> back top v2>>v6
+	glVertex3f(b.x, a.y, a.z);
+	glVertex3f(b.x, a.y, b.z);
+
+	//front bottom >> back bottom v4>>v8
+	glVertex3f(b.x, b.y, a.z);
+	glVertex3f(b.x, b.y, b.z);
+	glEnd();
+
+	glLineWidth(1.0f);
+	m_Shader.UnBind();
+}
+
+void DebugGizmos::DrawOrthoCameraFrustrm(glm::vec3 pos, glm::vec3 forward, float cam_near, float cam_far, float size, glm::vec3 colour, float thickness)
 {
 	if (!active)
 		Generate();
@@ -121,12 +185,12 @@ void DebugGizmos::DrawOrthoCameraFrustrm(glm::vec3 pos, glm::vec3 forward, float
 	glm::vec3 rightV = glm::normalize(glm::cross(forward, glm::vec3(0.0f, 0.0f, 1.0f)));
 	glm::vec3 upV = glm::normalize(glm::cross(rightV, forward));
 
-	glm::vec3 boundsTL = (upV * top) + (rightV * left);
-	glm::vec3 boundsTR = (upV * top) + (rightV * right);
-	glm::vec3 boundsBL = (upV * bottom) + (rightV * left);
-	glm::vec3 boundsBR = (upV * bottom) + (rightV * right);
+	glm::vec3 boundsTL = (upV * size) + (rightV * -size);
+	glm::vec3 boundsTR = (upV * size) + (rightV * size);
+	glm::vec3 boundsBL = (upV * -size) + (rightV * -size);
+	glm::vec3 boundsBR = (upV * -size) + (rightV * size);
 
-	glm::vec3 nearPlane = pos + (glm::normalize(forward) * cam_near);
+	glm::vec3 nearPlane = pos + (glm::normalize(-forward) * cam_near);
 
 	glm::vec3 nearTL = nearPlane + boundsTL;
 	glm::vec3 nearTR = nearPlane + boundsTR;
@@ -141,6 +205,183 @@ void DebugGizmos::DrawOrthoCameraFrustrm(glm::vec3 pos, glm::vec3 forward, float
 	glm::vec3 farBR = farPlane + boundsBL;
 	glm::vec3 farBL = farPlane + boundsBR;
 
+
+	//Debuging Camera position
+	DrawSphere(pos, 0.2f);
+
+	m_Shader.Bind();
+	m_Shader.SetUniformMat4f("u_Model", glm::mat4(1.0f));
+	m_Shader.SetUniformVec3("u_Colour", colour);
+
+	GLCall(glLineWidth(thickness));
+	glBegin(GL_LINE_LOOP);
+	//near plane bounds vertex draw
+	glVertex3fv(&nearTL[0]);
+	glVertex3fv(&nearTR[0]);
+	glVertex3fv(&nearBR[0]);
+	glVertex3fv(&nearBL[0]);
+	//far plane bounds vertex draw
+	glVertex3fv(&farBR[0]);
+	glVertex3fv(&farBL[0]);
+	glVertex3fv(&farTL[0]);
+	glVertex3fv(&farTR[0]);
+	glEnd();
+
+
+	glBegin(GL_LINES);
+	glVertex3fv(&nearTL[0]);
+	glVertex3fv(&nearBL[0]);
+
+
+	glVertex3fv(&farBR[0]);
+	glVertex3fv(&farTR[0]);
+
+	glVertex3fv(&nearBR[0]);
+	glVertex3fv(&farBL[0]);
+
+	glVertex3fv(&nearTR[0]);
+	glVertex3fv(&farTL[0]);
+
+	glVertex3fv(&nearPlane[0]);
+	glVertex3fv(&glm::vec3(nearPlane - (forward * 4.0f))[0]);
+	glEnd();
+
+	glLineWidth(1.0f);
+	m_Shader.UnBind();
+}
+
+void DebugGizmos::DrawPerspectiveCameraFrustum(glm::vec3 pos, glm::vec3 forward, float fov, float aspect, float cam_near, float cam_far, glm::vec3 colour, float thickness)
+{
+	if (!active)
+		Generate();
+
+	glm::vec3 rightV = glm::normalize(glm::cross(forward, glm::vec3(0.0f, 0.0f, 1.0f)));
+	glm::vec3 upV = glm::normalize(glm::cross(rightV, forward));
+
+
+	//near
+	float size_ratio; 
+	size_ratio = glm::tan(glm::radians(fov * 0.5f)) * cam_near;
+	//size_ratio *= aspect;
+
+
+	glm::vec3 boundsTL = (upV * size_ratio) + (rightV * -size_ratio);
+	glm::vec3 boundsTR = (upV * size_ratio) + (rightV * size_ratio);
+	glm::vec3 boundsBL = (upV * -size_ratio) + (rightV * -size_ratio);
+	glm::vec3 boundsBR = (upV * -size_ratio) + (rightV * size_ratio);
+
+	glm::vec3 nearPlane = pos + (glm::normalize(-forward) * cam_near);
+
+	glm::vec3 nearTL = nearPlane + boundsTL;
+	glm::vec3 nearTR = nearPlane + boundsTR;
+	glm::vec3 nearBL = nearPlane + boundsBL;
+	glm::vec3 nearBR = nearPlane + boundsBR;
+
+
+	//far
+	size_ratio = glm::tan(glm::radians(fov * 0.5f)) * cam_far;
+	size_ratio *= aspect;
+
+	boundsTL = (upV * size_ratio) + (rightV * -size_ratio);
+	boundsTR = (upV * size_ratio) + (rightV * size_ratio);
+	boundsBL = (upV * -size_ratio) + (rightV * -size_ratio);
+	boundsBR = (upV * -size_ratio) + (rightV * size_ratio);
+
+	glm::vec3 farPlane = pos + (glm::normalize(-forward) * cam_far);
+
+	glm::vec3 farTR = farPlane + boundsTL;
+	glm::vec3 farTL = farPlane + boundsTR;
+	glm::vec3 farBR = farPlane + boundsBL;
+	glm::vec3 farBL = farPlane + boundsBR;
+
+	DrawSphere(pos, 0.2f);
+
+	m_Shader.Bind();
+	m_Shader.SetUniformMat4f("u_Model", glm::mat4(1.0f));
+	m_Shader.SetUniformVec3("u_Colour", colour);
+
+	GLCall(glLineWidth(thickness));
+	glBegin(GL_LINE_LOOP);
+	//near plane bounds vertex draw
+	glVertex3fv(&nearTL[0]);
+	glVertex3fv(&nearTR[0]);
+	glVertex3fv(&nearBR[0]);
+	glVertex3fv(&nearBL[0]);
+	//far plane bounds vertex draw
+	glVertex3fv(&farBR[0]);
+	glVertex3fv(&farBL[0]);
+	glVertex3fv(&farTL[0]);
+	glVertex3fv(&farTR[0]);
+	glEnd();
+
+
+	glBegin(GL_LINES);
+	glVertex3fv(&nearTL[0]);
+	glVertex3fv(&nearBL[0]);
+
+
+	glVertex3fv(&farBR[0]);
+	glVertex3fv(&farTR[0]);
+
+	glVertex3fv(&nearBR[0]);
+	glVertex3fv(&farBL[0]);
+
+	glVertex3fv(&nearTR[0]);
+	glVertex3fv(&farTL[0]);
+
+	glVertex3fv(&nearPlane[0]);
+	glVertex3fv(&glm::vec3(nearPlane - (forward * 4.0f))[0]);
+	glEnd();
+
+	glLineWidth(1.0f);
+	m_Shader.UnBind();
+}
+
+void DebugGizmos::DrawPerspectiveCameraFrustum(glm::vec3 pos, glm::vec3 forward, glm::vec3 up, float fov, float aspect, float cam_near, float cam_far, glm::vec3 colour, float thickness)
+{
+	if (!active)
+		Generate();
+
+	glm::vec3 rightV = glm::normalize(glm::cross(forward, up));
+	glm::vec3 upV = glm::normalize(glm::cross(rightV, forward));
+
+
+	//near
+	float size_ratio;
+	size_ratio = glm::tan(glm::radians(fov * 0.5f)) * cam_near;
+	//size_ratio *= aspect;
+
+
+	glm::vec3 boundsTL = (upV * size_ratio) + (rightV * -size_ratio);
+	glm::vec3 boundsTR = (upV * size_ratio) + (rightV * size_ratio);
+	glm::vec3 boundsBL = (upV * -size_ratio) + (rightV * -size_ratio);
+	glm::vec3 boundsBR = (upV * -size_ratio) + (rightV * size_ratio);
+
+	glm::vec3 nearPlane = pos + (glm::normalize(-forward) * cam_near);
+
+	glm::vec3 nearTL = nearPlane + boundsTL;
+	glm::vec3 nearTR = nearPlane + boundsTR;
+	glm::vec3 nearBL = nearPlane + boundsBL;
+	glm::vec3 nearBR = nearPlane + boundsBR;
+
+
+	//far
+	size_ratio = glm::tan(glm::radians(fov * 0.5f)) * cam_far;
+	size_ratio *= aspect;
+
+	boundsTL = (upV * size_ratio) + (rightV * -size_ratio);
+	boundsTR = (upV * size_ratio) + (rightV * size_ratio);
+	boundsBL = (upV * -size_ratio) + (rightV * -size_ratio);
+	boundsBR = (upV * -size_ratio) + (rightV * size_ratio);
+
+	glm::vec3 farPlane = pos + (glm::normalize(-forward) * cam_far);
+
+	glm::vec3 farTR = farPlane + boundsTL;
+	glm::vec3 farTL = farPlane + boundsTR;
+	glm::vec3 farBR = farPlane + boundsBL;
+	glm::vec3 farBL = farPlane + boundsBR;
+
+	DrawSphere(pos, 0.2f);
 
 	m_Shader.Bind();
 	m_Shader.SetUniformMat4f("u_Model", glm::mat4(1.0f));

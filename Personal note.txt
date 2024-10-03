@@ -36,3 +36,6 @@ Rendering Primitives
 	- Line, Trinagle, Line_strip etc
 
 Experiment with the CPU's Transposing Model vertex (for scaled &/ rotated models) to avoid complex/expensive inverse matrix calculation in GPU shader.
+
+Issue: Orthographic Camera Frustrum Debugger(Visualization) 
+	The near plane needs to be offset forward in the direction of the camera & same direction of the far plane not to be behind the camera point. 

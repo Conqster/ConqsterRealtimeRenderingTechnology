@@ -8,6 +8,7 @@
 #include "Util/FilePaths.h"
 
 #include "Graphics/DebugGizmos.h"
+#include "EventHandle.h"
 
 void AdvanceLightingScene::SetWindow(Window* window)
 {
@@ -72,6 +73,34 @@ void AdvanceLightingScene::OnUpdate(float delta_time)
 		lb.light.position = glm::clamp(lb.light.position, lb.objectPosition + glm::vec3(-1.0f, 0.0f, -1.0f) * lb.childLightOffset, lb.objectPosition + glm::vec3(1.0f, 0.0f, 1.0f) * lb.childLightOffset);
 
 	}
+
+	/////////////////////////////////////////////
+	// AABB Test update
+	/////////////////////////////////////////////
+	bool* keys = EventHandle::GetKeys();
+	if (keys[GLFW_KEY_UP])
+	{
+		if (keys[GLFW_KEY_LEFT_SHIFT])
+			aabbTranslation += glm::vec3(0.0f, 1.0f, 0.0f) * moveSpeed;
+		else
+			aabbTranslation += glm::vec3(0.0f, 0.0f, 1.0f) * moveSpeed;
+	}
+	if (keys[GLFW_KEY_DOWN])
+	{
+		if (keys[GLFW_KEY_DOWN] && keys[GLFW_KEY_LEFT_SHIFT])
+			aabbTranslation += glm::vec3(0.0f, -1.0f, 0.0f) * moveSpeed;
+		else
+			aabbTranslation += glm::vec3(0.0f, 0.0f, -1.0f) * moveSpeed;
+	}
+	if (keys[GLFW_KEY_RIGHT])
+		aabbTranslation += glm::vec3(1.0f, 0.0f, 0.0f) * moveSpeed;
+	if (keys[GLFW_KEY_LEFT])
+		aabbTranslation += glm::vec3(-1.0f, 0.0f, 0.0f) * moveSpeed;
+
+
+
+	aabb.Translate(aabbTranslation);
+	aabbTranslation = glm::vec3(0.0f);
 
 	OnRender();
 }
@@ -206,10 +235,24 @@ void AdvanceLightingScene::OnRender()
 	glm::vec3 farPlane = orthCamPos + (glm::normalize(-dirlight.direction) * ds.cam_far);
 	//DebugGizmos::DrawSquare(nearPlane, dirlight.direction, -ds.cam_size, ds.cam_size, -ds.cam_size, ds.cam_size, glm::vec3(0.0f, 1.0f, 0.0f), 3.0f);
 	//DebugGizmos::DrawSquare(farPlane, dirlight.direction,-ds.cam_size, ds.cam_size, -ds.cam_size, ds.cam_size, glm::vec3(0.0f, 0.0f, 1.0f), 3.0f);
-	DebugGizmos::DrawOrthoCameraFrustrm(orthCamPos, dirlight.direction, 
-										ds.cam_near, ds.cam_far, 
-										-ds.cam_size, ds.cam_size, -ds.cam_size, ds.cam_size, 
-										glm::vec3(0.0f, 1.0f, 0.0f), 3.0f);
+	//DebugGizmos::DrawOrthoCameraFrustrm(orthCamPos, dirlight.direction, 
+	//									ds.cam_near, ds.cam_far, ds.cam_size,
+	//									glm::vec3(0.0f, 1.0f, 0.0f), 3.0f);
+
+
+	DebugGizmos::DrawPerspectiveCameraFrustum(orthCamPos, dirlight.direction, 
+											  fov, window->GetAspectRatio(),
+											 ds.cam_near, ds.cam_far,
+												glm::vec3(0.0f, 1.0f, 0.0f), 3.0f);
+
+	//DebugGizmos::DrawPerspectiveCameraFrustum(m_Camera->GetPosition(), m_Camera->GetFroward(), m_Camera->GetUp(),
+	//										  (*m_Camera->Ptr_FOV()) - 10.0f, window->GetAspectRatio(),
+	//										  (*m_Camera->Ptr_Near()) - 15.0f, (*m_Camera->Ptr_Far()) + 15.0f,
+	//										  glm::vec3(1.0f, 0.0f, 0.0f), 3.0f);
+	//glm::perspective()
+
+	//Create new AABB
+	DebugGizmos::DrawBox(aabb, glm::vec3(1.0f, 0.0f, 0.0f), aabbDebugThick);
 }
 
 void AdvanceLightingScene::OnRenderUI()
@@ -262,6 +305,12 @@ void AdvanceLightingScene::OnRenderUI()
 	ImGui::Spacing();
 	ImGui::SeparatorText("Scene Properties");
 	ImGui::ColorEdit3("Debug colour", &m_ClearScreenColour[0]);
+	ImGui::Spacing();
+
+	ImGui::SeparatorText("AABB Test");
+	ImGui::SliderFloat("AABB Test, size", &aabbSize, 0.0f, 10.0f, "%.1f");
+	ImGui::SliderFloat("AABB Test, move speed", &moveSpeed, 0.0f, 10.0f, "%.1f");
+	ImGui::SliderFloat("AABB Test, Debug Thickness", &aabbDebugThick, 0.0f, 10.0f, "%.1f");
 
 	////////////////////////////////////////////////
 	// SCENE OBJECTS
@@ -380,6 +429,7 @@ void AdvanceLightingScene::OnRenderUI()
 			ImGui::SliderFloat("Camera Near", &shadowCameraInfo.cam_near, 0.0f, 5.0f);
 			ImGui::SliderFloat("Camera Far", &shadowCameraInfo.cam_far, 20.0f, 1000.0f);
 			ImGui::SliderFloat("Camera Size", &shadowCameraInfo.cam_size, 0.0f, 200.0f);
+			ImGui::SliderFloat("Camera FOV Test", &fov, 0.0f, 179.0f, "%.2f");
 			ImGui::TreePop();
 		}
 

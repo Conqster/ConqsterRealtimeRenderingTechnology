@@ -16,7 +16,7 @@
 
 #include "Graphics/ObjectBuffer/ShadowMap.h"
 
-
+#include "Geometry/AABB.h"
 
 
 class AdvanceLightingScene : public Scene
@@ -155,4 +155,11 @@ private:
 		float cam_size = 50.0f;
 		float dirLight_offset = 50.0f;
 	}shadowCameraInfo;
+
+	float fov = 45.0f;
+	AABB aabb = AABB(2.0f);
+	glm::vec3 aabbTranslation;
+	float aabbSize = 2.0f;
+	float moveSpeed = 2.0f;
+	float aabbDebugThick = 2.0f;
 };
