@@ -183,6 +183,33 @@ void AdvanceLightingScene::OnRender()
 	//sphereTex->DisActivate();
 	//modelShader.UnBind();
 
+
+	//////////////////////////
+	// Debug Pass
+	//////////////////////////
+	if (debugLightPos)
+	{
+		for (int i = 0; i < availablePtLightCount; i++)
+		{
+			auto& lb = lightObject[i];
+			DebugGizmos::DrawWireSphere(lb.objectPosition, 0.5f, lb.light.colour, 2.0f);
+			DebugGizmos::DrawSphere(lb.light.position, 0.1f, lb.light.colour);
+			DebugGizmos::DrawLine(lb.objectPosition, lb.light.position, lb.light.colour, 2.0f);
+
+		}
+	}
+
+	//test directional 
+	auto& ds = shadowCameraInfo;
+	glm::vec3 orthCamPos = dirlight.direction * ds.dirLight_offset; //offset is pos from world origin
+	glm::vec3 nearPlane = orthCamPos + (glm::normalize(dirlight.direction) * ds.cam_near);
+	glm::vec3 farPlane = orthCamPos + (glm::normalize(-dirlight.direction) * ds.cam_far);
+	//DebugGizmos::DrawSquare(nearPlane, dirlight.direction, -ds.cam_size, ds.cam_size, -ds.cam_size, ds.cam_size, glm::vec3(0.0f, 1.0f, 0.0f), 3.0f);
+	//DebugGizmos::DrawSquare(farPlane, dirlight.direction,-ds.cam_size, ds.cam_size, -ds.cam_size, ds.cam_size, glm::vec3(0.0f, 0.0f, 1.0f), 3.0f);
+	DebugGizmos::DrawOrthoCameraFrustrm(orthCamPos, dirlight.direction, 
+										ds.cam_near, ds.cam_far, 
+										-ds.cam_size, ds.cam_size, -ds.cam_size, ds.cam_size, 
+										glm::vec3(0.0f, 1.0f, 0.0f), 3.0f);
 }
 
 void AdvanceLightingScene::OnRenderUI()
@@ -604,11 +631,11 @@ void AdvanceLightingScene::CreateObjects()
 	// CREATE TEXTURES 
 	////////////////////////////////////////
 	//brick texture 
-	brickTex = new Texture(FilePaths::Instance().GetPath("brick"), TextureFormat::SRGBA);
+	brickTex = new Texture(FilePaths::Instance().GetPath("brick")/*, TextureFormat::SRGBA*/);
 	//plain texture
-	plainTex = new Texture(FilePaths::Instance().GetPath("plain"), TextureFormat::SRGBA);
+	plainTex = new Texture(FilePaths::Instance().GetPath("plain")/*, TextureFormat::SRGBA*/);
 	//manchester-image
-	manchesterTex = new Texture(FilePaths::Instance().GetPath("manchester-image"), TextureFormat::SRGBA);
+	manchesterTex = new Texture(FilePaths::Instance().GetPath("manchester-image")/*, TextureFormat::SRGBA*/);
 
 
 
@@ -651,23 +678,10 @@ void AdvanceLightingScene::CreateObjects()
 			lightObject[i].objectPosition = glm::vec3(-9.5f, 5.9f, 11.2f);
 		}
 		lightObject[i].light.position = (glm::vec3(1.0f, 0.0f, 0.0f) * lightObject[i].childLightOffset) + lightObject[i].objectPosition;
-		//lightObject[i].objectPosition = glm::vec3(0.0f);
 		lightObject[i].light.colour = (i < 5) ? colours[i] : glm::vec3(0.3f, 0.0f, 0.3f);
 		lightObject[i].light.ambientIntensity = 0.05f;
-		//pointLights[i].colour = glm::vec3(0.3f, 0.0f, 0.3f);
 		lightObject[i].light.enable = false;
 		availablePtLightCount++;
-
-		//pointLights[i].position = origin + glm::vec3(0.0f, 0.0f, offset_units * i);
-		//if (i == 0)
-		//	pointLocalWorldPosition[0] = (glm::vec3(1.0f, 0.0f, 0.0f) * 4.0f) + pointLights[i].position;
-		//else
-		//	pointLocalWorldPosition[i] = pointLights[i].position;
-		//pointLights[i].colour = (i < 5) ? colours[i] : glm::vec3(0.3f, 0.0f, 0.3f);
-		//pointLights[i].ambientIntensity = 0.05f;
-		////pointLights[i].colour = glm::vec3(0.3f, 0.0f, 0.3f);
-		//pointLights[i].enable = true;
-		//availablePtLightCount++;
 	}
 	//debugScene = true;
 	debugModelType = MODEL_NORMAL;
@@ -675,7 +689,7 @@ void AdvanceLightingScene::CreateObjects()
 	//Testing value
 	lightObject[0].light.enable = true;
 	lightObject[1].light.enable = true;
-	dirlight.direction = glm::vec3(-50.0f, 50.0f, -50.0f);
+	dirlight.direction = glm::vec3(-1.0f, 1.0f, -1.0f);
 	shadowCameraInfo.cam_near = 0.254f;
 	shadowCameraInfo.cam_far = 305.0f;
 	shadowCameraInfo.cam_size = 26.0f;
@@ -810,17 +824,17 @@ void AdvanceLightingScene::LightPass(Shader& shader)
 
 
 	//DEBUGGING
-	if (debugLightPos)
-	{
-		for (int i = 0; i < availablePtLightCount; i++)
-		{
-			auto& lb = lightObject[i];
-			DebugGizmos::DrawWireSphere(lb.objectPosition, 0.5f, lb.light.colour, 2.0f);
-			DebugGizmos::DrawSphere(lb.light.position, 0.1f, lb.light.colour);
-			DebugGizmos::DrawLine(lb.objectPosition, lb.light.position, lb.light.colour, 2.0f);
+	//if (debugLightPos)
+	//{
+	//	for (int i = 0; i < availablePtLightCount; i++)
+	//	{
+	//		auto& lb = lightObject[i];
+	//		DebugGizmos::DrawWireSphere(lb.objectPosition, 0.5f, lb.light.colour, 2.0f);
+	//		DebugGizmos::DrawSphere(lb.light.position, 0.1f, lb.light.colour);
+	//		DebugGizmos::DrawLine(lb.objectPosition, lb.light.position, lb.light.colour, 2.0f);
 
-		}
-	}
+	//	}
+	//}
 
 }
 

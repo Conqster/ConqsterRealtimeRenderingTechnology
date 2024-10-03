@@ -154,7 +154,7 @@
 
 	void Shader::UnBind() const
 	{
-		glUseProgram(0);
+		//glUseProgram(0);
 		GLCall(glUseProgram(0));
 	}
 

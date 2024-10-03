@@ -17,6 +17,8 @@ public:
 	static void DrawLine(glm::vec3 v1, glm::vec3 v2, glm::vec3 colour = glm::vec3(1.0f, 0.0f, 1.0f), float thickness = 1.0f);
 	static void DrawWireSphere(glm::vec3 p, float radius = 1.0f, glm::vec3 colour = glm::vec3(1.0f, 0.0f, 1.0f), float thickness = 1.0f);
 	static void DrawSphere(glm::vec3 p, float radius = 1.0f, glm::vec3 colour = glm::vec3(1.0f, 0.0f, 1.0f));
+	static void DrawSquare(glm::vec3 center, glm::vec3 forward, float left, float right, float bottom, float top, glm::vec3 colour = glm::vec3(1.0f, 0.0f, 1.0f), float thickness = 1.0f);
+	static void DrawOrthoCameraFrustrm(glm::vec3 pos, glm::vec3 forward, float cam_near, float cam_far, float left, float right, float bottom, float top, glm::vec3 colour = glm::vec3(1.0f, 0.0f, 1.0f), float thickness = 1.0f);
 	static void Cleanup();
 
 private:
