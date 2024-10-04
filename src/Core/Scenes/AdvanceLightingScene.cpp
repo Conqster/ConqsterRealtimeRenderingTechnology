@@ -78,29 +78,44 @@ void AdvanceLightingScene::OnUpdate(float delta_time)
 	// AABB Test update
 	/////////////////////////////////////////////
 	bool* keys = EventHandle::GetKeys();
+	glm::vec3 translatePlayer = glm::vec3(0.0f);
 	if (keys[GLFW_KEY_UP])
 	{
 		if (keys[GLFW_KEY_LEFT_SHIFT])
-			aabbTranslation += glm::vec3(0.0f, 1.0f, 0.0f) * moveSpeed;
+			translatePlayer += glm::vec3(0.0f, 1.0f, 0.0f) * playerTest.speed;
 		else
-			aabbTranslation += glm::vec3(0.0f, 0.0f, 1.0f) * moveSpeed;
+			translatePlayer += glm::vec3(0.0f, 0.0f, 1.0f) * playerTest.speed;
 	}
 	if (keys[GLFW_KEY_DOWN])
 	{
 		if (keys[GLFW_KEY_DOWN] && keys[GLFW_KEY_LEFT_SHIFT])
-			aabbTranslation += glm::vec3(0.0f, -1.0f, 0.0f) * moveSpeed;
+			translatePlayer += glm::vec3(0.0f, -1.0f, 0.0f) * playerTest.speed;
 		else
-			aabbTranslation += glm::vec3(0.0f, 0.0f, -1.0f) * moveSpeed;
+			translatePlayer += glm::vec3(0.0f, 0.0f, -1.0f) * playerTest.speed;
 	}
 	if (keys[GLFW_KEY_RIGHT])
-		aabbTranslation += glm::vec3(1.0f, 0.0f, 0.0f) * moveSpeed;
+		translatePlayer += glm::vec3(1.0f, 0.0f, 0.0f) * playerTest.speed;
 	if (keys[GLFW_KEY_LEFT])
-		aabbTranslation += glm::vec3(-1.0f, 0.0f, 0.0f) * moveSpeed;
+		translatePlayer += glm::vec3(-1.0f, 0.0f, 0.0f) * playerTest.speed;
 
 
+	if (keys[GLFW_KEY_N])
+		if(keys[GLFW_KEY_LEFT_SHIFT])
+			playerTest.aabb.Scale(glm::vec3(-0.2f));
+		else
+			playerTest.aabb.Scale(glm::vec3(0.2f));
 
-	aabb.Translate(aabbTranslation);
-	aabbTranslation = glm::vec3(0.0f);
+	if (keys[GLFW_KEY_V])
+		if(keys[GLFW_KEY_LEFT_SHIFT])
+			playerTest.aabb.Scale(glm::vec3(-0.2f, 0.0f, 0.0f));
+		else
+			playerTest.aabb.Scale(glm::vec3(0.2f, 0.0f, 0.0f));
+
+
+	playerTest.aabb.Translate(translatePlayer);
+	shadowCameraInfo.sample_center_pos = playerTest.aabb.GetCenter() + glm::vec3(0.0f, 0.0f, 1.0) * playerTest.shadowOffset;
+
+
 
 	OnRender();
 }
@@ -130,7 +145,9 @@ void AdvanceLightingScene::OnRender()
 	//									 glm::vec3(0.0f, 0.0f, 0.0f),
 	//									 glm::vec3(0.0f, 1.0f, 0.0f));
 
-	dirShadowMap.lightView = glm::lookAt(dirlight.direction * shadowCameraInfo.dirLight_offset, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	//dirShadowMap.lightView = glm::lookAt(dirlight.direction * shadowCameraInfo.dirLight_offset, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	//dirShadowMap.lightView = glm::lookAt(dirlight.direction, shadowCameraInfo.cam_sample_pos, glm::vec3(0.0f, 1.0f, 0.0f));
+	dirShadowMap.lightView = glm::lookAt(shadowCameraInfo.sample_center_pos + (dirlight.direction * shadowCameraInfo.dirLight_offset), shadowCameraInfo.sample_center_pos, glm::vec3(0.0f, 1.0f, 0.0f));
 
 	dirShadowMap.lightSpaceMatrix = dirShadowMap.lightProj * dirShadowMap.lightView;
 
@@ -228,31 +245,108 @@ void AdvanceLightingScene::OnRender()
 		}
 	}
 
-	//test directional 
+	//test directional Shadow info 
 	auto& ds = shadowCameraInfo;
-	glm::vec3 orthCamPos = dirlight.direction * ds.dirLight_offset; //offset is pos from world origin
-	glm::vec3 nearPlane = orthCamPos + (glm::normalize(dirlight.direction) * ds.cam_near);
+
+	//glm::vec3 orthCamPos = dirlight.direction * ds.dirLight_offset; //offset is pos from world origin
+	//float dcv = (ds.cam_far + ds.cam_near) * 0.5f; //dcv is the center/value between the near & far plane 
+	float dcv = ds.dirLight_offset + ds.cam_near * 0.5f; //dcv is the center/value between the near & far plane 
+	glm::vec3 orthCamPos = ds.sample_center_pos + (dirlight.direction * ds.dirLight_offset);
+	DebugGizmos::DrawSphere(orthCamPos, 1.0f, glm::vec3(1.0f, 1.0f, 0.0f));
 	glm::vec3 farPlane = orthCamPos + (glm::normalize(-dirlight.direction) * ds.cam_far);
-	//DebugGizmos::DrawSquare(nearPlane, dirlight.direction, -ds.cam_size, ds.cam_size, -ds.cam_size, ds.cam_size, glm::vec3(0.0f, 1.0f, 0.0f), 3.0f);
-	//DebugGizmos::DrawSquare(farPlane, dirlight.direction,-ds.cam_size, ds.cam_size, -ds.cam_size, ds.cam_size, glm::vec3(0.0f, 0.0f, 1.0f), 3.0f);
-	//DebugGizmos::DrawOrthoCameraFrustrm(orthCamPos, dirlight.direction, 
-	//									ds.cam_near, ds.cam_far, ds.cam_size,
-	//									glm::vec3(0.0f, 1.0f, 0.0f), 3.0f);
+	glm::vec3 nearPlane = orthCamPos + (glm::normalize(dirlight.direction) * ds.cam_near);
+	DebugGizmos::DrawOrthoCameraFrustrm(orthCamPos, dirlight.direction, 
+										ds.cam_near, ds.cam_far, ds.cam_size,
+										glm::vec3(0.0f, 1.0f, 0.0f), 3.0f);
+	//Shadow Camera Sample Position 
+	DebugGizmos::DrawSphere(ds.sample_center_pos, 1.0f, glm::vec3(0.0f, 1.0f, 0.5f));
+
+	//DebugGizmos::DrawPerspectiveCameraFrustum(orthCamPos, dirlight.direction, 
+	//										  fov, window->GetAspectRatio(),
+	//										  ds.cam_near, ds.cam_far,
+	//										  glm::vec3(0.0f, 1.0f, 0.0f), 3.0f);
 
 
-	DebugGizmos::DrawPerspectiveCameraFrustum(orthCamPos, dirlight.direction, 
-											  fov, window->GetAspectRatio(),
-											 ds.cam_near, ds.cam_far,
-												glm::vec3(0.0f, 1.0f, 0.0f), 3.0f);
+	//Create new Player AABB
+	DebugGizmos::DrawBox(playerTest.aabb, glm::vec3(1.0f, 0.0f, 0.0f), playerTest.debugThick);
+	DebugGizmos::DrawLine(playerTest.aabb.GetCenter(), ds.sample_center_pos, glm::vec3(1.0f, 0.0f, 0.0f), playerTest.debugThick);
+	DebugGizmos::DrawSphere(playerTest.aabb.m_Min, 0.5f, glm::vec3(0.0f, 0.5f, 0.5f));
+	DebugGizmos::DrawSphere(playerTest.aabb.m_Max, 0.5f, glm::vec3(0.0f, 0.0f, 1.0f));
 
-	//DebugGizmos::DrawPerspectiveCameraFrustum(m_Camera->GetPosition(), m_Camera->GetFroward(), m_Camera->GetUp(),
-	//										  (*m_Camera->Ptr_FOV()) - 10.0f, window->GetAspectRatio(),
-	//										  (*m_Camera->Ptr_Near()) - 15.0f, (*m_Camera->Ptr_Far()) + 15.0f,
-	//										  glm::vec3(1.0f, 0.0f, 0.0f), 3.0f);
-	//glm::perspective()
+	if (debugSphereAABB)
+	{
+		AABB temp = sphere.GetAABB();
+		glm::vec3 world_origin = glm::vec3(0.0f);
+		glm::vec3 relative_pos = spheresPos[0] - world_origin;
+		for(int i = 0; i < MAX_SPHERE; i++)
+		{
+			relative_pos = spheresPos[i] - temp.GetCenter();
+			temp.Translate(relative_pos);
+			temp.Scale(glm::vec3(1.0f) * (spheresScale[i] - 1.0f));
+			DebugGizmos::DrawBox(temp, glm::vec3(0.0f, 0.0f, 1.0f), 2.0f);
+		}
 
-	//Create new AABB
-	DebugGizmos::DrawBox(aabb, glm::vec3(1.0f, 0.0f, 0.0f), aabbDebugThick);
+		temp = sphere.GetAABB();
+		for (auto& s : sphereInstancePos)
+		{
+			relative_pos = s - temp.GetCenter();
+			temp.Translate(relative_pos);
+			DebugGizmos::DrawBox(temp, glm::vec3(0.0f, 0.0f, 1.0f), 2.0f);
+		}
+	}
+
+	if (debugBunnyAABB)
+	{
+		glm::vec3 world_origin = glm::vec3(0.0f);
+		glm::vec3 relative_pos = bunnysPos[0] - world_origin;
+		for (int i = 0; i < MAX_BUNNY_MODEL; i++)
+		{
+			AABB temp = model_1->GetAABB();
+			relative_pos = bunnysPos[i] - world_origin;// temp.GetCenter();
+			relative_pos += centerOffset;
+			temp.Translate(relative_pos);
+			//temp.Scale(glm::vec3(1.0f) * (bunnysScale[i] - substractScale));
+			//temp.Scale(glm::vec3(1.0f) * (bunnysScale[i] - 1.0f));
+			DebugGizmos::DrawBox(temp, glm::vec3(0.0f, 0.0f, 1.0f), 2.0f);
+		}
+	}
+
+	if (debugModel2AABB)
+	{
+		AABB temp = model_2->GetAABB();
+		glm::vec3 world_origin = glm::vec3(0.0f);
+		glm::vec3 relative_pos = model_2Pos - world_origin;
+		relative_pos += model2AABBCenterOffset;
+		temp.Translate(relative_pos);
+		temp.Scale(glm::vec3(model2AABBScale) * (model_2Scale - 1.0f));
+		//temp.Translate(model2AABBCenterOffset);
+		//temp.Scale(glm::vec3(1.0f) * model2AABBScale);
+		DebugGizmos::DrawBox(temp, glm::vec3(0.0f, 0.0f, 1.0f), 2.0f);
+
+		for (auto& m : model_2->GetMeshes())
+		{
+			AABB aabb = m.GetAABB();
+			glm::vec3 relative_pos = model_2Pos - world_origin;
+			relative_pos += model2AABBCenterOffset;
+			aabb.Translate(model_2Pos);
+			aabb.Scale(glm::vec3(model2AABBScale) * (model_2Scale - 1.0f));
+			//aabb.Translate(model2AABBCenterOffset);
+			//aabb.Scale(glm::vec3(1.0f) * model2AABBScale);
+			DebugGizmos::DrawBox(aabb, glm::vec3(0.0f, 1.0f, 1.0f), 2.0f);
+		}
+	}
+
+
+	if (debugCubeAABB)
+	{
+		AABB temp = cube.GetAABB();
+		glm::vec3 world_origin = glm::vec3(0.0f);
+		glm::vec3 relative_pos = cubesPos[0] - world_origin;
+		temp.Translate(relative_pos);
+		temp.Scale(glm::vec3(0.5f) * (cubesScale[0] - 1.0f));
+		DebugGizmos::DrawBox(temp, glm::vec3(0.0f, 1.0f, 0.0f), 2.0f);
+	}
+
 }
 
 void AdvanceLightingScene::OnRenderUI()
@@ -307,11 +401,11 @@ void AdvanceLightingScene::OnRenderUI()
 	ImGui::ColorEdit3("Debug colour", &m_ClearScreenColour[0]);
 	ImGui::Spacing();
 
-	ImGui::SeparatorText("AABB Test");
-	ImGui::SliderFloat("AABB Test, size", &aabbSize, 0.0f, 10.0f, "%.1f");
-	ImGui::SliderFloat("AABB Test, move speed", &moveSpeed, 0.0f, 10.0f, "%.1f");
-	ImGui::SliderFloat("AABB Test, Debug Thickness", &aabbDebugThick, 0.0f, 10.0f, "%.1f");
-
+	ImGui::SeparatorText("Player AABB Test");
+	ImGui::SliderFloat("AABB Test, move speed", &playerTest.speed, 0.0f, 10.0f, "%.1f");
+	ImGui::SliderFloat("AABB Test, Debug Thickness", &playerTest.debugThick, 0.0f, 10.0f, "%.1f");
+	ImGui::SliderFloat("AABB Test, shadow offset speed", &playerTest.shadowOffset, 0.0f, 10.0f, "%.1f");
+	
 	////////////////////////////////////////////////
 	// SCENE OBJECTS
 	////////////////////////////////////////////////
@@ -325,9 +419,15 @@ void AdvanceLightingScene::OnRenderUI()
 		//ImGui::SeparatorText("Model 1");
 		//ImGui::DragFloat3("Model 1 pos", &model_1Pos[0], 0.1f);
 		//ImGui::SliderFloat("Model 1 Scale", &model_1Scale, 0.1f, 30.0f);
-
+		
 		if (ImGui::TreeNode("Bunny Model"))
 		{
+			ImGui::SeparatorText("Bunnies AABB Test");
+			ImGui::Checkbox("Debug Bunnies AABB bounds", &debugBunnyAABB);
+			ImGui::DragFloat3("Debug Center Offset", &centerOffset[0], 0.01f);
+			//ImGui::SliderFloat("Debug AABB substract from scale", &substractScale, 0.0f, 20.0f);
+			ImGui::SliderFloat("Debug AABB scale by", &scaleBunnyBy, -0.2f, 2.0f);
+
 			for (int i = 0; i < MAX_BUNNY_MODEL; i++)
 			{
 				std::string label = "Bunny model index " + std::to_string(i);
@@ -346,6 +446,9 @@ void AdvanceLightingScene::OnRenderUI()
 
 		if (ImGui::TreeNode("Spheres"))
 		{
+			ImGui::SeparatorText("Sphere AABB Test");
+			ImGui::Checkbox("Debug Spheres AABB bounds", &debugSphereAABB);
+
 			for (int i = 0; i < MAX_SPHERE; i++)
 			{
 				std::string label = "sphere index " + std::to_string(i);
@@ -380,6 +483,9 @@ void AdvanceLightingScene::OnRenderUI()
 
 		if (ImGui::TreeNode("Cubes"))
 		{
+			ImGui::SeparatorText("Cube AABB Test");
+			ImGui::Checkbox("Debug Cubes AABB bounds", &debugCubeAABB);
+
 			for (int i = 0; i < MAX_CUBE; i++)
 			{
 				std::string label = "cube index " + std::to_string(i);
@@ -396,6 +502,9 @@ void AdvanceLightingScene::OnRenderUI()
 		ImGui::SeparatorText("Model 2");
 		ImGui::DragFloat3("Model 2 pos", &model_2Pos[0], 0.1f);
 		ImGui::SliderFloat("Model 2 Scale", &model_2Scale, 0.01f, 20.0f);
+		ImGui::Checkbox("Debug model 2 AABB bounds", &debugModel2AABB);
+		ImGui::SliderFloat("Debug AABB by scale", &model2AABBScale, 0.0f, 20.0f);
+		ImGui::DragFloat3("Model 2 AABB center offset", &model2AABBCenterOffset[0], 0.1f);
 
 
 		ImGui::TreePop();
@@ -419,16 +528,18 @@ void AdvanceLightingScene::OnRenderUI()
 		ImGui::SeparatorText("Directional Light");
 		ImGui::Checkbox("Enable Directional", &dirlight.enable);
 		ImGui::DragFloat3("Light Direction", &dirlight.direction[0], 0.1f, -1.0f, 1.0f);
-		ImGui::SliderFloat("Light Proj Offset", &shadowCameraInfo.dirLight_offset, -100.0f, 100.0f);
+		ImGui::SliderFloat("Light Proj Offset", &shadowCameraInfo.dirLight_offset, 0.0f, 100.0f);
 		ImGui::ColorEdit3("Dir Light colour" , &dirlight.colour[0]);
 		ImGui::SliderFloat("Light ambinentIntensity", &dirlight.ambientIntensity, 0.0f, 1.0f);
 		ImGui::Spacing();
 
 		if (ImGui::TreeNode("Shadow Camera Info"))
 		{
-			ImGui::SliderFloat("Camera Near", &shadowCameraInfo.cam_near, 0.0f, 5.0f);
-			ImGui::SliderFloat("Camera Far", &shadowCameraInfo.cam_far, 20.0f, 1000.0f);
-			ImGui::SliderFloat("Camera Size", &shadowCameraInfo.cam_size, 0.0f, 200.0f);
+			auto& shadow = shadowCameraInfo;
+			ImGui::DragFloat3("Sample Pos", &shadow.sample_center_pos[0], 0.1f);
+			ImGui::SliderFloat("Camera Near", &shadow.cam_near, 0.0f, shadow.cam_far - 0.5f);
+			ImGui::SliderFloat("Camera Far", &shadow.cam_far, shadow.cam_near + 0.5f, 1000.0f);
+			ImGui::SliderFloat("Camera Size", &shadow.cam_size, 0.0f, 200.0f);
 			ImGui::SliderFloat("Camera FOV Test", &fov, 0.0f, 179.0f, "%.2f");
 			ImGui::TreePop();
 		}
@@ -516,8 +627,9 @@ void AdvanceLightingScene::CreateObjects()
 	// Create Objects & model
 	///////////////
 	model_1 = modelLoader.Load(FilePaths::Instance().GetPath("bunny"), true);
-	model_2 = modelLoader.Load(FilePaths::Instance().GetPath("bunny"), true);
-	//model_2 = modelLoader.Load(FilePaths::Instance().GetPath("backpack"), true);
+	//model_2 = modelLoader.Load(FilePaths::Instance().GetPath("bunny"), true);
+	model_2 = modelLoader.Load(FilePaths::Instance().GetPath("backpack"), true);
+	//model_2 = modelLoader.Load(FilePaths::Instance().GetPath("electrical-charger"), true);
 	//model_1 = modelLoader.Load("Assets/Textures/backpack/backpack.obj", true);
 
 	////////////////////////////////////////

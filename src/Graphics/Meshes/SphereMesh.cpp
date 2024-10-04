@@ -63,6 +63,7 @@ void SphereMesh::Create()
 			m_Vertices.push_back(x);
 			m_Vertices.push_back(y);
 			m_Vertices.push_back(z);
+			UpdateAABB(glm::vec3(x, y, z));
 			m_Vertices.push_back(1.0f);    //w
 			//m_Vertices.push_back(w);    //w
 

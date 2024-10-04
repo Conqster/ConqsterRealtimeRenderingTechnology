@@ -251,3 +251,8 @@ void Mesh::DefaultMesh()
 	VAO.AddBufferLayout(VBO, vbLayout);
 }
 
+void Mesh::UpdateAABB(glm::vec3 v)
+{
+	aabb.Encapsulate(v);
+}
+

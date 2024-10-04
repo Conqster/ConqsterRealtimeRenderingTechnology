@@ -4,6 +4,11 @@ Model::Model(std::vector<ModelMesh> _meshes)
 {
 	meshes = _meshes;
 
+	for (auto& m : meshes)
+		UpdateAABB(m.GetAABB());
+
+
+
 	//i could generate mesh data here by loop through all the meshes
 	//for(auto& mesh : meshes)
 	//	mesh......
@@ -37,3 +42,7 @@ void Model::Destroy()
 		
 }
 
+void Model::UpdateAABB(const AABB &inRHS)
+{
+	aabb.Encapsulate(inRHS);
+}

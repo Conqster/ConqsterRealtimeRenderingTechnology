@@ -13,6 +13,9 @@ void ModelMesh::Create()
 
 void ModelMesh::Generate(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures)
 {
+	for(auto& v : vertices)
+		UpdateAABB(glm::vec3(v.position[0], v.position[1], v.position[2]));
+
 	m_Textures = textures;
 	GLCall(glEnable(GL_BLEND));
 	GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));

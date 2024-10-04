@@ -4,6 +4,8 @@
 #include "Graphics/Meshes/ModelMesh.h"
 #include "Graphics/Texture.h"
 
+#include "Geometry/AABB.h"
+
 class Model
 {
 public:
@@ -15,10 +17,14 @@ public:
 	void DebugWireDraw();
 
 	void Destroy();
+	inline AABB GetAABB() { return aabb; }
+	 std::vector<ModelMesh> GetMeshes() { return meshes; }
 	//~Model() = default;
 private: 
 	std::vector<ModelMesh> meshes;
 	std::vector<Texture> textures;
 
 	std::string dir = "";
+	AABB aabb;
+	void UpdateAABB(const AABB& inRHS);
 };
