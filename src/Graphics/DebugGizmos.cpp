@@ -3,11 +3,13 @@
 #include "RendererErrorAssertion.h"
 #include <glm/gtc/matrix_transform.hpp>
 
-
+#include "Util/MathsHelpers.h"
 
 bool DebugGizmos::active = false;
 Shader DebugGizmos::m_Shader;
 SphereMesh DebugGizmos::sphere;
+
+
 //UniformBuffer* DebugGizmos::m_CameraMatUBO = nullptr;
 
 
@@ -43,6 +45,11 @@ void DebugGizmos::DrawLine(glm::vec3 v1, glm::vec3 v2, glm::vec3 colour, float t
 	glEnd();
 	glLineWidth(1.0f);
 	m_Shader.UnBind();
+}
+
+void DebugGizmos::DrawRay(glm::vec3 v1, glm::vec3 dir, float dist, glm::vec3 colour, float thickness)
+{
+	DrawLine(v1, v1 + (dir * dist), colour, thickness);
 }
 
 void DebugGizmos::DrawWireSphere(glm::vec3 p, float radius, glm::vec3 colour, float thickness)
@@ -113,6 +120,7 @@ void DebugGizmos::DrawSquare(glm::vec3 center, glm::vec3 forward, float left, fl
 	m_Shader.UnBind();
 }
 
+
 void DebugGizmos::DrawBox(AABB aabb, glm::vec3 colour, float thickness)
 {
 	if (!active)
@@ -135,12 +143,12 @@ void DebugGizmos::DrawBox(AABB aabb, glm::vec3 colour, float thickness)
 	//############///
 	//v3/////////v4//
 	//front box/square  v1>>v2>>v4>>v3
-	glm::vec3 a = aabb.m_Min;
-	glm::vec3 b = aabb.m_Max;
-	glVertex3fv(&a[0]);
-	glVertex3fv(&glm::vec3(b.x, a.y, a.z)[0]);
-	glVertex3fv(&glm::vec3(b.x, b.y, a.z)[0]);
-	glVertex3fv(&glm::vec3(a.x, b.y, a.z)[0]);
+	glm::vec<3, double> a = aabb.m_Min;
+	glm::vec<3, double> b = aabb.m_Max;
+	glVertex3dv(&a[0]);
+	glVertex3dv(&glm::vec<3, double>(b.x, a.y, a.z)[0]);
+	glVertex3dv(&glm::vec<3, double>(b.x, b.y, a.z)[0]);
+	glVertex3dv(&glm::vec<3, double>(a.x, b.y, a.z)[0]);
 	//v3>>v7
 	//v5/////////v6//
 	//############///
@@ -149,32 +157,105 @@ void DebugGizmos::DrawBox(AABB aabb, glm::vec3 colour, float thickness)
 	//############///
 	//v7/////////v8//
 	//back box/square v7>>v8>>v6>>v5
-	glVertex3fv(&glm::vec3(a.x, b.y, b.z)[0]);
-	glVertex3fv(&b[0]);
-	glVertex3fv(&glm::vec3(b.x, a.y, b.z)[0]);
-	glVertex3fv(&glm::vec3(a.x, a.y, b.z)[0]);
+	glVertex3dv(&glm::vec<3, double>(a.x, b.y, b.z)[0]);
+	glVertex3dv(&b[0]);
+	glVertex3dv(&glm::vec<3, double>(b.x, a.y, b.z)[0]);
+	glVertex3dv(&glm::vec<3, double>(a.x, a.y, b.z)[0]);
 	glEnd();
 
 	glBegin(GL_LINES);
 	//front left v1>>v3
-	glVertex3f(a.x, a.y, a.z);
-	glVertex3f(a.x, b.y, a.z);
+	glVertex3d(a.x, a.y, a.z);
+	glVertex3d(a.x, b.y, a.z);
 
 	//back left v5>>v7
-	glVertex3f(a.x, a.y, b.z);
-	glVertex3f(a.x, b.y, b.z);
+	glVertex3d(a.x, a.y, b.z);
+	glVertex3d(a.x, b.y, b.z);
 
 	//front top >> back top v2>>v6
-	glVertex3f(b.x, a.y, a.z);
-	glVertex3f(b.x, a.y, b.z);
+	glVertex3d(b.x, a.y, a.z);
+	glVertex3d(b.x, a.y, b.z);
 
 	//front bottom >> back bottom v4>>v8
-	glVertex3f(b.x, b.y, a.z);
-	glVertex3f(b.x, b.y, b.z);
+	glVertex3d(b.x, b.y, a.z);
+	glVertex3d(b.x, b.y, b.z);
 	glEnd();
 
 	glLineWidth(1.0f);
 	m_Shader.UnBind();
+}
+
+void DebugGizmos::DrawCross(glm::vec3 center, float size, bool axis_colour, glm::vec3 colour, float thickness)
+{
+	float half_size = size * 0.5f;
+	//front to back (Z axis) blue
+	glm::vec3 _colour = (axis_colour) ? glm::vec3(0.0f, 0.0f, 1.0f) : colour;
+	DrawLine(center + glm::vec3(0.0f, 0.0f, half_size), center - glm::vec3(0.0f, 0.0f, half_size), _colour, thickness);
+	//top to bottom (Y axis) green
+	_colour = (axis_colour) ? glm::vec3(0.0f, 1.0f, 0.0f) : colour;
+	DrawLine(center + glm::vec3(0.0f, half_size, 0.0f), center - glm::vec3(0.0, half_size, 0.0f), _colour, thickness);
+	//DrawRay(center + (glm::vec3(0.0f, half_size, 0.0f)), glm::vec3(0.0, -1.0f, 0.0f), size, _colour, thickness);
+		
+	//right to right (X axis) red
+	_colour = (axis_colour) ? glm::vec3(1.0f, 0.0f, 0.0f) : colour;
+	DrawLine(center + glm::vec3(half_size, 0.0f, 0.0f), center - glm::vec3(half_size, 0.0f, 0.0f), _colour, thickness);
+
+}
+
+glm::vec3 Perpen(const glm::vec3& v)
+{
+	glm::vec3 u(1.0f, 0.0f, 0.0f); //Arbitrary not parellel to v
+	if (glm::length(glm::cross(v, u)) == 0)
+		u = glm::vec3(0.0f, 1.0f, 0.0f);//if parellel choose another 
+	return glm::cross(v, u);
+}
+
+void DebugGizmos::DrawWireDisc(glm::vec3 center, glm::vec3 right, glm::vec3 up, float radius, int step, glm::vec3 colour, float thickness)
+{
+	//Quick hack
+	glm::vec3 prev = center + (right * radius);
+	for (float theta = 0.0f; theta < 2.0f * MathsHelper::PI; theta += (MathsHelper::PI/step))
+	{
+		glm::vec3 p = center + radius * (right * glm::cos(theta) + up * glm::sin(theta));
+		DrawLine(prev, p, colour, thickness);
+		prev = p;
+	}
+	//last with first
+	DrawLine(prev, center + (right * radius), colour, thickness);
+
+}
+
+void DebugGizmos::DrawWireThreeDisc(glm::vec3 center, float radius, int steps, glm::vec3 colour, float thickness)
+{
+	DrawWireDisc(center, glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), radius, steps, colour, thickness);
+	DrawWireDisc(center, glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f), radius, steps, colour, thickness);
+	DrawWireDisc(center, glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), radius, steps, colour, thickness);
+}
+
+void DebugGizmos::DrawWireCone(glm::vec3 center, glm::vec3 up, glm::vec3 right, float radius, float height, glm::vec3 colour, float thickness)
+{
+	//debug center
+	DrawCross(center);
+
+	//Quick hack
+	//glm::vec3 forward = Perpen(up);
+	//glm::vec3 right = glm::cross(up, forward);
+	glm::vec3 peak = center + (up * height);
+	glm::vec3 forward = glm::cross(up, right);
+	glm::vec3 prev = center + (right * radius);
+	//center to start
+	DrawLine(center, prev, colour, thickness);
+	DrawLine(prev, peak, colour, thickness);
+
+	for (float theta = 0.0f; theta < 2.0f * MathsHelper::PI; theta += (MathsHelper::PI / 5))
+	{
+		glm::vec3 p = center + radius * (right * glm::cos(theta) + forward * glm::sin(theta));
+		DrawLine(prev, p, colour, thickness);
+		DrawLine(p, peak, colour, thickness);
+		prev = p;
+	}
+	//last with first
+	DrawLine(prev, center + (right * radius), colour, thickness);
 }
 
 void DebugGizmos::DrawOrthoCameraFrustrm(glm::vec3 pos, glm::vec3 forward, float cam_near, float cam_far, float size, glm::vec3 colour, float thickness)

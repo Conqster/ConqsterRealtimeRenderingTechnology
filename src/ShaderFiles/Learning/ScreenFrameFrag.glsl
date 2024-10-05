@@ -44,5 +44,5 @@ void main()
 	
 	
 	//for perspectivce
-	//FragColour = vec4(vec3(LineariseDepth(depth_value)/u_Far), 1.0f);
+	FragColour = vec4(vec3(LineariseDepth(depth_value)/u_Far), 1.0f);
 }

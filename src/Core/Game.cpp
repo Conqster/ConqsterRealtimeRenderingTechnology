@@ -295,11 +295,11 @@ void Game::Input()
 		//MOVE CAMERA
 		if (keys[GLFW_KEY_W])
 		{
-			m_CurrentScene->GetCamera()->Translate(m_CurrentScene->GetCamera()->GetFroward(), m_Time.DeltaTime());
+			m_CurrentScene->GetCamera()->Translate(m_CurrentScene->GetCamera()->GetForward(), m_Time.DeltaTime());
 		}
 		if (keys[GLFW_KEY_S])
 		{
-			m_CurrentScene->GetCamera()->Translate(m_CurrentScene->GetCamera()->GetFroward() * -1.0f, m_Time.DeltaTime());
+			m_CurrentScene->GetCamera()->Translate(m_CurrentScene->GetCamera()->GetForward() * -1.0f, m_Time.DeltaTime());
 		}
 		if (keys[GLFW_KEY_A])
 		{

@@ -119,6 +119,7 @@ void SphereMesh::Create()
 	//ReCalcNormalsWcIndices(&m_Vertices[0], &m_Indices[0], m_Vertices.size(), m_Indices.size(), 13, 10);
 	CacheVertices(&m_Vertices[0], m_Vertices.size());
 
+
 	GLCall(glEnable(GL_BLEND));
 	GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 

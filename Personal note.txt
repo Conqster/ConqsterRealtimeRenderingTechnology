@@ -33,9 +33,11 @@ Naïve Scene Loading
 	- With the Scene Loading documentation state the previous version before changing to a functional one. 
 
 Rendering Primitives
-	- Line, Trinagle, Line_strip etc
+	- Line, Triangle, Line_strip etc
 
 Experiment with the CPU's Transposing Model vertex (for scaled &/ rotated models) to avoid complex/expensive inverse matrix calculation in GPU shader.
 
-Issue: Orthographic Camera Frustrum Debugger(Visualization) 
+Fixed Issue: Orthographic Camera Frustrum Debugger(Visualization) 
 	The near plane needs to be offset forward in the direction of the camera & same direction of the far plane not to be behind the camera point. 
+
+Issue: (Scaling AABB relationship it model/mesh), Problem if the origin is not at the geometric center of the model, The AABB scale asymmetrically, leading to incorrect bounds. i.e When scaling a model with an offset(/model origin not at center) with current algorithm using vector scaling the AABB based on the ratio of the model scale, since the center point/origin of model is different from the AABB center it scales different. Might want to fix with Matrix Transformation

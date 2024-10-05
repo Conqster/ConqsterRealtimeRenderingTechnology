@@ -2,6 +2,8 @@
 #include "Mesh.h"
 #include <vector>
 
+#include "Geometry/AABB.h"
+
 class SphereMesh : public Mesh
 {
 private:
@@ -12,6 +14,7 @@ private:
 
 	std::vector<float> m_Vertices;
 	std::vector<unsigned int> m_Indices;
+	AABB aabb;
 public:
 	SphereMesh();
 	virtual void Create() override;
@@ -24,4 +27,5 @@ public:
 	inline unsigned int const GetIndicesCount() const { return m_Indices.size(); }
 
 	void Update();
+
 };

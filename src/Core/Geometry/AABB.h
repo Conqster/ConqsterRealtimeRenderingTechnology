@@ -9,7 +9,8 @@ public:
 
 	//Constructor
 	AABB() : m_Min(glm::vec3(-0.5f)), m_Max(glm::vec3(0.5f)){}
-	AABB(float size) : m_Min(glm::vec3(-1.0f) * size), m_Max(glm::vec3(1.0f) * size){}
+	AABB(float inSize) : m_Min(glm::vec3(-1.0f) * inSize), m_Max(glm::vec3(1.0f) * inSize){}
+	AABB(glm::vec3 inPoint) : m_Min(inPoint), m_Max(inPoint){} //used if only a point is defines
 	AABB(glm::vec3 inMin, glm::vec3 inMax) : m_Min(inMin), m_Max(inMax){}
 
 	glm::vec3 GetCenter() const
@@ -44,5 +45,10 @@ public:
 	{
 		m_Min = (glm::min)(m_Min, inRHS.m_Min);
 		m_Max = (glm::max)(m_Max, inRHS.m_Max);
+	}
+
+	std::vector<glm::vec3> GetVertices()
+	{
+
 	}
 };

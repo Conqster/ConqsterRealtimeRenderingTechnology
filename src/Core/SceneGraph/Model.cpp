@@ -4,6 +4,7 @@ Model::Model(std::vector<ModelMesh> _meshes)
 {
 	meshes = _meshes;
 
+	aabb = AABB(meshes[0].GetAABB());
 	for (auto& m : meshes)
 		UpdateAABB(m.GetAABB());
 
@@ -45,4 +46,12 @@ void Model::Destroy()
 void Model::UpdateAABB(const AABB &inRHS)
 {
 	aabb.Encapsulate(inRHS);
+}
+
+void Model::RecalculateAABBFromMesh()
+{
+	aabb = AABB(meshes[0].RecalculateAABB());
+	for (auto& m : meshes)
+		aabb.Encapsulate(m.RecalculateAABB());  //need to fix later not to redo first mesh again
+
 }

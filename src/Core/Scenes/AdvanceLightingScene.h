@@ -83,6 +83,7 @@ private:
 	glm::vec3 spheresPos[MAX_SPHERE];
 	float spheresScale[MAX_SPHERE];
 	bool debugSphereAABB = false;
+	bool debugAllSphereAABB = false;
 #define MAX_SPHERE_INSTANCE 100
 	std::vector<glm::vec3> sphereInstancePos = std::vector<glm::vec3>();
 #define MAX_CUBE 5 //current max cube = 5
@@ -103,6 +104,7 @@ private:
 	glm::vec3 bunnysPos[MAX_BUNNY_MODEL];
 	float bunnysScale[MAX_BUNNY_MODEL];
 	bool debugBunnyAABB = false;
+	bool reCalBunnyAABB = false;
 	glm::vec3 centerOffset;
 	float scaleBunnyBy = 1.0f;
 	//model2 (unknown) 
@@ -175,4 +177,22 @@ private:
 		float shadowOffset = 5.0f;
 	}playerTest;
 
+	enum ShadowSamplingType : int
+	{
+		SHADOW_PCF_SAMPLING,
+		SHADOW_POISSON_SAMPLING,
+	}shadowSamplingType;
+
+
+	//ShadowResolutionSettings Enum
+	//Low = 1024
+	//Medium = 2048
+	//Hight = 4096
+	float testRange = 10.0f;
+	float testCrossSize = 1.0f;
+	float testDebugDiscRadius = 1.0f;
+	int testDebugDiscStep = 2;
+	float testDebugHeight = 2.0f;
+	glm::vec3 testRight = glm::vec3(1.0f, 0.0f, 0.0f);
+	glm::vec3 testUP = glm::vec3(0.0, 1.0f, 0.0f);
 };

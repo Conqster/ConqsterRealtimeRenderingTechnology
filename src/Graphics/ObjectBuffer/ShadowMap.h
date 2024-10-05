@@ -12,8 +12,8 @@ public:
 	void UnBind();
 private:
 	unsigned int m_Id;
-	unsigned int m_Height = 1920 * 2;// 1024;
-	unsigned int m_Width = 1080 * 2;// 1024;
+	unsigned int m_Height = 2048;// 1024;// 4096;//2048;
+	unsigned int m_Width = 2048;//1024;// 4096;// 2048;
 
 
 	unsigned int m_TexMapId;

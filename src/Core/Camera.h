@@ -13,7 +13,7 @@ public:
 	Camera(glm::vec3 startPosition, glm::vec3 startUp, GLfloat startYaw, GLfloat startPitch, GLfloat startMoveSpeed, GLfloat startTurnSpeed);
 
 	inline glm::vec3 const GetPosition() { return m_Position; } 
-	inline glm::vec3 const GetFroward() {return glm::normalize(m_Front);} 
+	inline glm::vec3 const GetForward() {return glm::normalize(m_Front);} 
 	inline glm::vec3 const GetRight() { return glm::normalize(m_Right); } 
 	inline glm::vec3 const GetUp() { return glm::normalize(m_Up); } 
 

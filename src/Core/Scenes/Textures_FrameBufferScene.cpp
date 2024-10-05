@@ -489,7 +489,7 @@ void Texture_FrameBufferScene::DrawObjects(bool depth_test, bool use_rear)
 	if (use_rear)
 	{
 		glm::vec3 Cpos = m_Camera->GetPosition();
-		glm::vec3 CFor = m_Camera->GetFroward();
+		glm::vec3 CFor = m_Camera->GetForward();
 		glm::vec3 CUp = m_Camera->GetUp();
 
 		rear_view = glm::lookAt(Cpos, Cpos - CFor, CUp);

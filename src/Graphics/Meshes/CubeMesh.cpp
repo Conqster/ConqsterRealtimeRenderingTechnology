@@ -110,6 +110,15 @@ void CubeMesh::Create()
 	ReCalcNormalsWcIndices(vertices, indices, vertices_count, indice_count, 13, 10);
 	CacheVertices(vertices, sizeof(vertices));
 
+
+	//Uodate AABB 
+	unsigned int pos_offset = 0;
+	unsigned int vertex_stride = 13;
+
+	for (unsigned int i = pos_offset; i < vertices_count; i += vertex_stride)
+		UpdateAABB(glm::vec3(vertices[i], vertices[i + 1], vertices[i + 2]));
+
+
 	GLCall(glEnable(GL_BLEND));
 	GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
