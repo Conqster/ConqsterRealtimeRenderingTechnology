@@ -30,6 +30,7 @@ struct NewLight
 	float diffuseIntensity;
 
 	bool enable = false;
+	bool castShadow = false;
 
 	LightType type = lightType_NONE;
 

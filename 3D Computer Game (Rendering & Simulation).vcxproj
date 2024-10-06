@@ -154,6 +154,7 @@
     <ClInclude Include="External Libs\imgui\imstb_textedit.h" />
     <ClInclude Include="External Libs\imgui\imstb_truetype.h" />
     <ClInclude Include="External Libs\stb_image\stb_image.h" />
+    <ClInclude Include="src\Core\Geometry\AABB.h" />
     <ClInclude Include="src\Core\SceneGraph\Model.h" />
     <ClInclude Include="src\Core\SceneGraph\ModelLoader.h" />
     <ClInclude Include="src\Core\Scenes\AdvanceLightingScene.h" />

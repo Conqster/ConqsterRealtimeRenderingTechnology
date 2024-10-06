@@ -126,9 +126,7 @@ void DebugGizmos::DrawBox(AABB aabb, glm::vec3 colour, float thickness)
 	if (!active)
 		Generate();
 
-	//Debug center
-	DrawSphere(aabb.GetCenter(), 0.2f);
-
+	
 	m_Shader.Bind();
 	m_Shader.SetUniformMat4f("u_Model", glm::mat4(1.0f));
 	m_Shader.SetUniformVec3("u_Colour", colour);

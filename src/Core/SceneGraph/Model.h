@@ -18,6 +18,7 @@ public:
 
 	void Destroy();
 	inline AABB GetAABB() { return aabb; }
+	void RecalculateAABBFromMesh();
 	 std::vector<ModelMesh> GetMeshes() { return meshes; }
 	//~Model() = default;
 private: 

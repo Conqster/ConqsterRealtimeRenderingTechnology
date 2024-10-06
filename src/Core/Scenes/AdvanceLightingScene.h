@@ -19,6 +19,113 @@
 #include "Geometry/AABB.h"
 
 
+struct ShadowDataInfo
+{
+	///////
+	//DIRECTIONAL LIGHT
+	///////
+	//Projection => ortho cam / use glm
+	//glm::orth(left, right, bottom, top, near, far)
+	//min bounds => left = bottom => -cam_size
+	//max bounds => right = top => cam_size
+	//
+	//View => lookAt / use glm
+	//glm::lookAt(cam_offset, world_space_focus, world_up)
+	//world space focus => for naive optimisation the center for cam to focus relative (sample_pos)
+	//					   to user/player view, i.e we would have to use world origin.
+	//cam offset => offset camera from world_space_focus(sample_pos) based on light direction & and offset rate
+	// 
+	// lightSpaceMatrix => Projection * View
+	//
+
+
+	//////////////////
+	// Utilies
+	//////////////////
+	//Shadow map => a texture map to store world/sample view depth from light perspective
+	//DepthTest&Debug shader => for depth calculation from lights perspective 
+
+
+
+	//////////////////
+	//Properties
+	//////////////////
+	float cam_near = 0.2f;
+	float cam_far = 75.0f;
+	//Directional use size instead fov
+	float cam_size = 40.0f;
+
+	//Directional world sample/focus position
+	glm::vec3 sampleWorldPos = glm::vec3(0.0f);
+	float cam_offset = 5.0f;
+
+	//Utilities
+	ShadowMap depthMap;
+	Shader depthShader;
+	bool debugPara = true;  //debug pos & parameters
+
+	//Cache Matrix
+	glm::mat4 proj; //dir proj
+	glm::mat4 view;
+
+	glm::mat4 GetLightSpaceMatrix()
+	{
+		return proj * view;
+	}
+
+	std::vector<glm::mat4> PointLightSpaceMatrix(glm::vec3 pos)
+	{
+		std::vector<glm::mat4> tempMatrix;
+
+		glm::vec3 right = glm::vec3(1.0f, 0.0f, 0.0f);
+		glm::vec3 forward = glm::vec3(0.0f, 0.0f, 1.0f);
+		glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+
+		
+		//Light right view
+		view = glm::lookAt(pos, pos + right, -up);
+		tempMatrix.push_back(proj * view);
+		
+		//Light left view
+		view = glm::lookAt(pos, pos - right, -up);
+		tempMatrix.push_back(proj * view);
+
+		//Light top view
+		view = glm::lookAt(pos, pos + up, forward);
+		tempMatrix.push_back(proj * view);
+		
+		//Light bottom view
+		view = glm::lookAt(pos, pos - up, -forward);
+		tempMatrix.push_back(proj * view);
+		
+		//Light near/back view
+		view = glm::lookAt(pos, pos + forward, -up);
+		tempMatrix.push_back(proj * view);
+
+		//Light far/forward view
+		view = glm::lookAt(pos, pos - forward, -up);
+		tempMatrix.push_back(proj * view);
+
+		return tempMatrix;
+	}
+
+	void UpdateProjMat()
+	{
+		proj = glm::ortho(-cam_size, cam_size,
+						  -cam_size, cam_size,
+						  cam_near, cam_far);
+	}
+
+	void UpdateViewMatrix(glm::vec3 dir)
+	{
+		view = glm::lookAt(sampleWorldPos + (dir * cam_offset),
+			sampleWorldPos, glm::vec3(0.0f, 1.0f, 0.0f)); //world up 0, 1, 0
+	}
+
+
+};
+
+
 class AdvanceLightingScene : public Scene
 {
 public:
@@ -140,6 +247,7 @@ private:
 		float childLightOffset = 0.0f;
 		float moveSpeed = 0.0f;
 		NewPointLight light;
+		ShadowDataInfo shadowData;
 	}lightObject[MAX_LIGHT];
 	//NewPointLight pointLights[MAX_LIGHT];
 	//glm::vec3 pointLocalWorldPosition[MAX_LIGHT]; //probably change later to local relative to parent
@@ -147,34 +255,16 @@ private:
 	int specShinness = 64;
 
 	
-	NewDirectionalLight dirlight;
-	struct DirShadowMap
-	{
-		glm::mat4 lightProj;
-		glm::mat4 lightView;
-		glm::mat4 lightSpaceMatrix;
-		ShadowMap map;
-		Shader debugShader;
-	}dirShadowMap;
+	NewDirectionalLight dirlight;  //Directional light
+	ShadowDataInfo dirLightShadow; //direction light shadow data
 
-
-	struct ShadowInfo
-	{
-		float cam_near = 0.1f;
-		float cam_far = 20.0f;
-		float cam_size = 50.0f;
-		float dirLight_offset = 5.0f;
-		glm::vec3 sample_center_pos = glm::vec3(0.0f);
-	}shadowCameraInfo;
-
-	float fov = 45.0f;
 
 	struct PlayerTest
 	{
 		AABB aabb = AABB(2.0f);
-		float speed = 2.0f;
-		float debugThick = 2.0f;
-		float shadowOffset = 5.0f;
+		float speed = 0.2f;
+		float debugThick = 1.0f;
+		float shadowOffset = 10.0f;
 	}playerTest;
 
 	enum ShadowSamplingType : int
@@ -188,11 +278,4 @@ private:
 	//Low = 1024
 	//Medium = 2048
 	//Hight = 4096
-	float testRange = 10.0f;
-	float testCrossSize = 1.0f;
-	float testDebugDiscRadius = 1.0f;
-	int testDebugDiscStep = 2;
-	float testDebugHeight = 2.0f;
-	glm::vec3 testRight = glm::vec3(1.0f, 0.0f, 0.0f);
-	glm::vec3 testUP = glm::vec3(0.0, 1.0f, 0.0f);
 };

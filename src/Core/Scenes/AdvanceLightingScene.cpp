@@ -113,8 +113,17 @@ void AdvanceLightingScene::OnUpdate(float delta_time)
 
 
 	playerTest.aabb.Translate(translatePlayer);
-	shadowCameraInfo.sample_center_pos = playerTest.aabb.GetCenter() + glm::vec3(0.0f, 0.0f, 1.0) * playerTest.shadowOffset;
 
+
+	////////////////////
+	// update light matrix  data
+	////////////////////
+	if (dirlight.castShadow)
+	{
+		dirLightShadow.UpdateProjMat();
+		dirLightShadow.UpdateViewMatrix(dirlight.direction);
+	}
+	dirLightShadow.sampleWorldPos = playerTest.aabb.GetCenter() + glm::vec3(0.0f, 0.0f, 1.0) * playerTest.shadowOffset;
 
 
 	OnRender();
@@ -132,61 +141,17 @@ void AdvanceLightingScene::OnRender()
 	m_CameraMatUBO.UnBind();
 
 
-	////////////////////
-	// update light matrix  data
-	////////////////////
-	float near_plane = 1.0f, far_plane = 7.5f;
-	dirShadowMap.lightProj = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
-	dirShadowMap.lightProj = glm::ortho(-5.0f, 50.0f, -50.0f, 50.0f, 0.1f, 20.0f);
-	dirShadowMap.lightProj = glm::ortho(-shadowCameraInfo.cam_size, shadowCameraInfo.cam_size, 
-										-shadowCameraInfo.cam_size, shadowCameraInfo.cam_size, 
-										 shadowCameraInfo.cam_near, shadowCameraInfo.cam_far);
-	//dirShadowMap.lightView = glm::lookAt(glm::vec3(-2.0f, 4.0f, -1.0f),
-	//									 glm::vec3(0.0f, 0.0f, 0.0f),
-	//									 glm::vec3(0.0f, 1.0f, 0.0f));
 
-	//dirShadowMap.lightView = glm::lookAt(dirlight.direction * shadowCameraInfo.dirLight_offset, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-	//dirShadowMap.lightView = glm::lookAt(dirlight.direction, shadowCameraInfo.cam_sample_pos, glm::vec3(0.0f, 1.0f, 0.0f));
-	dirShadowMap.lightView = glm::lookAt(shadowCameraInfo.sample_center_pos + (dirlight.direction * shadowCameraInfo.dirLight_offset), shadowCameraInfo.sample_center_pos, glm::vec3(0.0f, 1.0f, 0.0f));
-
-	dirShadowMap.lightSpaceMatrix = dirShadowMap.lightProj * dirShadowMap.lightView;
 
 
 	//////////////////////////
 	//  SECOND PASS for Testing shadow Pass
 	//////////////////////////
-	dirShadowMap.debugShader.Bind();
+	dirLightShadow.depthShader.Bind();
 	glCullFace(GL_FRONT);
 	ShadowPass();
 	glCullFace(GL_BACK);
-
-	uint16_t win_width = window->GetWidth() * 0.25f; // 0.25f;
-	uint16_t win_height = window->GetHeight() * 0.25f; // 0.25f;
-	uint16_t x_offset = win_width * 0.6f,
-		y_offset = win_height * 0.6f;
-	uint16_t x_pos = window->GetWidth() - (win_width * 0.5f) - x_offset;
-	uint16_t y_pos = window->GetHeight() - (win_height * 0.5f) - y_offset;
-
-	glViewport(x_pos, y_pos, win_width, win_height);
-	GLCall(glClearColor(m_ClearScreenColour.r, m_ClearScreenColour.g, m_ClearScreenColour.b, 1.0f));
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	//glViewport(0, 0, window->GetWidth(), window->GetHeight());
-	//render to quad
-	//glViewport(0, 0, 1024, 1024);
-
-	screenShader.Bind();
-	dirShadowMap.map.Read(0);
-	//quadAfterEffect.RenderDebugOutLine();
-	glBindVertexArray(m_Quad.VAO);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-	//screenShader.SetUniformVec3("u_TexColour", glm::vec3(1.0f, 0.0f, 1.0f));
-	screenShader.SetUniform1f("u_Near", shadowCameraInfo.cam_near);
-	screenShader.SetUniform1f("u_Far", shadowCameraInfo.cam_far);
-	screenShader.UnBind();
-	glViewport(0, 0, window->GetWidth(), window->GetHeight());
-	//return;
-
-
+	glViewport(0, 0, window->GetWidth(), window->GetHeight()); //reset the view back just in case
 
 	/////////////////////
 	// First Pass : Draw Scene
@@ -198,9 +163,16 @@ void AdvanceLightingScene::OnRender()
 	modelShader.SetUniform1i("u_DisableTex", disableTexture);
 	modelShader.SetUniform1i("u_GammaCorrection", doGammaCorrection);
 	modelShader.SetUniform1f("u_Gamma", gamma);
-	//for shadow
-	modelShader.SetUniformMat4f("u_LightSpaceMatrix", dirShadowMap.lightSpaceMatrix);
-	dirShadowMap.map.Read(1);
+	///////////for shadow
+	modelShader.SetUniformMat4f("u_LightSpaceMatrix", dirLightShadow.GetLightSpaceMatrix());
+	/////////////////////////////////////
+	//Quick hack
+	/////////////////////////////////////
+	if (dirlight.castShadow)
+		dirLightShadow.depthMap.Read(1);
+	else
+		plainTex->Activate(1);
+
 	modelShader.SetUniform1i("u_ShadowMap", 1);
 	modelShader.SetUniform1i("u_ShadowSampleType", shadowSamplingType);
 	LightPass(modelShader);
@@ -222,18 +194,40 @@ void AdvanceLightingScene::OnRender()
 	debugShader.SetUniform1i("u_DebugPosColour", debugVertexPosColour);
 	DrawObjects(debugShader);
 	InstanceObjectPass(&debugShader);  //pass the debug shader for object instances
-	
-
-	//model2 = glm::translate(model2, glm::vec3(0.0f, 1.0f, 0.0f));
-	//modelShader.SetUniformMat4f("u_Model", model2);
-	//sphere.Render();
-	//sphereTex->DisActivate();
-	//modelShader.UnBind();
 
 
 	//////////////////////////
 	// Debug Pass
 	//////////////////////////
+
+	///////////////////////Shadow Depth View
+	uint16_t win_width = window->GetWidth() * 0.25f; // 0.25f;
+	uint16_t win_height = window->GetHeight() * 0.25f; // 0.25f;
+	uint16_t x_offset = win_width * 0.6f,
+		y_offset = win_height * 0.6f;
+	uint16_t x_pos = window->GetWidth() - (win_width * 0.5f) - x_offset;
+	uint16_t y_pos = window->GetHeight() - (win_height * 0.5f) - y_offset;
+
+	glViewport(x_pos, y_pos, win_width, win_height);
+	//No need to clear screen have it the the cover area
+
+	screenShader.Bind();
+	dirLightShadow.depthMap.Read(0);
+	//quadAfterEffect.RenderDebugOutLine();
+	glBindVertexArray(m_Quad.VAO);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	screenShader.SetUniform1f("u_Near", dirLightShadow.cam_near);
+	screenShader.SetUniform1f("u_Far", dirLightShadow.cam_far);
+	screenShader.UnBind();
+	glViewport(0, 0, window->GetWidth(), window->GetHeight());
+	//return;
+
+
+
+
+
+
+
 	if (debugLightPos)
 	{
 		for (int i = 0; i < availablePtLightCount; i++)
@@ -248,32 +242,26 @@ void AdvanceLightingScene::OnRender()
 		}
 	}
 
-	//test directional Shadow info 
-	auto& ds = shadowCameraInfo;
-
-	//glm::vec3 orthCamPos = dirlight.direction * ds.dirLight_offset; //offset is pos from world origin
-	//float dcv = (ds.cam_far + ds.cam_near) * 0.5f; //dcv is the center/value between the near & far plane 
-	float dcv = ds.dirLight_offset + ds.cam_near * 0.5f; //dcv is the center/value between the near & far plane 
-	glm::vec3 orthCamPos = ds.sample_center_pos + (dirlight.direction * ds.dirLight_offset);
-	glm::vec3 farPlane = orthCamPos + (glm::normalize(-dirlight.direction) * ds.cam_far);
-	glm::vec3 nearPlane = orthCamPos + (glm::normalize(dirlight.direction) * ds.cam_near);
-	DebugGizmos::DrawOrthoCameraFrustrm(orthCamPos, dirlight.direction, 
-										ds.cam_near, ds.cam_far, ds.cam_size,
-										glm::vec3(0.0f, 1.0f, 0.0f), 3.0f);
-	//Shadow Camera Sample Position 
-	DebugGizmos::DrawSphere(ds.sample_center_pos, 0.5f, glm::vec3(0.0f, 1.0f, 0.5f));
-
-	//DebugGizmos::DrawPerspectiveCameraFrustum(orthCamPos, dirlight.direction, 
-	//										  fov, window->GetAspectRatio(),
-	//										  ds.cam_near, ds.cam_far,
-	//										  glm::vec3(0.0f, 1.0f, 0.0f), 3.0f);
-
-
 	//Create new Player AABB
 	DebugGizmos::DrawBox(playerTest.aabb, glm::vec3(1.0f, 0.0f, 0.0f), playerTest.debugThick);
-	DebugGizmos::DrawLine(playerTest.aabb.GetCenter(), ds.sample_center_pos, glm::vec3(1.0f, 0.0f, 0.0f), playerTest.debugThick);
-	DebugGizmos::DrawSphere(playerTest.aabb.m_Min, 0.5f, glm::vec3(0.0f, 0.5f, 0.5f));
-	DebugGizmos::DrawSphere(playerTest.aabb.m_Max, 0.5f, glm::vec3(0.0f, 0.0f, 1.0f));
+
+	//test directional Shadow info 
+	if (dirLightShadow.debugPara)
+	{
+		auto& ds = dirLightShadow;
+		float dcv = ds.cam_offset + ds.cam_near * 0.5f; //dcv is the center/value between the near & far plane 
+		glm::vec3 orthCamPos = ds.sampleWorldPos + (dirlight.direction * ds.cam_offset);
+		glm::vec3 farPlane = orthCamPos + (glm::normalize(-dirlight.direction) * ds.cam_far);
+		glm::vec3 nearPlane = orthCamPos + (glm::normalize(dirlight.direction) * ds.cam_near);
+		DebugGizmos::DrawOrthoCameraFrustrm(orthCamPos, dirlight.direction,
+			ds.cam_near, ds.cam_far, ds.cam_size,
+			glm::vec3(0.0f, 1.0f, 0.0f));
+
+		//Shadow Camera Sample Position 
+		DebugGizmos::DrawCross(ds.sampleWorldPos);
+		DebugGizmos::DrawLine(playerTest.aabb.GetCenter(), ds.sampleWorldPos, glm::vec3(1.0f, 0.0f, 0.0f), playerTest.debugThick);
+	}
+
 
 	if (debugSphereAABB)
 	{
@@ -285,7 +273,7 @@ void AdvanceLightingScene::OnRender()
 			relative_pos = spheresPos[i] - temp.GetCenter();
 			temp.Translate(relative_pos);
 			temp.Scale(glm::vec3(1.0f) * (spheresScale[i] - 1.0f));
-			DebugGizmos::DrawBox(temp, glm::vec3(0.0f, 0.0f, 1.0f), 2.0f);
+			DebugGizmos::DrawBox(temp, glm::vec3(0.0f, 0.0f, 1.0f));
 		}
 
 		temp = sphere.GetAABB();
@@ -293,7 +281,7 @@ void AdvanceLightingScene::OnRender()
 		{
 			relative_pos = s - temp.GetCenter();
 			temp.Translate(relative_pos);
-			DebugGizmos::DrawBox(temp, glm::vec3(0.0f, 0.0f, 1.0f), 2.0f);
+			DebugGizmos::DrawBox(temp, glm::vec3(0.0f, 0.0f, 1.0f));
 		}
 	}
 
@@ -332,7 +320,7 @@ void AdvanceLightingScene::OnRender()
 		temp.Scale(glm::vec3(model2AABBScale) * (model_2Scale - 1.0f));
 		//temp.Translate(model2AABBCenterOffset);
 		//temp.Scale(glm::vec3(1.0f) * model2AABBScale);
-		DebugGizmos::DrawBox(temp, glm::vec3(0.0f, 0.0f, 1.0f), 2.0f);
+		DebugGizmos::DrawBox(temp, glm::vec3(0.0f, 0.0f, 1.0f), 1.5f);
 
 		for (auto& m : model_2->GetMeshes())
 		{
@@ -343,7 +331,7 @@ void AdvanceLightingScene::OnRender()
 			aabb.Scale(glm::vec3(model2AABBScale) * (model_2Scale - 1.0f));
 			//aabb.Translate(model2AABBCenterOffset);
 			//aabb.Scale(glm::vec3(1.0f) * model2AABBScale);
-			DebugGizmos::DrawBox(aabb, glm::vec3(0.0f, 1.0f, 1.0f), 2.0f);
+			DebugGizmos::DrawBox(aabb, glm::vec3(0.0f, 1.0f, 1.0f), 1.5f);
 		}
 	}
 
@@ -358,7 +346,7 @@ void AdvanceLightingScene::OnRender()
 		//temp.Scale(glm::vec3(1.0f) * (cubesScale[0] - 1.0f));
 		temp.Scale(glm::vec3(0.5f) * (cubesScale[0] - 1.0f));
 		//temp.Scale(glm::vec3(0.577350f) * (cubesScale[0] - 1.0f));
-		DebugGizmos::DrawBox(temp, glm::vec3(0.0f, 1.0f, 0.0f), 2.0f);
+		DebugGizmos::DrawBox(temp, glm::vec3(0.0f, 1.0f, 0.0f), 1.5f);
 	}
 
 
@@ -400,21 +388,11 @@ void AdvanceLightingScene::OnRender()
 		}
 
 		//After all calculation draw AABB Debug
-		DebugGizmos::DrawBox(aabb, glm::vec3(1.0f, 1.0f, 0.0f), 2.5f);
-		DebugGizmos::DrawBox(aabb2, glm::vec3(0.0f, 1.0f, 1.0f), 2.5);
+		DebugGizmos::DrawBox(aabb, glm::vec3(1.0f, 1.0f, 0.0f), 1.5f);
+		DebugGizmos::DrawBox(aabb2, glm::vec3(0.0f, 1.0f, 1.0f), 1.5f);
 		aabb.Encapsulate(aabb2);//combine tehe two AABB
-		DebugGizmos::DrawBox(aabb, glm::vec3(0.4f, 0.2f, 1.0f), 2.5f);
+		DebugGizmos::DrawBox(aabb, glm::vec3(0.4f, 0.2f, 1.0f), 1.5f);
 	}
-	
-
-	DebugGizmos::DrawRay(playerTest.aabb.GetCenter(), glm::vec3(1.0f, 0.0f, 0.0f), testRange, glm::vec3(1.0f), 4.0f);
-	DebugGizmos::DrawCross(playerTest.aabb.GetCenter() + (glm::vec3(testRange + 1.0f, 0.0f, 0.0f)), testCrossSize);
-	//DebugGizmos::DrawWireDisc(playerTest.aabb.GetCenter() - (glm::vec3(testRange, 0.0f, 0.0f)), testRight, testUP, testDebugDiscRadius, testDebugDiscStep);
-	DebugGizmos::DrawWireCone(playerTest.aabb.GetCenter() - (glm::vec3(testRange, 0.0f, 0.0f)), glm::normalize(testUP), glm::normalize(testRight), testDebugDiscRadius, testDebugHeight, glm::vec3(1.0f, 0.0f, 0.0f), 2.0f);
-	auto& cam = m_Camera;
-	//DebugGizmos::DrawWireCone(cam->GetPosition() + cam->GetForward() * 10.0f + cam->GetRight() * 3.0f, cam->GetUp(), cam->GetRight(), testDebugDiscRadius, testDebugHeight, glm::vec3(1.0f, 0.0f, 0.0f), 2.0f);
-	//DebugGizmos::DrawWireCone(cam->GetPosition() + cam->GetForward() * 10.0f - cam->GetRight() * 3.0f, cam->GetForward(), cam->GetRight(), testDebugDiscRadius, testDebugHeight, glm::vec3(0.0f, 0.0f, 1.0f), 1.5f);
-	//DebugGizmos::DrawWireDisc(cam->GetPosition() + cam->GetFroward() * 10.0f, cam->GetRight(), glm::cross(cam->GetFroward(), cam->GetRight()), testDebugDiscRadius, testDebugDiscStep);
 }
 
 void AdvanceLightingScene::OnRenderUI()
@@ -470,16 +448,9 @@ void AdvanceLightingScene::OnRenderUI()
 	ImGui::Spacing();
 
 	ImGui::SeparatorText("Player AABB Test");
-	ImGui::SliderFloat("AABB Test, move speed", &playerTest.speed, 0.0f, 10.0f, "%.1f");
-	ImGui::SliderFloat("AABB Test, Debug Thickness", &playerTest.debugThick, 0.0f, 10.0f, "%.1f");
-	ImGui::SliderFloat("AABB Test, shadow offset speed", &playerTest.shadowOffset, 0.0f, 10.0f, "%.1f");
-	ImGui::SliderFloat("Test Debug Ray", &testRange, 0.0f, 200.0f, "%.1f");
-	ImGui::SliderFloat("Test Debug Cross Size", &testCrossSize, 0.0f, 20.0f, "%.1f");
-	ImGui::SliderFloat("Test Debug Cone radius", &testDebugDiscRadius, 0.0f, 20.0f, "%.1f");
-	ImGui::SliderFloat("Test Debug height radius", &testDebugHeight, 0.0f, 20.0f, "%.1f");
-	ImGui::SliderInt("Test Debug Disc step", &testDebugDiscStep, 2, 70);
-	ImGui::SliderFloat3("Test Debug Disc right", &testRight[0], -1.0f, 1.0f, "%.1f");
-	ImGui::SliderFloat3("Test Debug Disc up", &testUP[0], -1.0f, 1.0f, "%.1f");
+	ImGui::SliderFloat("AABB Test, move speed", &playerTest.speed, 0.0f, 3.0f, "%.1f");
+	ImGui::SliderFloat("AABB Test, Debug Thickness", &playerTest.debugThick, 0.1f, 10.0f, "%.1f");
+	ImGui::SliderFloat("AABB Test, shadow offset speed", &playerTest.shadowOffset, 0.0f, 20.0f, "%.1f");
 	
 	////////////////////////////////////////////////
 	// SCENE OBJECTS
@@ -552,12 +523,6 @@ void AdvanceLightingScene::OnRenderUI()
 			ImGui::TreePop();
 		}
 
-
-		//ImGui::SeparatorText("Cube");
-		//ImGui::DragFloat3("Cube pos", &cubePos[0], 0.1f);
-		//ImGui::SliderFloat("Cube scale", &cubeScale, 0.1f, 10.0f);
-
-
 		if (ImGui::TreeNode("Cubes"))
 		{
 			ImGui::SeparatorText("Cube AABB Test");
@@ -601,34 +566,45 @@ void AdvanceLightingScene::OnRenderUI()
 		ImGui::Checkbox("Debug Lights Pos", &debugLightPos);
 		ImGui::Checkbox("Use Blinn-Phong", &useBlinnPhong);
 
+
+		//////////////////////////////////////
+		// Directional Light
+		//////////////////////////////////////
 		ImGui::Spacing();
 		ImGui::SeparatorText("Directional Light");
 		ImGui::Checkbox("Enable Directional", &dirlight.enable);
+		ImGui::SameLine();
+		ImGui::Checkbox("Cast Shadow", &dirlight.castShadow);
 		ImGui::DragFloat3("Light Direction", &dirlight.direction[0], 0.1f, -1.0f, 1.0f);
-		ImGui::SliderFloat("Light Proj Offset", &shadowCameraInfo.dirLight_offset, 0.0f, 100.0f);
 		ImGui::ColorEdit3("Dir Light colour" , &dirlight.colour[0]);
 		ImGui::SliderFloat("Light ambinentIntensity", &dirlight.ambientIntensity, 0.0f, 1.0f);
-		ImGui::Spacing();
-
-		if (ImGui::TreeNode("Shadow Camera Info"))
+		if (dirlight.castShadow)
 		{
-			auto& shadow = shadowCameraInfo;
-			ImGui::DragFloat3("Sample Pos", &shadow.sample_center_pos[0], 0.1f);
-			ImGui::SliderFloat("Camera Near", &shadow.cam_near, 0.0f, shadow.cam_far - 0.5f);
-			ImGui::SliderFloat("Camera Far", &shadow.cam_far, shadow.cam_near + 0.5f, 1000.0f);
-			ImGui::SliderFloat("Camera Size", &shadow.cam_size, 0.0f, 200.0f);
-			ImGui::SliderFloat("Camera FOV Test", &fov, 0.0f, 179.0f, "%.2f");
+			if (ImGui::TreeNode("Shadow Camera Info"))
+			{
+				auto& shadow = dirLightShadow;
+				ImGui::SliderFloat("Camera Near", &shadow.cam_near, 0.0f, shadow.cam_far - 0.5f);
+				ImGui::SliderFloat("Camera Far", &shadow.cam_far, shadow.cam_near + 0.5f, 1000.0f);
+				ImGui::SliderFloat("Camera Size", &shadow.cam_size, 0.0f, 200.0f);
+				ImGui::DragFloat3("Sample Pos", &shadow.sampleWorldPos[0], 0.1f);
+				ImGui::SliderFloat("Light Proj Offset", &shadow.cam_offset, 0.0f, 100.0f);
+				ImGui::Checkbox("Debug Dir Shadow Para", &shadow.debugPara);
 
-			static int cur_sel_type = 0;
-			const char* element_name[] = { "PCF", "POISSON SAMPLING"};
-			ImGui::Combo("Shadow Sampling Type", &cur_sel_type, element_name, IM_ARRAYSIZE(element_name));
-			shadowSamplingType = (ShadowSamplingType)cur_sel_type;
+				static int cur_sel_type = 0;
+				const char* element_name[] = { "PCF", "POISSON SAMPLING" };
+				ImGui::Combo("Shadow Sampling Type", &cur_sel_type, element_name, IM_ARRAYSIZE(element_name));
+				shadowSamplingType = (ShadowSamplingType)cur_sel_type;
 
-			ImGui::TreePop();
+				ImGui::TreePop();
+			}
 		}
-
 		ImGui::Spacing();
 
+
+		//////////////////////////////////////////
+		// Point Lights
+		//////////////////////////////////////////
+		ImGui::SeparatorText("Point Lights");
 		if (ImGui::TreeNode("Points Lights"))
 		{
 			for (int i = 0; i < availablePtLightCount; i++)
@@ -847,14 +823,25 @@ void AdvanceLightingScene::CreateObjects()
 	};
 	instancingShader.Create("instance_shader", instance_shader_file_path);
 
-	//Shadow Debuging Shader
+	//////////////////////////////////Shadow Debuging Shader
 	ShaderFilePath shadow_shader_file_path
 	{
 		"src/ShaderFiles/Learning/Debugger/DepthMapVertex.glsl", //vertex shader
 		"src/ShaderFiles/Learning/Debugger/DepthMapFrag.glsl", //fragment shader
 	};
-	dirShadowMap.debugShader.Create("shadow_depth", shadow_shader_file_path);
-	dirShadowMap.map.Generate();
+	dirLightShadow.depthShader.Create("shadow_depth", shadow_shader_file_path);
+	dirLightShadow.depthMap.Generate();
+
+
+	//////////////////////////////////Shadow Debuging Shader
+	ShaderFilePath point_shadow_shader_file_path
+	{
+		"src/ShaderFiles/Learning/Debugger/PointLightDepthVertex.glsl", //vertex shader
+		"src/ShaderFiles/Learning/Debugger/PointLightDepthFrag.glsl", //fragment shader
+		"src/ShaderFiles/Learning/Debugger/PointLightDepthGeometry.glsl", //geometry shader
+	};
+	lightObject[0].shadowData.depthShader.Create("point_shadow_depth", point_shadow_shader_file_path);
+	lightObject[0].shadowData.depthMap.Generate();
 
 
 	ShaderFilePath screen_shader_file_path
@@ -903,7 +890,7 @@ void AdvanceLightingScene::CreateObjects()
 					glm::vec3(1.0f, 0.3f, 0.3f),
 					glm::vec3(0.3f, 0.0f, 0.3f),
 					glm::vec3(0.3f, 1.0f, 0.3f),
-					glm::vec3(0.3f, 0.3f, 0.3f)
+					glm::vec3(0.737f, 0.925f, 0.0f)
 				};
 	offset_units = -4.0f;
 	for (int i = 0; i < MAX_LIGHT; i++)
@@ -925,22 +912,26 @@ void AdvanceLightingScene::CreateObjects()
 			lightObject[i].moveSpeed = 0.1f;
 			lightObject[i].objectPosition = glm::vec3(-9.5f, 5.9f, 11.2f);
 		}
+		else if (i == 4)
+		{
+			lightObject[i].childLightOffset = 28.0f;
+			lightObject[i].moveSpeed = 0.5f;
+		}
 		lightObject[i].light.position = (glm::vec3(1.0f, 0.0f, 0.0f) * lightObject[i].childLightOffset) + lightObject[i].objectPosition;
 		lightObject[i].light.colour = (i < 5) ? colours[i] : glm::vec3(0.3f, 0.0f, 0.3f);
 		lightObject[i].light.ambientIntensity = 0.05f;
-		lightObject[i].light.enable = false;
+		lightObject[i].light.enable = true;
 		availablePtLightCount++;
 	}
 	//debugScene = true;
 	debugModelType = MODEL_NORMAL;
 
 	//Testing value
-	lightObject[0].light.enable = true;
-	lightObject[1].light.enable = true;
+	gamma = 1.80f; //for game correction
+	lightObject[3].light.enable = false;
 	dirlight.direction = glm::vec3(-1.0f, 1.0f, -1.0f);
-	shadowCameraInfo.cam_near = 0.254f;
-	shadowCameraInfo.cam_far = 75.0f;
-	shadowCameraInfo.cam_size = 26.0f;
+
+	playerTest.aabb.Translate(glm::vec3(-15.0f, 2.25f, -8.0f));
 
 	//position cube in front of camera for testing 
 	//cubesPos[0] = m_Camera->GetPosition() + m_Camera->GetFroward() * 15.0f;
@@ -1073,20 +1064,6 @@ void AdvanceLightingScene::LightPass(Shader& shader)
 
 	shader.UnBind();
 
-
-	//DEBUGGING
-	//if (debugLightPos)
-	//{
-	//	for (int i = 0; i < availablePtLightCount; i++)
-	//	{
-	//		auto& lb = lightObject[i];
-	//		DebugGizmos::DrawWireSphere(lb.objectPosition, 0.5f, lb.light.colour, 2.0f);
-	//		DebugGizmos::DrawSphere(lb.light.position, 0.1f, lb.light.colour);
-	//		DebugGizmos::DrawLine(lb.objectPosition, lb.light.position, lb.light.colour, 2.0f);
-
-	//	}
-	//}
-
 }
 
 void AdvanceLightingScene::InstanceObjectPass(Shader* debug_shader)
@@ -1103,8 +1080,8 @@ void AdvanceLightingScene::InstanceObjectPass(Shader* debug_shader)
 		instancingShader.SetUniform1i("u_GammaCorrection", doGammaCorrection);
 		instancingShader.SetUniform1f("u_Gamma", gamma);
 
-		instancingShader.SetUniformMat4f("u_LightSpaceMatrix", dirShadowMap.lightSpaceMatrix);
-		dirShadowMap.map.Read(1);
+		instancingShader.SetUniformMat4f("u_LightSpaceMatrix", dirLightShadow.GetLightSpaceMatrix());
+		dirLightShadow.depthMap.Read(1);
 		instancingShader.SetUniform1i("u_ShadowMap", 1);
 
 		plainTex->Activate();
@@ -1141,16 +1118,43 @@ void AdvanceLightingScene::InstanceObjectPass(Shader* debug_shader)
 
 void AdvanceLightingScene::ShadowPass()
 {
-	dirShadowMap.debugShader.Bind();
+	dirLightShadow.depthShader.Bind();
 
-	dirShadowMap.debugShader.SetUniformMat4f("u_LightSpaceMatrix", dirShadowMap.lightSpaceMatrix);
+	dirLightShadow.depthShader.SetUniformMat4f("u_LightSpaceMatrix", dirLightShadow.GetLightSpaceMatrix());
 
-	dirShadowMap.map.Write();
+	
+	dirLightShadow.depthMap.Write();
 	glClear(GL_DEPTH_BUFFER_BIT);
 	//SCENES/OBJECT TO RENDER
-	DrawObjects(dirShadowMap.debugShader);
-	InstanceObjectPass(&dirShadowMap.debugShader);
-	dirShadowMap.map.UnBind();
+	DrawObjects(dirLightShadow.depthShader);
+	InstanceObjectPass(&dirLightShadow.depthShader);
+	dirLightShadow.depthMap.UnBind();
 
-	dirShadowMap.debugShader.UnBind();
+	dirLightShadow.depthShader.UnBind();
+
+
+	//Move later
+	//Experiment PointLigth shadow data update
+	float aspect = 1.0f; //because width == height 
+	float near = 1.0f; 
+	float far = 25.0f; 
+	glm::mat4 proj = glm::perspective(glm::radians(90.0f), aspect, near, far);
+	
+
+	//Point Light 1 Shadow
+	auto& lb_shadow = lightObject[0].shadowData;
+	lb_shadow.depthShader.Bind();
+
+	lb_shadow.proj = proj;
+	std::vector<glm::mat4> shadowMats = lb_shadow.PointLightSpaceMatrix(lightObject[0].light.position);
+	for (int f = 0; f < 6; ++f)
+	{
+		lb_shadow.depthShader.SetUniformMat4f(("u_ShadowMatrices[" + std::to_string(f) + "]").c_str(), shadowMats[f]);
+	}
+	lb_shadow.depthMap.Write();
+	glClear(GL_DEPTH_BUFFER_BIT);
+	DrawObjects(lb_shadow.depthShader);
+	InstanceObjectPass(&lb_shadow.depthShader);
+	lb_shadow.depthMap.UnBind();
+	lb_shadow.depthShader.UnBind();
 }
