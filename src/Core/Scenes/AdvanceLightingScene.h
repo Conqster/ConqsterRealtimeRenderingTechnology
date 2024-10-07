@@ -37,6 +37,12 @@ struct ShadowDataInfo
 	// 
 	// lightSpaceMatrix => Projection * View
 	//
+	///////
+	// POINT LIGHT 
+	///////
+	//Projection => persp cam /glm
+	//all light shares proj for now 
+	//but to calculate the light mtx by is pos. 
 
 
 	//////////////////
@@ -61,8 +67,10 @@ struct ShadowDataInfo
 
 	//Utilities
 	ShadowMap depthMap;
+	ShadowCube depthCube;
 	Shader depthShader;
 	bool debugPara = true;  //debug pos & parameters
+	int debugCubeFaceIdx = 0;
 
 	//Cache Matrix
 	glm::mat4 proj; //dir proj
@@ -72,6 +80,25 @@ struct ShadowDataInfo
 	{
 		return proj * view;
 	}
+
+	void UpdateProjMat()
+	{
+		proj = glm::ortho(-cam_size, cam_size,
+			-cam_size, cam_size,
+			cam_near, cam_far);
+	}
+
+	void UpdateViewMatrix(glm::vec3 dir)
+	{
+		view = glm::lookAt(sampleWorldPos + (dir * cam_offset),
+			sampleWorldPos, glm::vec3(0.0f, 1.0f, 0.0f)); //world up 0, 1, 0
+	}
+
+
+
+	/////////////////////////////////////////////
+	// Point Light
+	/////////////////////////////////////////////
 
 	std::vector<glm::mat4> PointLightSpaceMatrix(glm::vec3 pos)
 	{
@@ -109,18 +136,13 @@ struct ShadowDataInfo
 		return tempMatrix;
 	}
 
-	void UpdateProjMat()
+	void UpdatePointLightProjMat()
 	{
-		proj = glm::ortho(-cam_size, cam_size,
-						  -cam_size, cam_size,
-						  cam_near, cam_far);
+		//float aspect = 1.0f; //because width == height 
+		proj = glm::perspective(glm::radians(90.0f), 1.0f, cam_near, cam_far);
 	}
 
-	void UpdateViewMatrix(glm::vec3 dir)
-	{
-		view = glm::lookAt(sampleWorldPos + (dir * cam_offset),
-			sampleWorldPos, glm::vec3(0.0f, 1.0f, 0.0f)); //world up 0, 1, 0
-	}
+
 
 
 };
@@ -229,6 +251,7 @@ private:
 	Shader debugShader;
 	Shader instancingShader;
 	Shader screenShader;
+	Shader debugPtLightMapShader;
 
 	//////Textures
 	Texture* brickTex;
@@ -248,6 +271,7 @@ private:
 		float moveSpeed = 0.0f;
 		NewPointLight light;
 		ShadowDataInfo shadowData;
+		//ShadowCube depthCube;
 	}lightObject[MAX_LIGHT];
 	//NewPointLight pointLights[MAX_LIGHT];
 	//glm::vec3 pointLocalWorldPosition[MAX_LIGHT]; //probably change later to local relative to parent
@@ -257,6 +281,62 @@ private:
 	
 	NewDirectionalLight dirlight;  //Directional light
 	ShadowDataInfo dirLightShadow; //direction light shadow data
+	//ShadowDataInfo ptLightShadow;
+
+
+	struct ShadowConfig
+	{
+		float cam_near = 0.1f;
+		float cam_far = 25.0f;
+
+
+
+		//Debuging Para
+		bool debugLight;
+		int debugLightIdx = 0;
+		int debugCubeFaceIdx = 0;
+	}ptShadowConfig;
+	//ShadowCube depthCube;]
+	std::vector<ShadowCube> ptDepthMapCubes;
+	Shader depthShader;
+	//---------------------------------------------Helper----------------------------------------
+	std::vector<glm::mat4> PointLightSpaceMatrix(glm::vec3 pos, ShadowConfig config = {0.1f, 25.0f})
+	{
+		glm::mat4 proj = glm::perspective(glm::radians(90.0f), 1.0f, config.cam_near, config.cam_far);
+		glm::mat4 view;
+		std::vector<glm::mat4> tempMatrix;
+
+		glm::vec3 right = glm::vec3(1.0f, 0.0f, 0.0f);
+		glm::vec3 forward = glm::vec3(0.0f, 0.0f, 1.0f);
+		glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+
+
+		//Light right view
+		view = glm::lookAt(pos, pos + right, -up);
+		tempMatrix.push_back(proj * view);
+
+		//Light left view
+		view = glm::lookAt(pos, pos - right, -up);
+		tempMatrix.push_back(proj * view);
+
+		//Light top view
+		view = glm::lookAt(pos, pos + up, forward);
+		tempMatrix.push_back(proj * view);
+
+		//Light bottom view
+		view = glm::lookAt(pos, pos - up, -forward);
+		tempMatrix.push_back(proj * view);
+
+		//Light near/back view
+		view = glm::lookAt(pos, pos + forward, -up);
+		tempMatrix.push_back(proj * view);
+
+		//Light far/forward view
+		view = glm::lookAt(pos, pos - forward, -up);
+		tempMatrix.push_back(proj * view);
+
+		return tempMatrix;
+	}
 
 
 	struct PlayerTest
@@ -274,8 +354,16 @@ private:
 	}shadowSamplingType;
 
 
+
 	//ShadowResolutionSettings Enum
 	//Low = 1024
 	//Medium = 2048
 	//Hight = 4096
+	//Later change shadowDataToconfiguratiomn like near, far
+	// struct 
+	// -near
+	// -far
+	// - dir size
+	// - ShadowResolutionSettings Enum
+
 };

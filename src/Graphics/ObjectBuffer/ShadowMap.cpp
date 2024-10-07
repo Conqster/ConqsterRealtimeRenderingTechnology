@@ -1,27 +1,37 @@
 #include "ShadowMap.h"
 #include "../RendererErrorAssertion.h"
+#include <iostream>
 
 void ShadowMap::Generate()
 {
-	glGenFramebuffers(1, &m_Id);
+	GLCall(glGenFramebuffers(1, &m_Id));
 
-	glGenTextures(1, &m_TexMapId);
-	glBindTexture(GL_TEXTURE_2D, m_TexMapId);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, m_Width, m_Height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	GLCall(glGenTextures(1, &m_TexMapId));
+	GLCall(glBindTexture(GL_TEXTURE_2D, m_TexMapId));
+	GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, m_Width, m_Height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr));
+	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
 	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER));
+	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER));
 	float borderColour[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColour);
+	GLCall(glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColour));
 
-	glBindFramebuffer(GL_FRAMEBUFFER, m_Id);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_TexMapId, 0);
-	glDrawBuffer(GL_NONE);
-	glReadBuffer(GL_NONE);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_Id));
+	GLCall(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_TexMapId, 0));
+	GLCall(glDrawBuffer(GL_NONE));
+	GLCall(glReadBuffer(GL_NONE));
+
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	{
+		printf("[FRAMEBUFFER ERROR]: Shadow map FBO did not complete!!!!\n");
+		GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+		return;
+	}
+
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 }
 
 void ShadowMap::Write()
@@ -41,6 +51,11 @@ void ShadowMap::BindMapTexture(unsigned int slot)
 
 }
 
+void ShadowMap::UnBindMap()
+{
+	GLCall(glBindTexture(GL_TEXTURE, 0));
+}
+
 void ShadowMap::UnBind()
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -52,34 +67,51 @@ void ShadowMap::UnBind()
 
 void ShadowCube::Generate()
 {
-	glGenFramebuffers(1, &m_Id);
+	GLCall(glGenFramebuffers(1, &m_Id));
 
-	glGenTextures(1, &m_TexMapId);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, m_TexMapId);
+	GLCall(glGenTextures(1, &m_TexMapId));
+	GLCall(glBindTexture(GL_TEXTURE_CUBE_MAP, m_TexMapId));
 
 	for (unsigned int i = 0; i < 6; ++i)
 	{
-		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0,
-					 GL_DEPTH_COMPONENT, m_Width, m_Height,
-					 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+		GLCall(glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0,
+			GL_DEPTH_COMPONENT, m_Width, m_Height,
+			0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr));
 	}
 
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+	GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+	GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+	GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
+	GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE));
 
 
 	//bind directly to the depth sttachment, glFramebufferTexture
 	//using geometry shader for just a single pass instead of six
-	glBindFramebuffer(GL_FRAMEBUFFER, m_Id);
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, m_TexMapId, 0);
-	glDrawBuffer(GL_NONE);
-	glReadBuffer(GL_NONE);
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_Id));
+	GLCall(glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, m_TexMapId, 0));
+	GLCall(glDrawBuffer(GL_NONE));
+	GLCall(glReadBuffer(GL_NONE));
+
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	{
+		printf("[FRAMEBUFFER ERROR]:  Shadow cube map FBO did not complete!!!!\n");
+		GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+		return;
+	}
+
+	GLCall(glBindTexture(GL_TEXTURE_CUBE_MAP, 0));
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void ShadowCube::Read(unsigned int slot)
 {
+	glActiveTexture(GL_TEXTURE0 + slot);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, m_TexMapId);
+}
+
+void ShadowCube::UnBindMap()
+{
+	GLCall(glBindTexture(GL_TEXTURE_CUBE_MAP, 0));
 }

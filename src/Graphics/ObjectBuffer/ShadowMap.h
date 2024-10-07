@@ -7,10 +7,12 @@ class ShadowMap
 public:
 	ShadowMap() = default;
 	~ShadowMap() = default;
+	ShadowMap(unsigned int width, unsigned int height) : m_Width(width), m_Height(height){}
 	virtual void Generate();
 	void Write();
 	virtual void Read(unsigned int slot = 0);
 	void BindMapTexture(unsigned int slot = 0);
+	virtual void UnBindMap();
 	void UnBind();
 protected:
 	unsigned int m_Id = 0;
@@ -29,9 +31,10 @@ class ShadowCube : public ShadowMap
 public:
 	ShadowCube() = default;
 	~ShadowCube() = default;
-
+	ShadowCube(unsigned int width, unsigned int height) : ShadowMap(width, height) {}
 	virtual void Generate() override;
 	virtual void Read(unsigned int slot = 0) override;
+	virtual void UnBindMap() override;
 
 };
 

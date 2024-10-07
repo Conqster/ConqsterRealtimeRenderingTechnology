@@ -373,7 +373,8 @@ void DebugGizmos::DrawPerspectiveCameraFrustum(glm::vec3 pos, glm::vec3 forward,
 	glm::vec3 farBR = farPlane + boundsBL;
 	glm::vec3 farBL = farPlane + boundsBR;
 
-	DrawSphere(pos, 0.2f);
+	//DrawSphere(pos, 0.2f);
+	DrawCross(pos);
 
 	m_Shader.Bind();
 	m_Shader.SetUniformMat4f("u_Model", glm::mat4(1.0f));
@@ -461,6 +462,7 @@ void DebugGizmos::DrawPerspectiveCameraFrustum(glm::vec3 pos, glm::vec3 forward,
 	glm::vec3 farBL = farPlane + boundsBR;
 
 	DrawSphere(pos, 0.2f);
+	//DrawCross(pos);
 
 	m_Shader.Bind();
 	m_Shader.SetUniformMat4f("u_Model", glm::mat4(1.0f));

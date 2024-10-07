@@ -41,7 +41,7 @@ void main()
 	//screen shadow depth test
 	float depth_value = texture(u_ScreenTex, v_UVCoord).r;
 	FragColour = vec4(vec3(depth_value), 1.0f);
-	
+    
 	
 	//for perspectivce
 	FragColour = vec4(vec3(LineariseDepth(depth_value)/u_Far), 1.0f);

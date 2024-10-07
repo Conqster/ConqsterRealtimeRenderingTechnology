@@ -125,6 +125,10 @@ void AdvanceLightingScene::OnUpdate(float delta_time)
 	}
 	dirLightShadow.sampleWorldPos = playerTest.aabb.GetCenter() + glm::vec3(0.0f, 0.0f, 1.0) * playerTest.shadowOffset;
 
+	//for(auto& lb : lightObject)
+	//	lb.shadowData.UpdatePointLightProjMat();
+
+	//lightObject[0].shadowData.UpdatePointLightProjMat();
 
 	OnRender();
 }
@@ -147,7 +151,7 @@ void AdvanceLightingScene::OnRender()
 	//////////////////////////
 	//  SECOND PASS for Testing shadow Pass
 	//////////////////////////
-	dirLightShadow.depthShader.Bind();
+	//dirLightShadow.depthShader.Bind();
 	glCullFace(GL_FRONT);
 	ShadowPass();
 	glCullFace(GL_BACK);
@@ -173,8 +177,27 @@ void AdvanceLightingScene::OnRender()
 	else
 		plainTex->Activate(1);
 
+
+	
 	modelShader.SetUniform1i("u_ShadowMap", 1);
 	modelShader.SetUniform1i("u_ShadowSampleType", shadowSamplingType);
+
+	//depthCube.Read(2);
+	//modelShader.SetUniform1i(("u_PointShadowCubes[" + std::to_string(0) + "]").c_str(), 2);
+	modelShader.SetUniform1f("u_FarPlane", ptShadowConfig.cam_far);
+
+	//so far the texture as not been overwritten
+	for (int i = 0; i < MAX_LIGHT; i++)
+	{
+		//lightObject[i].depthCube.Read(2 + i); //bind to texture unit 
+		ptDepthMapCubes[i].Read(2 + i);//bind to texture unit 
+		modelShader.SetUniform1i(("u_PointShadowCubes[" + std::to_string(i) + "]").c_str(), 2 + i);
+	}
+	//lightObject[0].shadowData.depthCube.Read(2);
+	//modelShader.SetUniform1i("u_PointShadowMap", 2);
+	//modelShader.SetUniform1f("u_FarPlane", lightObject[0].shadowData.cam_far);
+	
+	
 	LightPass(modelShader);
 	DrawObjects(modelShader);
 	
@@ -201,10 +224,10 @@ void AdvanceLightingScene::OnRender()
 	//////////////////////////
 
 	///////////////////////Shadow Depth View
-	uint16_t win_width = window->GetWidth() * 0.25f; // 0.25f;
-	uint16_t win_height = window->GetHeight() * 0.25f; // 0.25f;
+	uint16_t win_width = window->GetWidth() * 0.15f; // 0.25f;
+	uint16_t win_height = window->GetHeight() * 0.15f; // 0.25f;
 	uint16_t x_offset = win_width * 0.6f,
-		y_offset = win_height * 0.6f;
+			 y_offset = win_height * 0.6f;
 	uint16_t x_pos = window->GetWidth() - (win_width * 0.5f) - x_offset;
 	uint16_t y_pos = window->GetHeight() - (win_height * 0.5f) - y_offset;
 
@@ -214,10 +237,10 @@ void AdvanceLightingScene::OnRender()
 	screenShader.Bind();
 	dirLightShadow.depthMap.Read(0);
 	//quadAfterEffect.RenderDebugOutLine();
-	glBindVertexArray(m_Quad.VAO);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
 	screenShader.SetUniform1f("u_Near", dirLightShadow.cam_near);
 	screenShader.SetUniform1f("u_Far", dirLightShadow.cam_far);
+	glBindVertexArray(m_Quad.VAO);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
 	screenShader.UnBind();
 	glViewport(0, 0, window->GetWidth(), window->GetHeight());
 	//return;
@@ -225,6 +248,80 @@ void AdvanceLightingScene::OnRender()
 
 
 
+
+	if (ptShadowConfig.debugLight)
+	{
+		//////debugging view 
+		glm::vec3 right = glm::vec3(1.0f, 0.0f, 0.0f);
+		glm::vec3 forward = glm::vec3(0.0f, 0.0f, 1.0f);
+		glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+
+		////0 => +X
+		////1 => -X
+		////2 => +Y
+		////3 => -Y
+		////4 => +Z
+		////5 => -Z
+		auto& pLightsha = ptShadowConfig;
+		glm::vec3 lp = lightObject[pLightsha.debugLightIdx].light.position;
+
+		///////////////////////Shadow Depth View 2
+		bool debug_shadow = true;
+		if (debug_shadow)
+		{
+			y_pos -= win_height + (win_height * 0.1f);
+			glViewport(x_pos, y_pos, win_width, win_height);
+			debugPtLightMapShader.Bind();
+			//depthCube.Read(0);
+			//lightObject[pLightsha.debugLightIdx].depthCube.Read(0);
+			//what light shadow cube map to sample
+			debugPtLightMapShader.SetUniform1i("uLightShadowMap", 2 + pLightsha.debugLightIdx);
+			//what face of the cube map to sample
+			debugPtLightMapShader.SetUniform1i("uFaceIdx", pLightsha.debugCubeFaceIdx);// 
+			debugPtLightMapShader.SetUniform1f("uFar", 25.0f);
+			debugPtLightMapShader.SetUniform1f("uNear", 0.1f);
+			//lightObject[0].shadowData.depthCube.Read(0);
+			//debugPtLightMapShader.SetUniform1i("uFaceIdx", lightObject[0].shadowData.debugCubeFaceIdx);
+			//debugPtLightMapShader.SetUniform1f("uFar", lightObject[0].shadowData.cam_far);
+			//debugPtLightMapShader.SetUniform1f("uNear", lightObject[0].shadowData.cam_near);
+			glBindVertexArray(m_Quad.VAO);
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+			debugPtLightMapShader.UnBind();
+			glViewport(0, 0, window->GetWidth(), window->GetHeight());
+
+		}
+
+
+		switch (pLightsha.debugCubeFaceIdx)
+		{
+		case 0:
+			DebugGizmos::DrawPerspectiveCameraFrustum(lp, right, up, 90.0f, 1.0f, pLightsha.cam_near,
+														pLightsha.cam_far, glm::vec3(0.0f, 1.0f, 1.0f));
+			break;
+		case 1:
+			DebugGizmos::DrawPerspectiveCameraFrustum(lp,-right, up, 90.0f, 1.0f, pLightsha.cam_near,
+														pLightsha.cam_far, glm::vec3(0.0f, 1.0f, 1.0f));
+			break;
+		default:
+		case 2:
+			DebugGizmos::DrawPerspectiveCameraFrustum(lp, -up, -forward, 90.0f, 1.0f, pLightsha.cam_near,
+														pLightsha.cam_far, glm::vec3(0.0f, 1.0f, 1.0f));
+			break;
+		case 3:
+			DebugGizmos::DrawPerspectiveCameraFrustum(lp, +up, forward, 90.0f, 1.0f, pLightsha.cam_near,
+														pLightsha.cam_far, glm::vec3(0.0f, 1.0f, 1.0f));
+			break;
+		case 4:
+			DebugGizmos::DrawPerspectiveCameraFrustum(lp,-forward, -up, 90.0f, 1.0f, pLightsha.cam_near,
+														pLightsha.cam_far, glm::vec3(0.0f, 1.0f, 1.0f));
+			break;
+		case 5:
+			DebugGizmos::DrawPerspectiveCameraFrustum(lp,forward, -up, 90.0f, 1.0f, pLightsha.cam_near,
+														pLightsha.cam_far, glm::vec3(0.0f, 1.0f, 1.0f));
+			break;
+		}
+	}
+	
 
 
 
@@ -607,12 +704,30 @@ void AdvanceLightingScene::OnRenderUI()
 		ImGui::SeparatorText("Point Lights");
 		if (ImGui::TreeNode("Points Lights"))
 		{
+			if (ImGui::TreeNode("Shadow Camera Info"))
+			{
+				auto& shadow = ptShadowConfig;
+				ImGui::Checkbox("Debug Pt Lights", &shadow.debugLight);
+				ImGui::SliderFloat("Pt Shadow Camera Near", &shadow.cam_near, 0.0f, shadow.cam_far - 0.5f);
+				ImGui::SliderFloat("Pt Shadow Camera Far", &shadow.cam_far, shadow.cam_near + 0.5f, 80.0f);
+				
+				ImGui::SliderInt("Debug Shadow for Pt Idx", &shadow.debugLightIdx, 0, MAX_LIGHT);
+				static int cur_sel_type = 0;
+				const char* element_name[] = { "RIGHT", "LEFT", "UP", "DOWN", "FRONT", "BACK" };
+				ImGui::Combo("Point Light Debug Direction", &shadow.debugCubeFaceIdx, element_name, IM_ARRAYSIZE(element_name));
+				
+				ImGui::TreePop();
+			}
+
+		
 			for (int i = 0; i < availablePtLightCount; i++)
 			{
 				//u_Lights[i].position....
 				std::string label = "point idx: " + std::to_string(i);
 				ImGui::SeparatorText(label.c_str());
 				ImGui::Checkbox((label + " Enable light").c_str(), &lightObject[i].light.enable);
+				ImGui::SameLine();
+				ImGui::Checkbox((label + " Enable light").c_str(), &lightObject[i].light.castShadow);
 
 				ImGui::DragFloat3((label + " position").c_str(), &lightObject[i].objectPosition[0], 0.1f);
 				ImGui::DragFloat3((label + " DEBUG position").c_str(), &lightObject[i].light.position[0], 0.1f);
@@ -633,6 +748,26 @@ void AdvanceLightingScene::OnRenderUI()
 				ImGui::SliderFloat((label + " constant attenuation").c_str(), &lightObject[i].light.attenuation[0], 0.0f, 1.0f);
 				ImGui::SliderFloat((label + " linear attenuation").c_str(), &lightObject[i].light.attenuation[1], 0.0f, 1.0f);
 				ImGui::SliderFloat((label + " quadratic attenuation").c_str(), &lightObject[i].light.attenuation[2], 0.0f, 1.0f);
+
+				//if (lightObject[i].light.castShadow)
+				//{
+				//	if (ImGui::TreeNode("Shadow Camera Info"))
+				//	{
+				//		auto& shadow = lightObject[i].shadowData;
+				//		ImGui::SliderFloat((label + "Camera Near").c_str(), &shadow.cam_near, 0.0f, shadow.cam_far - 0.5f);
+				//		ImGui::SliderFloat((label + "Camera Far").c_str(), &shadow.cam_far, shadow.cam_near + 0.5f, 1000.0f);
+				//		//ImGui::SliderFloat("Camera fov", &shadow.cam, 0.0f, 200.0f);
+				//		if (i == 0)
+				//		{
+				//			static int cur_sel_type = 0;
+				//			const char* element_name[] = { "RIGHT", "LEFT", "UP", "DOWN", "FRONT", "BACK" };
+				//			ImGui::Combo((label + "Shadow Sampling Type").c_str(), &shadow.debugCubeFaceIdx, element_name, IM_ARRAYSIZE(element_name));
+				//		}
+
+				//		ImGui::TreePop();
+				//	}
+				//}ptShadowConfig
+
 			}
 
 			ImGui::TreePop();
@@ -840,10 +975,34 @@ void AdvanceLightingScene::CreateObjects()
 		"src/ShaderFiles/Learning/Debugger/PointLightDepthFrag.glsl", //fragment shader
 		"src/ShaderFiles/Learning/Debugger/PointLightDepthGeometry.glsl", //geometry shader
 	};
-	lightObject[0].shadowData.depthShader.Create("point_shadow_depth", point_shadow_shader_file_path);
-	lightObject[0].shadowData.depthMap.Generate();
+
+	depthShader.Create("point_shadow_depth", point_shadow_shader_file_path);
+	//depthCube.Generate();
+	for (auto& lb : lightObject)
+	{
+		ShadowCube sc = ShadowCube(2048, 2048);
+		sc.Generate();
+		ptDepthMapCubes.push_back(sc);
+	}
+		//lb.depthCube.Generate();
+	//lightObject[0].shadowData.depthShader.Create("point_shadow_depth", point_shadow_shader_file_path);
+	//lightObject[0].shadowData.cam_near = 1.0f;
+	//lightObject[0].shadowData.cam_far = 25.0f;
+	//lightObject[0].shadowData.UpdatePointLightProjMat();
+	//lightObject[0].shadowData.depthCube.Generate();
+	//
+	//for (auto& lb : lightObject)
+	//{
+	//	lb.shadowData.cam_near = 1.0f;
+	//	lb.shadowData.cam_far = 25.0f;
+	//	lb.shadowData.UpdatePointLightProjMat();
+	//	lb.shadowData.depthCube.Generate();
+	//}
 
 
+
+
+	
 	ShaderFilePath screen_shader_file_path
 	{
 		//"src/ShaderFiles/Learning/Debugger/DepthMapVertex.glsl", //vertex shader
@@ -852,6 +1011,13 @@ void AdvanceLightingScene::CreateObjects()
 		"src/ShaderFiles/Learning/ScreenFrameFrag.glsl", //vertex shader
 	};
 	screenShader.Create("shadow_depth", screen_shader_file_path);
+
+	ShaderFilePath point_light_debuging_file
+	{
+		"src/ShaderFiles/Learning/Debugger/DebugCubeMapDepthVertex.glsl", //vertex shader
+		"src/ShaderFiles/Learning/Debugger/DebugCubeMapDepthFrag.glsl", //vertex shader
+	};
+	debugPtLightMapShader.Create("shadow_depth", point_light_debuging_file);
 
 	////////////////////////////////////////
 	// CREATE CAMERA MAT UNIFORM BUFFER
@@ -921,6 +1087,8 @@ void AdvanceLightingScene::CreateObjects()
 		lightObject[i].light.colour = (i < 5) ? colours[i] : glm::vec3(0.3f, 0.0f, 0.3f);
 		lightObject[i].light.ambientIntensity = 0.05f;
 		lightObject[i].light.enable = true;
+
+	
 		availablePtLightCount++;
 	}
 	//debugScene = true;
@@ -928,8 +1096,9 @@ void AdvanceLightingScene::CreateObjects()
 
 	//Testing value
 	gamma = 1.80f; //for game correction
-	lightObject[3].light.enable = false;
+	dirlight.enable = false;
 	dirlight.direction = glm::vec3(-1.0f, 1.0f, -1.0f);
+
 
 	playerTest.aabb.Translate(glm::vec3(-15.0f, 2.25f, -8.0f));
 
@@ -941,6 +1110,7 @@ void AdvanceLightingScene::DrawObjects(Shader& shader)
 {
 	shader.Bind();
 
+
 	//ground 
 	glm::mat4 model = glm::mat4(1.0f);
 	model = glm::translate(model, groundPos);
@@ -949,7 +1119,7 @@ void AdvanceLightingScene::DrawObjects(Shader& shader)
 	shader.SetUniformMat4f("u_Model", model);
 	//brickTex->Activate();
 	//manchesterTex->Activate();
-	plainTex->Activate();
+	plainTex->Activate(0);
 	//ground 1
 	ground.Render();
 	//brickTex->DisActivate();
@@ -1045,7 +1215,8 @@ void AdvanceLightingScene::LightPass(Shader& shader)
 	shader.SetUniform1f((name2 + "ambinentIntensity").c_str(), dirlight.ambientIntensity);
 
 
-
+	// all point lights is uniform for now
+	//shader.SetUniform1f("u_FarPlane", lightObject[0].shadowData.cam_far);
 	for (int i = 0; i < availablePtLightCount; i++)
 	{
 		//u_Lights[i].position....
@@ -1058,6 +1229,14 @@ void AdvanceLightingScene::LightPass(Shader& shader)
 		shader.SetUniformVec3((name + "colour").c_str(), lightObject[i].light.colour);
 		shader.SetUniform1f((name + "ambinentIntensity").c_str(), lightObject[i].light.ambientIntensity);
 		shader.SetUniformVec3f((name + "attenuation").c_str(), lightObject[i].light.attenuation);
+
+		//update shadows 
+		//modelShader.SetUniform1i("u_ShadowMap", 1);
+		
+		//need to fix this later
+		//there are two other samplers 2D & Cube in the shader texture unit
+		//lightObject[i].shadowData.depthCube.Read(2 + i);
+		//shader.SetUniform1i(("u_PointShadowCubes[" + std::to_string(i) + "]").c_str(),2 + i);
 	}
 
 
@@ -1073,16 +1252,32 @@ void AdvanceLightingScene::InstanceObjectPass(Shader* debug_shader)
 	{
 		instancingShader.Bind();
 
-		//generate parameters
+		//generate parameters 
+		//Fix with unform buffer to set varible to the GPU 
+		//especially Lights & shadow maps 
 		instancingShader.SetUniform1i("u_DebugScene", debugScene);
 		instancingShader.SetUniform1i("u_DebugWcType", debugModelType);
 		instancingShader.SetUniform1i("u_DisableTex", disableTexture);
 		instancingShader.SetUniform1i("u_GammaCorrection", doGammaCorrection);
 		instancingShader.SetUniform1f("u_Gamma", gamma);
 
-		instancingShader.SetUniformMat4f("u_LightSpaceMatrix", dirLightShadow.GetLightSpaceMatrix());
-		dirLightShadow.depthMap.Read(1);
-		instancingShader.SetUniform1i("u_ShadowMap", 1);
+		//instancingShader.SetUniformMat4f("u_LightSpaceMatrix", dirLightShadow.GetLightSpaceMatrix());
+		//dirLightShadow.depthMap.Read(1);
+		//instancingShader.SetUniform1i("u_ShadowMap", 1);
+
+		//lightObject[0].shadowData.depthCube.Read(2);
+		//instancingShader.SetUniform1i("u_PointShadowMap", 2);
+		//depthCube.Read(2);
+		//instancingShader.SetUniform1i(("u_PointShadowCubes[" + std::to_string(0) + "]").c_str(), 2);
+
+		//depthCube.Read(2);
+		instancingShader.SetUniform1f("u_FarPlane", ptShadowConfig.cam_far);
+		//instancingShader.SetUniform1i(("u_PointShadowCubes[" + std::to_string(0) + "]").c_str(), 2);
+		//so far the texture unit as not been overwritten 
+		for (int i = 0; i < MAX_LIGHT; i++)
+		{
+			instancingShader.SetUniform1i(("u_PointShadowCubes[" + std::to_string(i) + "]").c_str(), 2 + i);
+		}
 
 		plainTex->Activate();
 		glm::mat4 model = glm::mat4(1.0f); //reset model 
@@ -1133,28 +1328,111 @@ void AdvanceLightingScene::ShadowPass()
 	dirLightShadow.depthShader.UnBind();
 
 
+
+	//new for all point lights 
+
+	depthShader.Bind();
+	std::vector<glm::mat4> shadowMats = PointLightSpaceMatrix(lightObject[0].light.position, ptShadowConfig);
+
+	for (/*auto& lb : lightObject*/ int i = 0; i < MAX_LIGHT; i++)
+	{
+		auto& lb = lightObject[i];
+		depthShader.Bind();
+		shadowMats = PointLightSpaceMatrix(lb.light.position, ptShadowConfig);
+		for (int f = 0; f < 6; ++f)
+		{
+			depthShader.SetUniformMat4f(("u_ShadowMatrices[" + std::to_string(f) + "]").c_str(), shadowMats[f]);
+		}
+		depthShader.SetUniformVec3("u_LightPos", lb.light.position); 
+
+		depthShader.SetUniform1f("u_FarPlane", ptShadowConfig.cam_far);
+		//depthCube.Write();//ready to write in the depth cube buffer
+		//lb.depthCube.Write();
+		ptDepthMapCubes[i].Write();
+		glClear(GL_DEPTH_BUFFER_BIT); //clear the depth buffer 
+		DrawObjects(depthShader);
+		InstanceObjectPass(&depthShader);
+
+		//before unbinding cube map store it to a texture unit (Uniorm across GPU)
+		//depthCube.Read(2 + i);
+
+		//depthCube.UnBind();
+		//lb.depthCube.UnBind();
+		ptDepthMapCubes[i].UnBind();
+	}
+	depthShader.UnBind();
+	return;
+
+
 	//Move later
+	// //////////////////////////////////////
+	// OLD	
+	// //////////////////////////////////////
 	//Experiment PointLigth shadow data update
-	float aspect = 1.0f; //because width == height 
-	float near = 1.0f; 
-	float far = 25.0f; 
-	glm::mat4 proj = glm::perspective(glm::radians(90.0f), aspect, near, far);
-	
+	depthShader.Bind();
+	//std::vector<glm::mat4> shadowMats = PointLightSpaceMatrix(lightObject[0].light.position, ptShadowConfig);
 
-	//Point Light 1 Shadow
-	auto& lb_shadow = lightObject[0].shadowData;
-	lb_shadow.depthShader.Bind();
-
-	lb_shadow.proj = proj;
-	std::vector<glm::mat4> shadowMats = lb_shadow.PointLightSpaceMatrix(lightObject[0].light.position);
+	//for (auto& lb : lightObject)
+	//{
+	//	shadowMats = PointLightSpaceMatrix(lb.light.position, ptShadowConfig);
+	//	for (int f = 0; f < 6; ++f)
+	//	{
+	//		depthShader.SetUniformMat4f(("u_ShadowMatrices[" + std::to_string(f) + "]").c_str(), shadowMats[f]);
+	//	}
+	//}
 	for (int f = 0; f < 6; ++f)
 	{
-		lb_shadow.depthShader.SetUniformMat4f(("u_ShadowMatrices[" + std::to_string(f) + "]").c_str(), shadowMats[f]);
+		depthShader.SetUniformMat4f(("u_ShadowMatrices[" + std::to_string(f) + "]").c_str(), shadowMats[f]);
 	}
-	lb_shadow.depthMap.Write();
-	glClear(GL_DEPTH_BUFFER_BIT);
-	DrawObjects(lb_shadow.depthShader);
-	InstanceObjectPass(&lb_shadow.depthShader);
-	lb_shadow.depthMap.UnBind();
-	lb_shadow.depthShader.UnBind();
+	depthShader.SetUniformVec3("u_LightPos", lightObject[0].light.position);
+	depthShader.SetUniform1f("u_FarPlane", ptShadowConfig.cam_far);
+	//depthCube.Write();//ready to write in the depth cube buffer
+	glClear(GL_DEPTH_BUFFER_BIT); //clear the depth buffer 
+	DrawObjects(depthShader);
+	InstanceObjectPass(&depthShader);
+	//depthCube.UnBind();
+	depthShader.UnBind();
+
+	////Point Light 1 Shadow
+	//lightObject[0].shadowData.depthShader.Bind();
+	//std::vector<glm::mat4> shadowMats;
+
+	//lightObject[0].shadowData.depthShader.Bind();
+	//shadowMats = lightObject[0].shadowData.PointLightSpaceMatrix(lightObject[0].light.position);
+	//for (int f = 0; f < 6; ++f)
+	//{
+	//	lightObject[0].shadowData.depthShader.SetUniformMat4f(("u_ShadowMatrices[" + std::to_string(f) + "]").c_str(), shadowMats[f]);
+	//}
+	//lightObject[0].shadowData.depthShader.SetUniformVec3("u_LightPos", lightObject[0].light.position);
+	//lightObject[0].shadowData.depthShader.SetUniform1f("u_FarPlane", lightObject[0].shadowData.cam_far);
+
+
+	//lightObject[0].shadowData.depthCube.Write();
+	//glClear(GL_DEPTH_BUFFER_BIT);
+	//DrawObjects(lightObject[0].shadowData.depthShader);
+	//InstanceObjectPass(&lightObject[0].shadowData.depthShader);
+	//lightObject[0].shadowData.depthCube.UnBind();
+	//lightObject[0].shadowData.depthShader.UnBind();
+
+	//for (auto& lb : lightObject)
+	//{
+	//	//Later only have one shader
+	//	lightObject[0].shadowData.depthShader.Bind();
+
+	//	shadowMats = lightObject[0].shadowData.PointLightSpaceMatrix(lb.light.position);
+	//	for (int f = 0; f < 6; ++f)
+	//	{
+	//		lightObject[0].shadowData.depthShader.SetUniformMat4f(("u_ShadowMatrices[" + std::to_string(f) + "]").c_str(), shadowMats[f]);
+	//	}
+	//	lightObject[0].shadowData.depthShader.SetUniformVec3("u_LightPos", lb.light.position);
+	//	lightObject[0].shadowData.depthShader.SetUniform1f("u_FarPlane", lb.shadowData.cam_far);
+
+
+	//	lb.shadowData.depthCube.Write();
+	//	glClear(GL_DEPTH_BUFFER_BIT);
+	//	DrawObjects(lightObject[0].shadowData.depthShader);
+	//	InstanceObjectPass(&lightObject[0].shadowData.depthShader);
+	//	lb.shadowData.depthCube.UnBind();
+	//}
+	//lightObject[0].shadowData.depthShader.UnBind();
 }

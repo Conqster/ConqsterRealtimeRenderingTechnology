@@ -34,6 +34,7 @@ struct Light
 	//TO-DO: Stored all attenuation contiguously in memory for easy access
 	//		Probably change to a vec3 later
 	vec3 attenuation;
+   
 };
 
 
@@ -42,6 +43,8 @@ struct Light
 ///////////////////////////////
 uniform sampler2D u_Texture;
 uniform sampler2D u_ShadowMap;
+uniform samplerCube u_PointShadowCubes[MAX_LIGHTS];
+uniform float u_FarPlane; // all point lights is uniform for now
 uniform int u_ShadowSampleType;
 uniform Light u_Lights[MAX_LIGHTS];
 uniform int u_LightCount; 
@@ -181,6 +184,25 @@ vec3 CalculateDirLight(Light light)
 }
 
 
+float PointLightShadowCal(int lightIdx, vec3 frag_in_pos)
+{
+    //vec3 vfl = fragPos - light.position; 
+    vec3 vfl = frag_in_pos - u_Lights[lightIdx].position; 
+    
+    //float closestDepth = texture(u_PointShadowMap, vfl).r;
+    float closestDepth = texture(u_PointShadowCubes[lightIdx], vfl).r;
+    //[0;1] => [0;far_plane]
+    closestDepth *= u_FarPlane; 
+    
+    float currentDepth = length(vfl);
+    
+    float bias = 0.005f;
+	//bias = max(0.007f * (1.0f - dot(normalize(fs_in.normal), u_Lights[5].direction)), 0.001f);
+    
+    float shadow = currentDepth - bias > closestDepth ? 1.0f : 0.0f;
+    return shadow;
+}
+
 vec3 CalculatePointLight(vec3 object_ambient_colour)
 {
 	vec3 result_colour = vec3(0.0f);
@@ -242,7 +264,20 @@ vec3 CalculatePointLight(vec3 object_ambient_colour)
 		//vec3 scatteredLight = object_ambient_colour + u_Lights[i].colour * diffuse;
 		vec3 scatteredLight = u_Lights[i].colour * diffuse;
 		vec3 reflectedLight = u_Lights[i].colour * spec;
-		result_colour += amb_colour + ((scatteredLight + reflectedLight)/total_attenuation);
+        
+        
+        float shadow = 0.0f;
+        //if(i == 0)
+            //shadow = PointLightShadowCal(0, fs_in.fragPos);
+        
+        shadow = PointLightShadowCal(i, fs_in.fragPos);
+
+
+        //vec3 lighting = (amb_colour + (1.0f - shadow) * (diff_factor + spec)) * light.colour;
+        vec3 lighting = (amb_colour + (1.0f - shadow) * ((diffuse + spec)/total_attenuation)) * u_Lights[i].colour;
+        
+        result_colour += lighting;
+		//result_colour += amb_colour + ((scatteredLight + reflectedLight)/total_attenuation);
 		
 	}
 	
@@ -309,4 +344,5 @@ void main()
 		float gamma = u_Gamma;
 		FragColour.rgb = pow(FragColour.rgb, vec3(1.0f/gamma));
 	}
+    
 }

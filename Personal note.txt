@@ -41,3 +41,9 @@ Fixed Issue: Orthographic Camera Frustrum Debugger(Visualization)
 	The near plane needs to be offset forward in the direction of the camera & same direction of the far plane not to be behind the camera point. 
 
 Issue: (Scaling AABB relationship it model/mesh), Problem if the origin is not at the geometric center of the model, The AABB scale asymmetrically, leading to incorrect bounds. i.e When scaling a model with an offset(/model origin not at center) with current algorithm using vector scaling the AABB based on the ratio of the model scale, since the center point/origin of model is different from the AABB center it scales different. Might want to fix with Matrix Transformation
+
+Later Fix Point Shadow method 
+	- To only have one shader for handling and writing depth into CubeMap
+	- Have a centralised storage for common / generalised data like near, far 
+	- Only store unique data if necessary like light space matrix
+	- fix direction for scene capture 

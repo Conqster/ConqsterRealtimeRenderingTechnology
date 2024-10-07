@@ -155,7 +155,7 @@ void Mesh::Render()
 	VAO.Bind();
 	IBO.Bind();
 	GLCall(glDrawElements(GL_TRIANGLES, IBO.GetCount(), GL_UNSIGNED_INT, (void*)0));
-	//VAO.Unbind();
+	VAO.Unbind();
 	IBO.Unbind();
 }
 
