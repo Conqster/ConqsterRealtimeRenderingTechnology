@@ -19,61 +19,36 @@
 #include "Geometry/AABB.h"
 
 
-struct ShadowDataInfo
+enum ResolutionSetting
 {
-	///////
-	//DIRECTIONAL LIGHT
-	///////
-	//Projection => ortho cam / use glm
-	//glm::orth(left, right, bottom, top, near, far)
-	//min bounds => left = bottom => -cam_size
-	//max bounds => right = top => cam_size
-	//
-	//View => lookAt / use glm
-	//glm::lookAt(cam_offset, world_space_focus, world_up)
-	//world space focus => for naive optimisation the center for cam to focus relative (sample_pos)
-	//					   to user/player view, i.e we would have to use world origin.
-	//cam offset => offset camera from world_space_focus(sample_pos) based on light direction & and offset rate
-	// 
-	// lightSpaceMatrix => Projection * View
-	//
-	///////
-	// POINT LIGHT 
-	///////
-	//Projection => persp cam /glm
-	//all light shares proj for now 
-	//but to calculate the light mtx by is pos. 
+	LOW_RESOLUTION,
+	MEDUIM_RESOLUTION,
+	HIGH_RESOLUTION
+};
 
+struct ShadowConfig
+{
+	ResolutionSetting res = LOW_RESOLUTION;
 
-	//////////////////
-	// Utilies
-	//////////////////
-	//Shadow map => a texture map to store world/sample view depth from light perspective
-	//DepthTest&Debug shader => for depth calculation from lights perspective 
+	float cam_near = 0.1f;
+	float cam_far = 25.0f;
 
+	float cam_size = 40.0f;//directional light
 
-
-	//////////////////
-	//Properties
-	//////////////////
-	float cam_near = 0.2f;
-	float cam_far = 75.0f;
-	//Directional use size instead fov
-	float cam_size = 40.0f;
-
-	//Directional world sample/focus position
-	glm::vec3 sampleWorldPos = glm::vec3(0.0f);
-	float cam_offset = 5.0f;
-
-	//Utilities
-	ShadowMap depthMap;
-	ShadowCube depthCube;
-	Shader depthShader;
-	bool debugPara = true;  //debug pos & parameters
+	//Debuging Para
+	bool debugLight = false;
+	int debugLightIdx = 0;
 	int debugCubeFaceIdx = 0;
+};
+
+struct DirShadowCalculation
+{
+	ShadowConfig config;
+
+	bool debugPara = true;  //debug pos & parameters
 
 	//Cache Matrix
-	glm::mat4 proj; //dir proj
+	glm::mat4 proj; 
 	glm::mat4 view;
 
 	glm::mat4 GetLightSpaceMatrix()
@@ -81,69 +56,19 @@ struct ShadowDataInfo
 		return proj * view;
 	}
 
+	//-----------------Variables "proj & view" might not change over multiple frames--------/
 	void UpdateProjMat()
 	{
-		proj = glm::ortho(-cam_size, cam_size,
-			-cam_size, cam_size,
-			cam_near, cam_far);
+		proj = glm::ortho(-config.cam_size, config.cam_size,
+			-config.cam_size, config.cam_size,
+			config.cam_near, config.cam_far);
 	}
 
-	void UpdateViewMatrix(glm::vec3 dir)
+	void UpdateViewMatrix(glm::vec3 sample_pos, glm::vec3 dir,float offset = 1.0f)
 	{
-		view = glm::lookAt(sampleWorldPos + (dir * cam_offset),
-			sampleWorldPos, glm::vec3(0.0f, 1.0f, 0.0f)); //world up 0, 1, 0
+		view = glm::lookAt(sample_pos + (dir * offset),
+			sample_pos, glm::vec3(0.0f, 1.0f, 0.0f)); //world up 0, 1, 0
 	}
-
-
-
-	/////////////////////////////////////////////
-	// Point Light
-	/////////////////////////////////////////////
-
-	std::vector<glm::mat4> PointLightSpaceMatrix(glm::vec3 pos)
-	{
-		std::vector<glm::mat4> tempMatrix;
-
-		glm::vec3 right = glm::vec3(1.0f, 0.0f, 0.0f);
-		glm::vec3 forward = glm::vec3(0.0f, 0.0f, 1.0f);
-		glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
-
-		
-		//Light right view
-		view = glm::lookAt(pos, pos + right, -up);
-		tempMatrix.push_back(proj * view);
-		
-		//Light left view
-		view = glm::lookAt(pos, pos - right, -up);
-		tempMatrix.push_back(proj * view);
-
-		//Light top view
-		view = glm::lookAt(pos, pos + up, forward);
-		tempMatrix.push_back(proj * view);
-		
-		//Light bottom view
-		view = glm::lookAt(pos, pos - up, -forward);
-		tempMatrix.push_back(proj * view);
-		
-		//Light near/back view
-		view = glm::lookAt(pos, pos + forward, -up);
-		tempMatrix.push_back(proj * view);
-
-		//Light far/forward view
-		view = glm::lookAt(pos, pos - forward, -up);
-		tempMatrix.push_back(proj * view);
-
-		return tempMatrix;
-	}
-
-	void UpdatePointLightProjMat()
-	{
-		//float aspect = 1.0f; //because width == height 
-		proj = glm::perspective(glm::radians(90.0f), 1.0f, cam_near, cam_far);
-	}
-
-
-
 
 };
 
@@ -262,7 +187,24 @@ private:
 	///////////////////////
 	// Lights
 	///////////////////////
-	//NewPointLight pointLights[Shader_Constants::MAX_POINT_LIGHTS];
+	int availablePtLightCount = 0;
+	int specShinness = 64;
+	//--------------------General Shadow Data----------------------------------------/
+	Shader shadowDepthShader;
+
+
+	//---------------------Directional Light data------------------------------------------/
+	struct DirLightObject
+	{
+		glm::vec3 sampleWorldPos = glm::vec3(0.0f);
+		float cam_offset = 5.0f;
+		NewDirectionalLight dirlight;  //Directional light
+		DirShadowCalculation dirLightShadow; //direction light shadow data
+	}dirLightObject;
+	ShadowMap dirDepthMap;
+
+
+	//---------------------Point Light data------------------------------------------/
 	const static int MAX_LIGHT = 5;
 	struct PointLightObject
 	{
@@ -270,37 +212,13 @@ private:
 		float childLightOffset = 0.0f;
 		float moveSpeed = 0.0f;
 		NewPointLight light;
-		ShadowDataInfo shadowData;
-		//ShadowCube depthCube;
 	}lightObject[MAX_LIGHT];
-	//NewPointLight pointLights[MAX_LIGHT];
-	//glm::vec3 pointLocalWorldPosition[MAX_LIGHT]; //probably change later to local relative to parent
-	int availablePtLightCount = 0;
-	int specShinness = 64;
-
-	
-	NewDirectionalLight dirlight;  //Directional light
-	ShadowDataInfo dirLightShadow; //direction light shadow data
-	//ShadowDataInfo ptLightShadow;
-
-
-	struct ShadowConfig
-	{
-		float cam_near = 0.1f;
-		float cam_far = 25.0f;
-
-
-
-		//Debuging Para
-		bool debugLight;
-		int debugLightIdx = 0;
-		int debugCubeFaceIdx = 0;
-	}ptShadowConfig;
-	//ShadowCube depthCube;]
+	ShadowConfig ptShadowConfig;
 	std::vector<ShadowCube> ptDepthMapCubes;
-	Shader depthShader;
+
+
 	//---------------------------------------------Helper----------------------------------------
-	std::vector<glm::mat4> PointLightSpaceMatrix(glm::vec3 pos, ShadowConfig config = {0.1f, 25.0f})
+	std::vector<glm::mat4> PointLightSpaceMatrix(glm::vec3 pos, ShadowConfig config = {ResolutionSetting::LOW_RESOLUTION, 0.1f, 25.0f})
 	{
 		glm::mat4 proj = glm::perspective(glm::radians(90.0f), 1.0f, config.cam_near, config.cam_far);
 		glm::mat4 view;
@@ -356,9 +274,11 @@ private:
 
 
 	//ShadowResolutionSettings Enum
-	//Low = 1024
+	//Low = 1024        
 	//Medium = 2048
 	//Hight = 4096
+	// Point Light quality is half of Dir
+	// i.e Low for Point Light == 1024 * 0.5 
 	//Later change shadowDataToconfiguratiomn like near, far
 	// struct 
 	// -near

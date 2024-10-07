@@ -2,6 +2,13 @@
 #include "../RendererErrorAssertion.h"
 #include <iostream>
 
+void ShadowMap::Generate(unsigned int width, unsigned int height)
+{
+	m_Width = width;
+	m_Height = height;
+	Generate();
+}
+
 void ShadowMap::Generate()
 {
 	GLCall(glGenFramebuffers(1, &m_Id));

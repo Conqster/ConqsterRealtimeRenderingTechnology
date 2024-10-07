@@ -118,17 +118,14 @@ void AdvanceLightingScene::OnUpdate(float delta_time)
 	////////////////////
 	// update light matrix  data
 	////////////////////
-	if (dirlight.castShadow)
+	dirLightObject.sampleWorldPos = playerTest.aabb.GetCenter() + glm::vec3(0.0f, 0.0f, 1.0) * playerTest.shadowOffset;
+	if (dirLightObject.dirlight.castShadow)
 	{
-		dirLightShadow.UpdateProjMat();
-		dirLightShadow.UpdateViewMatrix(dirlight.direction);
+		dirLightObject.dirLightShadow.UpdateProjMat();
+		dirLightObject.dirLightShadow.UpdateViewMatrix(dirLightObject.sampleWorldPos, 
+													   dirLightObject.dirlight.direction,
+													   dirLightObject.cam_offset);
 	}
-	dirLightShadow.sampleWorldPos = playerTest.aabb.GetCenter() + glm::vec3(0.0f, 0.0f, 1.0) * playerTest.shadowOffset;
-
-	//for(auto& lb : lightObject)
-	//	lb.shadowData.UpdatePointLightProjMat();
-
-	//lightObject[0].shadowData.UpdatePointLightProjMat();
 
 	OnRender();
 }
@@ -168,12 +165,12 @@ void AdvanceLightingScene::OnRender()
 	modelShader.SetUniform1i("u_GammaCorrection", doGammaCorrection);
 	modelShader.SetUniform1f("u_Gamma", gamma);
 	///////////for shadow
-	modelShader.SetUniformMat4f("u_LightSpaceMatrix", dirLightShadow.GetLightSpaceMatrix());
+	modelShader.SetUniformMat4f("u_LightSpaceMatrix", dirLightObject.dirLightShadow.GetLightSpaceMatrix());
 	/////////////////////////////////////
 	//Quick hack
 	/////////////////////////////////////
-	if (dirlight.castShadow)
-		dirLightShadow.depthMap.Read(1);
+	if (dirLightObject.dirlight.castShadow)
+		dirDepthMap.Read(1);
 	else
 		plainTex->Activate(1);
 
@@ -193,10 +190,6 @@ void AdvanceLightingScene::OnRender()
 		ptDepthMapCubes[i].Read(2 + i);//bind to texture unit 
 		modelShader.SetUniform1i(("u_PointShadowCubes[" + std::to_string(i) + "]").c_str(), 2 + i);
 	}
-	//lightObject[0].shadowData.depthCube.Read(2);
-	//modelShader.SetUniform1i("u_PointShadowMap", 2);
-	//modelShader.SetUniform1f("u_FarPlane", lightObject[0].shadowData.cam_far);
-	
 	
 	LightPass(modelShader);
 	DrawObjects(modelShader);
@@ -235,10 +228,10 @@ void AdvanceLightingScene::OnRender()
 	//No need to clear screen have it the the cover area
 
 	screenShader.Bind();
-	dirLightShadow.depthMap.Read(0);
+	dirDepthMap.Read(0);
 	//quadAfterEffect.RenderDebugOutLine();
-	screenShader.SetUniform1f("u_Near", dirLightShadow.cam_near);
-	screenShader.SetUniform1f("u_Far", dirLightShadow.cam_far);
+	screenShader.SetUniform1f("u_Near", dirLightObject.dirLightShadow.config.cam_near);
+	screenShader.SetUniform1f("u_Far", dirLightObject.dirLightShadow.config.cam_far);
 	glBindVertexArray(m_Quad.VAO);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	screenShader.UnBind();
@@ -272,18 +265,11 @@ void AdvanceLightingScene::OnRender()
 			y_pos -= win_height + (win_height * 0.1f);
 			glViewport(x_pos, y_pos, win_width, win_height);
 			debugPtLightMapShader.Bind();
-			//depthCube.Read(0);
-			//lightObject[pLightsha.debugLightIdx].depthCube.Read(0);
-			//what light shadow cube map to sample
 			debugPtLightMapShader.SetUniform1i("uLightShadowMap", 2 + pLightsha.debugLightIdx);
 			//what face of the cube map to sample
 			debugPtLightMapShader.SetUniform1i("uFaceIdx", pLightsha.debugCubeFaceIdx);// 
 			debugPtLightMapShader.SetUniform1f("uFar", 25.0f);
 			debugPtLightMapShader.SetUniform1f("uNear", 0.1f);
-			//lightObject[0].shadowData.depthCube.Read(0);
-			//debugPtLightMapShader.SetUniform1i("uFaceIdx", lightObject[0].shadowData.debugCubeFaceIdx);
-			//debugPtLightMapShader.SetUniform1f("uFar", lightObject[0].shadowData.cam_far);
-			//debugPtLightMapShader.SetUniform1f("uNear", lightObject[0].shadowData.cam_near);
 			glBindVertexArray(m_Quad.VAO);
 			glDrawArrays(GL_TRIANGLES, 0, 6);
 			debugPtLightMapShader.UnBind();
@@ -343,20 +329,20 @@ void AdvanceLightingScene::OnRender()
 	DebugGizmos::DrawBox(playerTest.aabb, glm::vec3(1.0f, 0.0f, 0.0f), playerTest.debugThick);
 
 	//test directional Shadow info 
-	if (dirLightShadow.debugPara)
+	if (dirLightObject.dirLightShadow.debugPara)
 	{
-		auto& ds = dirLightShadow;
-		float dcv = ds.cam_offset + ds.cam_near * 0.5f; //dcv is the center/value between the near & far plane 
-		glm::vec3 orthCamPos = ds.sampleWorldPos + (dirlight.direction * ds.cam_offset);
-		glm::vec3 farPlane = orthCamPos + (glm::normalize(-dirlight.direction) * ds.cam_far);
-		glm::vec3 nearPlane = orthCamPos + (glm::normalize(dirlight.direction) * ds.cam_near);
-		DebugGizmos::DrawOrthoCameraFrustrm(orthCamPos, dirlight.direction,
-			ds.cam_near, ds.cam_far, ds.cam_size,
+		auto& ds = dirLightObject.dirLightShadow;
+		float dcv =dirLightObject.cam_offset + ds.config.cam_near * 0.5f; //dcv is the center/value between the near & far plane 
+		glm::vec3 orthCamPos = dirLightObject.sampleWorldPos + (dirLightObject.dirlight.direction * dirLightObject.cam_offset);
+		glm::vec3 farPlane = orthCamPos + (glm::normalize(-dirLightObject.dirlight.direction) * ds.config.cam_far);
+		glm::vec3 nearPlane = orthCamPos + (glm::normalize(dirLightObject.dirlight.direction) * ds.config.cam_near);
+		DebugGizmos::DrawOrthoCameraFrustrm(orthCamPos, dirLightObject.dirlight.direction,
+			ds.config.cam_near, ds.config.cam_far, ds.config.cam_size,
 			glm::vec3(0.0f, 1.0f, 0.0f));
 
 		//Shadow Camera Sample Position 
-		DebugGizmos::DrawCross(ds.sampleWorldPos);
-		DebugGizmos::DrawLine(playerTest.aabb.GetCenter(), ds.sampleWorldPos, glm::vec3(1.0f, 0.0f, 0.0f), playerTest.debugThick);
+		DebugGizmos::DrawCross(dirLightObject.sampleWorldPos);
+		DebugGizmos::DrawLine(playerTest.aabb.GetCenter(), dirLightObject.sampleWorldPos, glm::vec3(1.0f, 0.0f, 0.0f), playerTest.debugThick);
 	}
 
 
@@ -584,9 +570,6 @@ void AdvanceLightingScene::OnRenderUI()
 			ImGui::TreePop();
 		}
 
-		//ImGui::SeparatorText("Sphere");
-		//ImGui::DragFloat3("Sphere pos", &spherePos[0], 0.1f);
-		//ImGui::SliderFloat("Sphere scale", &sphereScale, 0.1f, 10.0f);
 
 		if (ImGui::TreeNode("Spheres"))
 		{
@@ -669,22 +652,22 @@ void AdvanceLightingScene::OnRenderUI()
 		//////////////////////////////////////
 		ImGui::Spacing();
 		ImGui::SeparatorText("Directional Light");
-		ImGui::Checkbox("Enable Directional", &dirlight.enable);
+		ImGui::Checkbox("Enable Directional", &dirLightObject.dirlight.enable);
 		ImGui::SameLine();
-		ImGui::Checkbox("Cast Shadow", &dirlight.castShadow);
-		ImGui::DragFloat3("Light Direction", &dirlight.direction[0], 0.1f, -1.0f, 1.0f);
-		ImGui::ColorEdit3("Dir Light colour" , &dirlight.colour[0]);
-		ImGui::SliderFloat("Light ambinentIntensity", &dirlight.ambientIntensity, 0.0f, 1.0f);
-		if (dirlight.castShadow)
+		ImGui::Checkbox("Cast Shadow", &dirLightObject.dirlight.castShadow);
+		ImGui::DragFloat3("Light Direction", &dirLightObject.dirlight.direction[0], 0.1f, -1.0f, 1.0f);
+		ImGui::ColorEdit3("Dir Light colour", &dirLightObject.dirlight.colour[0]);
+		ImGui::SliderFloat("Light ambinentIntensity", &dirLightObject.dirlight.ambientIntensity, 0.0f, 1.0f);
+		if (dirLightObject.dirlight.castShadow)
 		{
 			if (ImGui::TreeNode("Shadow Camera Info"))
 			{
-				auto& shadow = dirLightShadow;
-				ImGui::SliderFloat("Camera Near", &shadow.cam_near, 0.0f, shadow.cam_far - 0.5f);
-				ImGui::SliderFloat("Camera Far", &shadow.cam_far, shadow.cam_near + 0.5f, 1000.0f);
-				ImGui::SliderFloat("Camera Size", &shadow.cam_size, 0.0f, 200.0f);
-				ImGui::DragFloat3("Sample Pos", &shadow.sampleWorldPos[0], 0.1f);
-				ImGui::SliderFloat("Light Proj Offset", &shadow.cam_offset, 0.0f, 100.0f);
+				auto& shadow = dirLightObject.dirLightShadow;
+				ImGui::SliderFloat("Camera Near", &shadow.config.cam_near, 0.0f, shadow.config.cam_far - 0.5f);
+				ImGui::SliderFloat("Camera Far", &shadow.config.cam_far, shadow.config.cam_near + 0.5f, 1000.0f);
+				ImGui::SliderFloat("Camera Size", &shadow.config.cam_size, 0.0f, 200.0f);
+				ImGui::DragFloat3("Sample Pos", &dirLightObject.sampleWorldPos[0], 0.1f);
+				ImGui::SliderFloat("Light Proj Offset", &dirLightObject.cam_offset, 0.0f, 100.0f);
 				ImGui::Checkbox("Debug Dir Shadow Para", &shadow.debugPara);
 
 				static int cur_sel_type = 0;
@@ -748,25 +731,6 @@ void AdvanceLightingScene::OnRenderUI()
 				ImGui::SliderFloat((label + " constant attenuation").c_str(), &lightObject[i].light.attenuation[0], 0.0f, 1.0f);
 				ImGui::SliderFloat((label + " linear attenuation").c_str(), &lightObject[i].light.attenuation[1], 0.0f, 1.0f);
 				ImGui::SliderFloat((label + " quadratic attenuation").c_str(), &lightObject[i].light.attenuation[2], 0.0f, 1.0f);
-
-				//if (lightObject[i].light.castShadow)
-				//{
-				//	if (ImGui::TreeNode("Shadow Camera Info"))
-				//	{
-				//		auto& shadow = lightObject[i].shadowData;
-				//		ImGui::SliderFloat((label + "Camera Near").c_str(), &shadow.cam_near, 0.0f, shadow.cam_far - 0.5f);
-				//		ImGui::SliderFloat((label + "Camera Far").c_str(), &shadow.cam_far, shadow.cam_near + 0.5f, 1000.0f);
-				//		//ImGui::SliderFloat("Camera fov", &shadow.cam, 0.0f, 200.0f);
-				//		if (i == 0)
-				//		{
-				//			static int cur_sel_type = 0;
-				//			const char* element_name[] = { "RIGHT", "LEFT", "UP", "DOWN", "FRONT", "BACK" };
-				//			ImGui::Combo((label + "Shadow Sampling Type").c_str(), &shadow.debugCubeFaceIdx, element_name, IM_ARRAYSIZE(element_name));
-				//		}
-
-				//		ImGui::TreePop();
-				//	}
-				//}ptShadowConfig
 
 			}
 
@@ -958,51 +922,18 @@ void AdvanceLightingScene::CreateObjects()
 	};
 	instancingShader.Create("instance_shader", instance_shader_file_path);
 
-	//////////////////////////////////Shadow Debuging Shader
-	ShaderFilePath shadow_shader_file_path
-	{
-		"src/ShaderFiles/Learning/Debugger/DepthMapVertex.glsl", //vertex shader
-		"src/ShaderFiles/Learning/Debugger/DepthMapFrag.glsl", //fragment shader
-	};
-	dirLightShadow.depthShader.Create("shadow_depth", shadow_shader_file_path);
-	dirLightShadow.depthMap.Generate();
-
 
 	//////////////////////////////////Shadow Debuging Shader
 	ShaderFilePath point_shadow_shader_file_path
 	{
-		"src/ShaderFiles/Learning/Debugger/PointLightDepthVertex.glsl", //vertex shader
-		"src/ShaderFiles/Learning/Debugger/PointLightDepthFrag.glsl", //fragment shader
-		"src/ShaderFiles/Learning/Debugger/PointLightDepthGeometry.glsl", //geometry shader
+		"src/ShaderFiles/ShadowMapping/ShadowDepthVertex.glsl", //vertex shader
+		"src/ShaderFiles/ShadowMapping/ShadowDepthFrag.glsl", //fragment shader
+		"src/ShaderFiles/ShadowMapping/ShadowDepthGeometry.glsl", //geometry shader
 	};
 
-	depthShader.Create("point_shadow_depth", point_shadow_shader_file_path);
-	//depthCube.Generate();
-	for (auto& lb : lightObject)
-	{
-		ShadowCube sc = ShadowCube(2048, 2048);
-		sc.Generate();
-		ptDepthMapCubes.push_back(sc);
-	}
-		//lb.depthCube.Generate();
-	//lightObject[0].shadowData.depthShader.Create("point_shadow_depth", point_shadow_shader_file_path);
-	//lightObject[0].shadowData.cam_near = 1.0f;
-	//lightObject[0].shadowData.cam_far = 25.0f;
-	//lightObject[0].shadowData.UpdatePointLightProjMat();
-	//lightObject[0].shadowData.depthCube.Generate();
-	//
-	//for (auto& lb : lightObject)
-	//{
-	//	lb.shadowData.cam_near = 1.0f;
-	//	lb.shadowData.cam_far = 25.0f;
-	//	lb.shadowData.UpdatePointLightProjMat();
-	//	lb.shadowData.depthCube.Generate();
-	//}
+	shadowDepthShader.Create("point_shadow_depth", point_shadow_shader_file_path);
 
 
-
-
-	
 	ShaderFilePath screen_shader_file_path
 	{
 		//"src/ShaderFiles/Learning/Debugger/DepthMapVertex.glsl", //vertex shader
@@ -1018,6 +949,20 @@ void AdvanceLightingScene::CreateObjects()
 		"src/ShaderFiles/Learning/Debugger/DebugCubeMapDepthFrag.glsl", //vertex shader
 	};
 	debugPtLightMapShader.Create("shadow_depth", point_light_debuging_file);
+
+
+	///////////////////////////////
+	// Shadow Depth Maps 
+	///////////////////////////////
+	dirDepthMap.Generate();
+	for (auto& lb : lightObject)
+	{
+		ShadowCube sc = ShadowCube(512, 512);
+		sc.Generate();
+		ptDepthMapCubes.push_back(sc);
+	}
+	
+
 
 	////////////////////////////////////////
 	// CREATE CAMERA MAT UNIFORM BUFFER
@@ -1045,9 +990,10 @@ void AdvanceLightingScene::CreateObjects()
 	// DEFINE LIGHT NECESSARY PROP
 	/////////////////////////////////////////
 	//directional light
-	dirlight.ambientIntensity = 0.05f;
-	dirlight.colour = glm::vec3(0.3f);
-	dirlight.enable = true;
+	auto& dl = dirLightObject.dirlight;
+	dl.ambientIntensity = 0.05f;
+	dl.colour = glm::vec3(0.3f);
+	dl.enable = true;
 	//Point light
 	origin = glm::vec3(0.0f, 3.0f, 0.0f);
 	glm::vec3 colours[5] =
@@ -1096,14 +1042,11 @@ void AdvanceLightingScene::CreateObjects()
 
 	//Testing value
 	gamma = 1.80f; //for game correction
-	dirlight.enable = false;
-	dirlight.direction = glm::vec3(-1.0f, 1.0f, -1.0f);
+	dl.enable = true;
+	dl.direction = glm::vec3(-1.0f, 1.0f, -1.0f);
 
 
 	playerTest.aabb.Translate(glm::vec3(-15.0f, 2.25f, -8.0f));
-
-	//position cube in front of camera for testing 
-	//cubesPos[0] = m_Camera->GetPosition() + m_Camera->GetFroward() * 15.0f;
 }
 
 void AdvanceLightingScene::DrawObjects(Shader& shader)
@@ -1207,12 +1150,13 @@ void AdvanceLightingScene::LightPass(Shader& shader)
 	////
 	// Directional Light
 	////
+	auto& dl = dirLightObject.dirlight;
 	std::string name2 = "u_Lights[" + std::to_string(availablePtLightCount) + "].";
 	shader.SetUniform1i((name2 + "is_directional").c_str(), 1);
-	shader.SetUniform1i((name2 + "is_enable").c_str(), dirlight.enable);
-	shader.SetUniformVec3((name2 + "direction").c_str(), dirlight.direction);
-	shader.SetUniformVec3((name2 + "colour").c_str(), dirlight.colour);
-	shader.SetUniform1f((name2 + "ambinentIntensity").c_str(), dirlight.ambientIntensity);
+	shader.SetUniform1i((name2 + "is_enable").c_str(), dl.enable);
+	shader.SetUniformVec3((name2 + "direction").c_str(), dl.direction);
+	shader.SetUniformVec3((name2 + "colour").c_str(), dl.colour);
+	shader.SetUniform1f((name2 + "ambinentIntensity").c_str(), dl.ambientIntensity);
 
 
 	// all point lights is uniform for now
@@ -1229,14 +1173,6 @@ void AdvanceLightingScene::LightPass(Shader& shader)
 		shader.SetUniformVec3((name + "colour").c_str(), lightObject[i].light.colour);
 		shader.SetUniform1f((name + "ambinentIntensity").c_str(), lightObject[i].light.ambientIntensity);
 		shader.SetUniformVec3f((name + "attenuation").c_str(), lightObject[i].light.attenuation);
-
-		//update shadows 
-		//modelShader.SetUniform1i("u_ShadowMap", 1);
-		
-		//need to fix this later
-		//there are two other samplers 2D & Cube in the shader texture unit
-		//lightObject[i].shadowData.depthCube.Read(2 + i);
-		//shader.SetUniform1i(("u_PointShadowCubes[" + std::to_string(i) + "]").c_str(),2 + i);
 	}
 
 
@@ -1313,126 +1249,40 @@ void AdvanceLightingScene::InstanceObjectPass(Shader* debug_shader)
 
 void AdvanceLightingScene::ShadowPass()
 {
-	dirLightShadow.depthShader.Bind();
-
-	dirLightShadow.depthShader.SetUniformMat4f("u_LightSpaceMatrix", dirLightShadow.GetLightSpaceMatrix());
-
-	
-	dirLightShadow.depthMap.Write();
+	//Directional Light shadow
+	shadowDepthShader.Bind();
+	shadowDepthShader.SetUniform1i("u_IsOmnidir", 0);
+	shadowDepthShader.SetUniformMat4f("u_LightSpaceMat", dirLightObject.dirLightShadow.GetLightSpaceMatrix());
+	dirDepthMap.Write();
 	glClear(GL_DEPTH_BUFFER_BIT);
 	//SCENES/OBJECT TO RENDER
-	DrawObjects(dirLightShadow.depthShader);
-	InstanceObjectPass(&dirLightShadow.depthShader);
-	dirLightShadow.depthMap.UnBind();
+	DrawObjects(shadowDepthShader);
+	InstanceObjectPass(&shadowDepthShader);
+	dirDepthMap.UnBind();
 
-	dirLightShadow.depthShader.UnBind();
-
-
-
-	//new for all point lights 
-
-	depthShader.Bind();
+	//Point Light shadow
+	shadowDepthShader.Bind();
 	std::vector<glm::mat4> shadowMats = PointLightSpaceMatrix(lightObject[0].light.position, ptShadowConfig);
-
-	for (/*auto& lb : lightObject*/ int i = 0; i < MAX_LIGHT; i++)
+	//general shadowing values
+	shadowDepthShader.SetUniform1i("u_IsOmnidir", 1);
+	shadowDepthShader.SetUniform1f("u_FarPlane", ptShadowConfig.cam_far);
+	for (int i = 0; i < MAX_LIGHT; i++)
 	{
+		shadowDepthShader.Bind();
 		auto& lb = lightObject[i];
-		depthShader.Bind();
+		shadowDepthShader.SetUniformVec3("u_LightPos", lb.light.position); 
 		shadowMats = PointLightSpaceMatrix(lb.light.position, ptShadowConfig);
 		for (int f = 0; f < 6; ++f)
 		{
-			depthShader.SetUniformMat4f(("u_ShadowMatrices[" + std::to_string(f) + "]").c_str(), shadowMats[f]);
+			shadowDepthShader.SetUniformMat4f(("u_ShadowMatrices[" + std::to_string(f) + "]").c_str(), shadowMats[f]);
 		}
-		depthShader.SetUniformVec3("u_LightPos", lb.light.position); 
 
-		depthShader.SetUniform1f("u_FarPlane", ptShadowConfig.cam_far);
-		//depthCube.Write();//ready to write in the depth cube buffer
-		//lb.depthCube.Write();
-		ptDepthMapCubes[i].Write();
+		ptDepthMapCubes[i].Write();//ready to write in the depth cube framebuffer for light "i"
 		glClear(GL_DEPTH_BUFFER_BIT); //clear the depth buffer 
-		DrawObjects(depthShader);
-		InstanceObjectPass(&depthShader);
-
-		//before unbinding cube map store it to a texture unit (Uniorm across GPU)
-		//depthCube.Read(2 + i);
-
-		//depthCube.UnBind();
-		//lb.depthCube.UnBind();
+		DrawObjects(shadowDepthShader);
+		InstanceObjectPass(&shadowDepthShader);
 		ptDepthMapCubes[i].UnBind();
 	}
-	depthShader.UnBind();
+	shadowDepthShader.UnBind();
 	return;
-
-
-	//Move later
-	// //////////////////////////////////////
-	// OLD	
-	// //////////////////////////////////////
-	//Experiment PointLigth shadow data update
-	depthShader.Bind();
-	//std::vector<glm::mat4> shadowMats = PointLightSpaceMatrix(lightObject[0].light.position, ptShadowConfig);
-
-	//for (auto& lb : lightObject)
-	//{
-	//	shadowMats = PointLightSpaceMatrix(lb.light.position, ptShadowConfig);
-	//	for (int f = 0; f < 6; ++f)
-	//	{
-	//		depthShader.SetUniformMat4f(("u_ShadowMatrices[" + std::to_string(f) + "]").c_str(), shadowMats[f]);
-	//	}
-	//}
-	for (int f = 0; f < 6; ++f)
-	{
-		depthShader.SetUniformMat4f(("u_ShadowMatrices[" + std::to_string(f) + "]").c_str(), shadowMats[f]);
-	}
-	depthShader.SetUniformVec3("u_LightPos", lightObject[0].light.position);
-	depthShader.SetUniform1f("u_FarPlane", ptShadowConfig.cam_far);
-	//depthCube.Write();//ready to write in the depth cube buffer
-	glClear(GL_DEPTH_BUFFER_BIT); //clear the depth buffer 
-	DrawObjects(depthShader);
-	InstanceObjectPass(&depthShader);
-	//depthCube.UnBind();
-	depthShader.UnBind();
-
-	////Point Light 1 Shadow
-	//lightObject[0].shadowData.depthShader.Bind();
-	//std::vector<glm::mat4> shadowMats;
-
-	//lightObject[0].shadowData.depthShader.Bind();
-	//shadowMats = lightObject[0].shadowData.PointLightSpaceMatrix(lightObject[0].light.position);
-	//for (int f = 0; f < 6; ++f)
-	//{
-	//	lightObject[0].shadowData.depthShader.SetUniformMat4f(("u_ShadowMatrices[" + std::to_string(f) + "]").c_str(), shadowMats[f]);
-	//}
-	//lightObject[0].shadowData.depthShader.SetUniformVec3("u_LightPos", lightObject[0].light.position);
-	//lightObject[0].shadowData.depthShader.SetUniform1f("u_FarPlane", lightObject[0].shadowData.cam_far);
-
-
-	//lightObject[0].shadowData.depthCube.Write();
-	//glClear(GL_DEPTH_BUFFER_BIT);
-	//DrawObjects(lightObject[0].shadowData.depthShader);
-	//InstanceObjectPass(&lightObject[0].shadowData.depthShader);
-	//lightObject[0].shadowData.depthCube.UnBind();
-	//lightObject[0].shadowData.depthShader.UnBind();
-
-	//for (auto& lb : lightObject)
-	//{
-	//	//Later only have one shader
-	//	lightObject[0].shadowData.depthShader.Bind();
-
-	//	shadowMats = lightObject[0].shadowData.PointLightSpaceMatrix(lb.light.position);
-	//	for (int f = 0; f < 6; ++f)
-	//	{
-	//		lightObject[0].shadowData.depthShader.SetUniformMat4f(("u_ShadowMatrices[" + std::to_string(f) + "]").c_str(), shadowMats[f]);
-	//	}
-	//	lightObject[0].shadowData.depthShader.SetUniformVec3("u_LightPos", lb.light.position);
-	//	lightObject[0].shadowData.depthShader.SetUniform1f("u_FarPlane", lb.shadowData.cam_far);
-
-
-	//	lb.shadowData.depthCube.Write();
-	//	glClear(GL_DEPTH_BUFFER_BIT);
-	//	DrawObjects(lightObject[0].shadowData.depthShader);
-	//	InstanceObjectPass(&lightObject[0].shadowData.depthShader);
-	//	lb.shadowData.depthCube.UnBind();
-	//}
-	//lightObject[0].shadowData.depthShader.UnBind();
 }
