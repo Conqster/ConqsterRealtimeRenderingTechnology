@@ -97,6 +97,7 @@
 		{
 			glGetProgramInfoLog(m_ProgramID, sizeof(eLog), NULL, eLog);
 			printf("[ERROR VALIDATING PROGRAM (for %s)]: '%s'\n", m_Name, eLog);
+			exit(-1);
 			return false;
 		}
 
@@ -205,6 +206,12 @@
 
 			return "Not a registered shader";
 		}
+	}
+
+	void Shader::SetUniformBlockIdx(const char* name, int blockBindingIdx) const
+	{
+		const int idx = glGetUniformBlockIndex(m_ProgramID, name);
+		GLCall(glUniformBlockBinding(m_ProgramID, idx, blockBindingIdx));
 	}
 
 	void Shader::SetUniform1i(const char* name, int value)

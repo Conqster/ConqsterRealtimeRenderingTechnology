@@ -17,8 +17,7 @@ out VS_OUT
 	vec4 fragPosLightSpace;
 }vs_out;
 
-
-layout (std140)  uniform u_CameraMat
+layout (std140) uniform u_CameraMat
 {
 	mat4 projection;
 	mat4 view;
@@ -38,6 +37,7 @@ void main()
 	vs_out.modelNor = nor;
 	vs_out.colour = col;
 	vs_out.position = pos;
+    
 	
 	vs_out.fragPosLightSpace = u_LightSpaceMatrix * u_Model * pos;
 }

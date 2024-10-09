@@ -12,7 +12,9 @@ public:
 	void Generate(signed long long int size);
 	void Bind() const;
 	void UnBind() const;
-	void SetBufferSubData(unsigned offset, signed long long int size, const void* data) const;
+	void SetBufferSubData(const void* data, unsigned long long int size, unsigned int offset) const;
+	void BindBufferRndIdx(const unsigned int block_idx, unsigned long long int size, unsigned int offset) const;
+	void SetSubDataByID(const void* data, signed long long int size, unsigned int offset) const;
 
 	void Delete();
 };

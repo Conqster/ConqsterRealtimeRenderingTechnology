@@ -42,6 +42,7 @@ public:
 	const char* GetShaderFilePath(GLenum shader_type);
 
 	//TO-DO: Abstract out later
+	void SetUniformBlockIdx(const char* name, int blockBindingIdx = 0) const;
 	void SetUniform1i(const char* name, int value);
 	void SetUniform1f(const char* name, float value);
 	void SetUniformVec3f(const char* name, const float* value);
