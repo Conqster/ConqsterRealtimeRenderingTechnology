@@ -135,20 +135,28 @@ void AdvanceLightingScene::OnRender()
 	GLCall(glClearColor(m_ClearScreenColour.r, m_ClearScreenColour.g, m_ClearScreenColour.b, 1.0f));
 	GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
-	//Camera uniform GPU buffer update
-	m_CameraMatUBO.Bind();
-	m_CameraMatUBO.SetBufferSubData(0, sizeof(glm::mat4), &(m_Camera->CalculateProjMatrix(window->GetAspectRatio())[0][0]));
-	m_CameraMatUBO.SetBufferSubData(sizeof(glm::mat4), sizeof(glm::mat4), &(m_Camera->CalViewMat()[0][0]));
-	m_CameraMatUBO.UnBind();
 
-
-
+	
+	////////////////////////////////////////
+	// UPDATE UNIFORM BUFFERs
+	////////////////////////////////////////
+	//------------------Update uniform GPU buffer Lights -----------------------------/ 
+	long long int offset_pointer = 0;
+	offset_pointer = 0;
+	dirLightObject.dirlight.UpdateUniformBufferData(m_LightDataUBO, offset_pointer);
+	for (int i = 0; i < MAX_LIGHT; i++)
+	{
+		lightObject[i].light.UpdateUniformBufferData(m_LightDataUBO, offset_pointer);
+	}
+	//m_LightDataUBO.SetSubDataByID(&availablePtLightCount, sizeof(int), offset_pointer);
+	//------------------Camera Matrix Data UBO-----------------------------/
+	m_CameraMatUBO.SetSubDataByID(&(m_Camera->CalculateProjMatrix(window->GetAspectRatio())[0][0]), sizeof(glm::mat4), 0);
+	m_CameraMatUBO.SetSubDataByID(&(m_Camera->CalViewMat()[0][0]), sizeof(glm::mat4), sizeof(glm::mat4));
 
 
 	//////////////////////////
 	//  SECOND PASS for Testing shadow Pass
 	//////////////////////////
-	//dirLightShadow.depthShader.Bind();
 	glCullFace(GL_FRONT);
 	ShadowPass();
 	glCullFace(GL_BACK);
@@ -658,6 +666,8 @@ void AdvanceLightingScene::OnRenderUI()
 		ImGui::DragFloat3("Light Direction", &dirLightObject.dirlight.direction[0], 0.1f, -1.0f, 1.0f);
 		ImGui::ColorEdit3("Dir Light colour", &dirLightObject.dirlight.colour[0]);
 		ImGui::SliderFloat("Light ambinentIntensity", &dirLightObject.dirlight.ambientIntensity, 0.0f, 1.0f);
+		ImGui::SliderFloat("Light diffuseIntensity", &dirLightObject.dirlight.diffuseIntensity, 0.0f, 1.0f);
+		ImGui::SliderFloat("Light specIntensity", &dirLightObject.dirlight.specularIntensity, 0.0f, 1.0f);
 		if (dirLightObject.dirlight.castShadow)
 		{
 			if (ImGui::TreeNode("Shadow Camera Info"))
@@ -728,6 +738,8 @@ void AdvanceLightingScene::OnRenderUI()
 
 				ImGui::ColorEdit3((label + " colour").c_str(), &lightObject[i].light.colour[0]);
 				ImGui::SliderFloat((label + " ambinentIntensity").c_str(), &lightObject[i].light.ambientIntensity, 0.0f, 1.0f);
+				ImGui::SliderFloat((label + " diffuseIntensity").c_str(), &lightObject[i].light.diffuseIntensity, 0.0f, 1.0f);
+				ImGui::SliderFloat((label + " specIntensity").c_str(), &lightObject[i].light.specularIntensity, 0.0f, 1.0f);
 				ImGui::SliderFloat((label + " constant attenuation").c_str(), &lightObject[i].light.attenuation[0], 0.0f, 1.0f);
 				ImGui::SliderFloat((label + " linear attenuation").c_str(), &lightObject[i].light.attenuation[1], 0.0f, 1.0f);
 				ImGui::SliderFloat((label + " quadratic attenuation").c_str(), &lightObject[i].light.attenuation[2], 0.0f, 1.0f);
@@ -946,30 +958,47 @@ void AdvanceLightingScene::CreateObjects()
 	ShaderFilePath point_light_debuging_file
 	{
 		"src/ShaderFiles/Learning/Debugger/DebugCubeMapDepthVertex.glsl", //vertex shader
-		"src/ShaderFiles/Learning/Debugger/DebugCubeMapDepthFrag.glsl", //vertex shader
+		"src/ShaderFiles/Learning/Debugger/DebugCubeMapDepthFrag.glsl", //fragment shader
 	};
 	debugPtLightMapShader.Create("shadow_depth", point_light_debuging_file);
 
 
-	///////////////////////////////
-	// Shadow Depth Maps 
-	///////////////////////////////
-	dirDepthMap.Generate();
-	for (auto& lb : lightObject)
-	{
-		ShadowCube sc = ShadowCube(512, 512);
-		sc.Generate();
-		ptDepthMapCubes.push_back(sc);
-	}
-	
 
 
 	////////////////////////////////////////
-	// CREATE CAMERA MAT UNIFORM BUFFER
+	// UNIFORM BUFFERs
 	////////////////////////////////////////
-	long long int buf_size = 2 * sizeof(glm::mat4) + sizeof(glm::vec2);   //to store view, projection & screenRes(vec2)
+	//------------------Camera Matrix Data UBO-----------------------------/
+	long long int buf_size = 2 * sizeof(glm::mat4);// +sizeof(glm::vec2);   //to store view, projection
 	m_CameraMatUBO.Generate(buf_size);
+	m_CameraMatUBO.BindBufferRndIdx(0, buf_size, 0);
 
+
+	modelShader.Bind();
+	//i think what happens here is that the shader program 
+	//scan/check its itself(program) for the block "u_CameraMat"
+	//woudl be success if found
+	modelShader.SetUniformBlockIdx("u_CameraMat", 0);
+	instancingShader.Bind();
+	instancingShader.SetUniformBlockIdx("u_CameraMat", 0);
+	debugShader.Bind();
+	debugShader.SetUniformBlockIdx("u_CameraMat", 0);
+	//------------------Light Data UBO-----------------------------/
+	//struct
+	//DirectionalLight dirLight;
+	//PointLight pointLights[MAX_POINT_LIGHTS];
+	long long int light_buffer_size = 0;
+	light_buffer_size += DirectionalLight::GetGPUSize();		//get the size of a directional light
+	light_buffer_size += MAX_LIGHT * PointLight::GetGPUSize();				//get the size of a point light
+
+	m_LightDataUBO.Generate(light_buffer_size);
+	m_LightDataUBO.BindBufferRndIdx(1, light_buffer_size, 0);
+	modelShader.Bind();
+	modelShader.SetUniformBlockIdx("u_LightBuffer", 1);
+	instancingShader.Bind();
+	instancingShader.SetUniformBlockIdx("u_LightBuffer", 1);
+	
+	//////////////////////////////////////////
 
 	//DebugGizmos::Startup();
 
@@ -989,11 +1018,6 @@ void AdvanceLightingScene::CreateObjects()
 	/////////////////////////////////////////
 	// DEFINE LIGHT NECESSARY PROP
 	/////////////////////////////////////////
-	//directional light
-	auto& dl = dirLightObject.dirlight;
-	dl.ambientIntensity = 0.05f;
-	dl.colour = glm::vec3(0.3f);
-	dl.enable = true;
 	//Point light
 	origin = glm::vec3(0.0f, 3.0f, 0.0f);
 	glm::vec3 colours[5] =
@@ -1032,8 +1056,12 @@ void AdvanceLightingScene::CreateObjects()
 		lightObject[i].light.position = (glm::vec3(1.0f, 0.0f, 0.0f) * lightObject[i].childLightOffset) + lightObject[i].objectPosition;
 		lightObject[i].light.colour = (i < 5) ? colours[i] : glm::vec3(0.3f, 0.0f, 0.3f);
 		lightObject[i].light.ambientIntensity = 0.05f;
+		lightObject[i].light.diffuseIntensity = 1.0f;
+		lightObject[i].light.specularIntensity = 1.0f;
 		lightObject[i].light.enable = true;
 
+		//for testing / debugging
+		//lightObject[i].moveSpeed = 0.0f;
 	
 		availablePtLightCount++;
 	}
@@ -1041,9 +1069,32 @@ void AdvanceLightingScene::CreateObjects()
 	debugModelType = MODEL_NORMAL;
 
 	//Testing value
+	//directional light
+	auto& dl = dirLightObject.dirlight;
+	dl.ambientIntensity = 0.05f;
+	dl.colour = glm::vec3(0.3f);
+	dl.enable = true;
 	gamma = 1.80f; //for game correction
 	dl.enable = true;
 	dl.direction = glm::vec3(-1.0f, 1.0f, -1.0f);
+
+
+	///////////////////////////////
+	// Shadow Depth Maps 
+	///////////////////////////////
+	//point
+	ShadowCube sc;
+	for (auto& lb : lightObject)
+	{
+		sc = ShadowCube(512, 512);
+		sc.Generate();
+		ptDepthMapCubes.push_back(sc);
+	}
+	//direcdtional 
+	dirDepthMap.Generate(1024 * 2, 1024 * 2);
+	dirLightObject.dirLightShadow.config.cam_far = 70.0f;
+	
+
 
 
 	playerTest.aabb.Translate(glm::vec3(-15.0f, 2.25f, -8.0f));
@@ -1144,38 +1195,7 @@ void AdvanceLightingScene::LightPass(Shader& shader)
 	// Point Light 
 	////////////////////////
 	shader.SetUniform1i("u_Shininess", specShinness);
-	shader.SetUniform1i("u_LightCount", availablePtLightCount + 1); //+1 for directional light
-	//shader.SetUniform1i("u_LightCount", testLight);
-
-	////
-	// Directional Light
-	////
-	auto& dl = dirLightObject.dirlight;
-	std::string name2 = "u_Lights[" + std::to_string(availablePtLightCount) + "].";
-	shader.SetUniform1i((name2 + "is_directional").c_str(), 1);
-	shader.SetUniform1i((name2 + "is_enable").c_str(), dl.enable);
-	shader.SetUniformVec3((name2 + "direction").c_str(), dl.direction);
-	shader.SetUniformVec3((name2 + "colour").c_str(), dl.colour);
-	shader.SetUniform1f((name2 + "ambinentIntensity").c_str(), dl.ambientIntensity);
-
-
-	// all point lights is uniform for now
-	//shader.SetUniform1f("u_FarPlane", lightObject[0].shadowData.cam_far);
-	for (int i = 0; i < availablePtLightCount; i++)
-	{
-		//u_Lights[i].position....
-		std::string name = "u_Lights[" + std::to_string(i) + "].";
-		shader.SetUniform1i((name + "is_directional").c_str(), 0);
-		shader.SetUniform1i((name + "is_enable").c_str(), lightObject[i].light.enable);
-		//shader.SetUniformVec3((name + "position").c_str(), pointLights[i].position);
-		//convert to world space  pos
-		shader.SetUniformVec3((name + "position").c_str(), lightObject[i].light.position);
-		shader.SetUniformVec3((name + "colour").c_str(), lightObject[i].light.colour);
-		shader.SetUniform1f((name + "ambinentIntensity").c_str(), lightObject[i].light.ambientIntensity);
-		shader.SetUniformVec3f((name + "attenuation").c_str(), lightObject[i].light.attenuation);
-	}
-
-
+	//shader.SetUniform1i("u_LightCount", availablePtLightCount + 1); //+1 for directional light
 
 	shader.UnBind();
 
@@ -1197,18 +1217,8 @@ void AdvanceLightingScene::InstanceObjectPass(Shader* debug_shader)
 		instancingShader.SetUniform1i("u_GammaCorrection", doGammaCorrection);
 		instancingShader.SetUniform1f("u_Gamma", gamma);
 
-		//instancingShader.SetUniformMat4f("u_LightSpaceMatrix", dirLightShadow.GetLightSpaceMatrix());
-		//dirLightShadow.depthMap.Read(1);
-		//instancingShader.SetUniform1i("u_ShadowMap", 1);
-
-		//lightObject[0].shadowData.depthCube.Read(2);
-		//instancingShader.SetUniform1i("u_PointShadowMap", 2);
-		//depthCube.Read(2);
-		//instancingShader.SetUniform1i(("u_PointShadowCubes[" + std::to_string(0) + "]").c_str(), 2);
-
-		//depthCube.Read(2);
 		instancingShader.SetUniform1f("u_FarPlane", ptShadowConfig.cam_far);
-		//instancingShader.SetUniform1i(("u_PointShadowCubes[" + std::to_string(0) + "]").c_str(), 2);
+
 		//so far the texture unit as not been overwritten 
 		for (int i = 0; i < MAX_LIGHT; i++)
 		{

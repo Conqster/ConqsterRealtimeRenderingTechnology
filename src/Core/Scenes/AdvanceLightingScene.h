@@ -11,7 +11,7 @@
 #include "Graphics/Meshes/SquareMesh.h"
 #include "Graphics/Meshes/CubeMesh.h"
 
-#include "Graphics/Lights/NewLights.h"
+#include "Graphics/Lights/Lights.h"
 #include "Util/Constants.h"
 
 #include "Graphics/ObjectBuffer/ShadowMap.h"
@@ -103,6 +103,7 @@ private:
 	bool doGammaCorrection = false;
 	float gamma = 2.2f;
 	LearnVertex m_Quad;
+	UniformBuffer m_LightDataUBO;
 
 	/////////////////
 	//Debugging datas
@@ -178,6 +179,7 @@ private:
 	Shader screenShader;
 	Shader debugPtLightMapShader;
 
+	bool useNewShader = true;
 	//////Textures
 	Texture* brickTex;
 	Texture* plainTex;
@@ -198,7 +200,7 @@ private:
 	{
 		glm::vec3 sampleWorldPos = glm::vec3(0.0f);
 		float cam_offset = 5.0f;
-		NewDirectionalLight dirlight;  //Directional light
+		DirectionalLight dirlight;  //Directional light
 		DirShadowCalculation dirLightShadow; //direction light shadow data
 	}dirLightObject;
 	ShadowMap dirDepthMap;
@@ -211,7 +213,7 @@ private:
 		glm::vec3 objectPosition;
 		float childLightOffset = 0.0f;
 		float moveSpeed = 0.0f;
-		NewPointLight light;
+		PointLight light;
 	}lightObject[MAX_LIGHT];
 	ShadowConfig ptShadowConfig;
 	std::vector<ShadowCube> ptDepthMapCubes;

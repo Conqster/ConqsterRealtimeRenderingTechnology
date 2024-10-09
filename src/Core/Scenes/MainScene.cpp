@@ -103,7 +103,7 @@ void MainScene::OnRender()
 	//for debugging light pos	
 	for (auto& l : m_LightManager.GetLights())
 	{
-		if (auto pt = std::dynamic_pointer_cast<NewPointLight>(l))
+		if (auto pt = std::dynamic_pointer_cast<PointLight>(l))
 		{
 			glm::mat4 model12 = glm::mat4(1.0f);
 			model12 = glm::translate(model12, pt->position);
@@ -216,21 +216,21 @@ void MainScene::OnRenderUI()
 			ImGui::ColorEdit3("Specular Colour", &selected_light->specular[0]);
 
 
-			if (auto point_light = std::dynamic_pointer_cast<NewPointLight>(selected_light))
+			if (auto point_light = std::dynamic_pointer_cast<PointLight>(selected_light))
 			{
 				ImGui::DragFloat3("Light Pos", &point_light->position[0], 0.1f);
 				ImGui::SliderFloat("Constant", &point_light->attenuation[0], 0.0f, 1.0f);
 				ImGui::SliderFloat("Linear", &point_light->attenuation[1], 0.0f, 1.0f);
 				ImGui::SliderFloat("Quadratic", &point_light->attenuation[2], 0.0f, 1.0f);
 
-				if (auto spot_light = std::dynamic_pointer_cast<NewSpotLight>(selected_light))
+				if (auto spot_light = std::dynamic_pointer_cast<SpotLight>(selected_light))
 				{
 					ImGui::SliderFloat3("Direction", &spot_light->direction[0], -1.0f, 1.0f);
 					ImGui::SliderFloat("Inner Cutoff Angle", &spot_light->innerCutoffAngle, 0.0f, 60.0f);
 					ImGui::SliderFloat("Outer Cutoff Angle", &spot_light->outerCutoffAngle, 0.0f, 60.0f);
 				}
 			}
-			else if (auto directional_light = std::dynamic_pointer_cast<NewDirectionalLight>(selected_light))
+			else if (auto directional_light = std::dynamic_pointer_cast<DirectionalLight>(selected_light))
 			{
 				ImGui::SliderFloat3("Direction", &directional_light->direction[0], -1.0f, 1.0f);
 				ImGui::SameLine();
@@ -355,7 +355,7 @@ void MainScene::OnRenderUI()
 	for (auto& light : m_LightManager.GetLights())
 	{
 		ImGui::Text("Light - %s", light->LightTypeToString());
-		if (auto spot_light = std::dynamic_pointer_cast<NewSpotLight>(light))
+		if (auto spot_light = std::dynamic_pointer_cast<SpotLight>(light))
 		{
 			ImGui::Text("Direction X: %f, Y: %f, Z: %f", spot_light->direction.x, spot_light->direction.y, spot_light->direction.z);
 			ImGui::Text("Outer Cutoff: %f", spot_light->outerCutoffAngle);
@@ -468,15 +468,15 @@ void MainScene::CreateObjects()
 
 void MainScene::SetupLights()
 {
-	m_LightManager.Add(std::make_shared<NewDirectionalLight>());
+	m_LightManager.Add(std::make_shared<DirectionalLight>());
 
-	m_LightManager.Add(std::make_shared<NewPointLight>());
-	m_LightManager.Add(std::make_shared<NewPointLight>());
-	m_LightManager.Add(std::make_shared<NewPointLight>());
+	m_LightManager.Add(std::make_shared<PointLight>());
+	m_LightManager.Add(std::make_shared<PointLight>());
+	m_LightManager.Add(std::make_shared<PointLight>());
 
-	m_LightManager.Add(std::make_shared<NewSpotLight>());
-	m_LightManager.Add(std::make_shared<NewSpotLight>());
-	m_LightManager.Add(std::make_shared<NewSpotLight>());
+	m_LightManager.Add(std::make_shared<SpotLight>());
+	m_LightManager.Add(std::make_shared<SpotLight>());
+	m_LightManager.Add(std::make_shared<SpotLight>());
 
 
 	for (auto dir : m_LightManager.GetDirLights())

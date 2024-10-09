@@ -40,9 +40,9 @@ void InstancingScene::OnRender()
 	float aspect_ratio = window->GetAspectRatio();
 	glm::mat4 proj = m_Camera->CalculateProjMatrix(window->GetAspectRatio());
 	m_CameraMatUBO.Bind();
-	m_CameraMatUBO.SetBufferSubData(0, sizeof(glm::mat4), &proj[0][0]);
-	m_CameraMatUBO.SetBufferSubData(sizeof(glm::mat4), sizeof(glm::mat4), &view[0][0]);
-	m_CameraMatUBO.SetBufferSubData(2 * sizeof(glm::mat4), sizeof(glm::vec2), &screen_res[0]);
+	m_CameraMatUBO.SetBufferSubData(&proj[0][0], sizeof(glm::mat4), 0);
+	m_CameraMatUBO.SetBufferSubData(&view[0][0], sizeof(glm::mat4), sizeof(glm::mat4));
+	m_CameraMatUBO.SetBufferSubData(&screen_res[0], sizeof(glm::vec2), 2 * sizeof(glm::mat4));
 	m_CameraMatUBO.UnBind();
 
 	//Render square 

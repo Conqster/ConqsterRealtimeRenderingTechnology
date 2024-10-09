@@ -9,7 +9,7 @@ LightManager::~LightManager()
 	Clean();
 }
 
-void LightManager::Add(std::shared_ptr<NewLight> light)
+void LightManager::Add(std::shared_ptr<Light> light)
 {
 	m_Lights.push_back(light);
 	//printf("Added a new light!!!!!!\n");
@@ -20,21 +20,21 @@ void LightManager::Add(std::shared_ptr<NewLight> light)
 	{
 	case lightType_DIRECTIONAL:
 		{
-			std::shared_ptr<NewDirectionalLight> dl = std::dynamic_pointer_cast<NewDirectionalLight>(light);
+			std::shared_ptr<DirectionalLight> dl = std::dynamic_pointer_cast<DirectionalLight>(light);
 			if(dl)
 				m_DirectionalLight.push_back(dl);
 			return;
 		}
 	case lightType_POINT:
 		{
-			std::shared_ptr<NewPointLight> pl = std::dynamic_pointer_cast<NewPointLight>(light);
+			std::shared_ptr<PointLight> pl = std::dynamic_pointer_cast<PointLight>(light);
 			if (pl)
 				m_PointLight.push_back(pl);
 			return;
 		}
 	case lightType_SPOT:
 		{
-			std::shared_ptr<NewSpotLight> sl = std::dynamic_pointer_cast<NewSpotLight>(light);
+			std::shared_ptr<SpotLight> sl = std::dynamic_pointer_cast<SpotLight>(light);
 			if(sl)
 				m_SpotLight.push_back(sl);
 			return;

@@ -45,8 +45,8 @@ void GeometryScene::OnRender()
 	glm::mat4 view = m_Camera->CalViewMat();
 	glm::mat4 proj = m_Camera->CalculateProjMatrix(window->GetAspectRatio());
 	m_CameraMatUBO.Bind();
-	m_CameraMatUBO.SetBufferSubData(0, sizeof(glm::mat4), &proj[0][0]);
-	m_CameraMatUBO.SetBufferSubData(sizeof(glm::mat4), sizeof(glm::mat4), &view[0][0]);
+	m_CameraMatUBO.SetBufferSubData(&proj[0][0], sizeof(glm::mat4), 0);
+	m_CameraMatUBO.SetBufferSubData(&view[0][0], sizeof(glm::mat4), sizeof(glm::mat4));
 	m_CameraMatUBO.UnBind();
 
 	//Model set-up

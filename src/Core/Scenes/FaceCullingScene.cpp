@@ -53,8 +53,8 @@ void FaceCullingScene::OnRender()
 	//glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), &proj[0][0]);
 	//glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), &view[0][0]);
 	m_CameraMatUBO.Bind();
-	m_CameraMatUBO.SetBufferSubData(0, sizeof(glm::mat4), &proj[0][0]);
-	m_CameraMatUBO.SetBufferSubData(sizeof(glm::mat4), sizeof(glm::mat4), &view[0][0]);
+	m_CameraMatUBO.SetBufferSubData(&proj[0][0], sizeof(glm::mat4), 0);
+	m_CameraMatUBO.SetBufferSubData(&view[0][0], sizeof(glm::mat4), sizeof(glm::mat4));
 	m_CameraMatUBO.UnBind();
 
 

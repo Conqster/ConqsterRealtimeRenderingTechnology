@@ -8,6 +8,7 @@ public:
 	ShadowMap() = default;
 	~ShadowMap() = default;
 	ShadowMap(unsigned int width, unsigned int height) : m_Width(width), m_Height(height){}
+	void Generate(unsigned int width, unsigned int height);
 	virtual void Generate();
 	void Write();
 	virtual void Read(unsigned int slot = 0);
