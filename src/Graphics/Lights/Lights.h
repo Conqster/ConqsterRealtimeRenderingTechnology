@@ -60,12 +60,10 @@ struct DirectionalLight : public Light
 
 	static long long int GetGPUSize()
 	{
-		return (sizeof(glm::vec4) +		//colour
-				sizeof(glm::vec3)+		//direction
-				sizeof(float) +			//ambient
-				sizeof(float)+			//diffuse
-				sizeof(float)+			//specular
-				sizeof(glm::vec2));		//alignment	
+		return (2 * sizeof(glm::vec3) +	
+				sizeof(int) + 
+				3 * sizeof(float) + 
+				sizeof(glm::vec2));
 	}
 
 	virtual void UpdateUniformBufferData(class UniformBuffer& ubo, long long int& offset_pointer) override;
@@ -82,6 +80,8 @@ struct PointLight : public Light
 		 //float diffuse;
 		 //vec3 attenuation;
 		 //float specular;
+		 //float enable;               
+		 //vec3 alignmentPadding;     
 
 	glm::vec3 position;
 
@@ -90,16 +90,15 @@ struct PointLight : public Light
 	//linear
 	//quardratic
 	float attenuation[3];
+	float shadow_far;
 	PointLight(const glm::vec3& pos = glm::vec3(0.0f), const glm::vec3& col = glm::vec3(1.0f), float amb_inten = 0.5f, float diff_inten = 0.6f);
 
 	static long long int GetGPUSize()
 	{
-		return (sizeof(glm::vec3) +		//colour
-				sizeof(float) +			//ambinent
-				sizeof(glm::vec3) +		//position
-				sizeof(float) +			//diffuse
-				sizeof(float) +			//spec
-				sizeof(glm::vec3));		//attenuations
+		return (3 * sizeof(glm::vec3)+
+				sizeof(int) + 
+				4 * sizeof(float)+
+				sizeof(glm::vec2));
 	}
 
 	virtual void UpdateUniformBufferData(class UniformBuffer& ubo, long long int& offset_pointer) override;

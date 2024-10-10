@@ -113,7 +113,6 @@ private:
 	bool useDebugColour = true;
 	bool debugLightPos = true;
 	bool debugScene = false;
-	//bool debugWcModelSpace = false;
 	bool debugVertexPosColour = false;
 	bool disableTexture = true;
 	bool useBlinnPhong = true;
@@ -266,12 +265,6 @@ private:
 		float debugThick = 1.0f;
 		float shadowOffset = 10.0f;
 	}playerTest;
-
-	enum ShadowSamplingType : int
-	{
-		SHADOW_PCF_SAMPLING,
-		SHADOW_POISSON_SAMPLING,
-	}shadowSamplingType;
 
 
 

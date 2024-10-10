@@ -40,8 +40,10 @@
 
 		//colour
 		ubo.SetSubDataByID(&colour[0], vec3_size, offset_pointer);
-		//offset_pointer += vec3_size;
-		offset_pointer += 16;
+		offset_pointer += vec3_size;
+		//enable
+		ubo.SetSubDataByID(&enable, sizeof(int), offset_pointer);
+		offset_pointer += sizeof(int);
 		//direction
 		ubo.SetSubDataByID(&direction[0], vec3_size, offset_pointer);
 		offset_pointer += vec3_size;
@@ -78,22 +80,30 @@
 		//colour
 		ubo.SetSubDataByID(&colour[0], vec3_size, offset_pointer);
 		offset_pointer += vec3_size;
+		//enable
+		ubo.SetSubDataByID(&enable, sizeof(int), offset_pointer);
+		offset_pointer += sizeof(int);
+		//position
+		ubo.SetSubDataByID(&position[0], vec3_size, offset_pointer);
+		offset_pointer += vec3_size;
 		//ambient intensity
 		ubo.SetSubDataByID(&ambientIntensity, float_size, offset_pointer);
 		offset_pointer += float_size;
-		//position
-		ubo.SetSubDataByID(&position[0], vec3_size, offset_pointer);
+		//attenuation
+		ubo.SetSubDataByID(&attenuation[0], vec3_size, offset_pointer);
 		offset_pointer += vec3_size;
 		//diffuse
 		ubo.SetSubDataByID(&diffuseIntensity, float_size, offset_pointer);
 		offset_pointer += float_size;
-		//attenuation
-		glm::vec3 att = glm::vec3(attenuation[0], attenuation[1], attenuation[2]);
-		ubo.SetSubDataByID(&attenuation[0], vec3_size, offset_pointer);
-		offset_pointer += vec3_size;
 		//specular
 		ubo.SetSubDataByID(&specularIntensity, float_size, offset_pointer);
 		offset_pointer += float_size;
+		//specular
+		ubo.SetSubDataByID(&shadow_far, float_size, offset_pointer);
+		offset_pointer += float_size;
+
+		//alignement padding
+		offset_pointer += sizeof(glm::vec2);
 
 	}
 

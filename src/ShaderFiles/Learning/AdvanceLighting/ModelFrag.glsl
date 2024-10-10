@@ -34,24 +34,26 @@ struct PointLight
 	//TO-DO: Stored all attenuation contiguously in memory for easy access
 	//		Probably change to a vec3 later
     
-    vec3 colour;                //12 bytes n 4
+    vec3 colour;                // 12 bytes r 4
+    bool enable;                // << 4 
+    vec3 position;              // 12 bytes r 4
     float ambinent;             // << 4
-    vec3 position;              //12 bytes n 4 
-    float diffuse;              // << 4
     vec3 attenuation;           // 12 bytes r 4
-    float specular;             // << 4
-    //float far;                // 4 bytes r 12
-	//float alignmentPadding[3];//<< 12
+    float diffuse;              // << 4
+    float specular;             // 4 bytes r 12
+    float far;                  // << 4 r 8
+    vec2 alignmentPadding;      // << 8
 };
 //--------------------Directional Light----------------------
 struct DirectionalLight
 {
-    vec3 colour;                // 4N == 16
+    vec3 colour;                // 12 bytes r 4
+    bool enable;                // << 4
     vec3 direction;             //12 bytes r 4
-    float ambinent;             //<<4
+    float ambinent;             // << 4
     float diffuse;              // 4 bytes r 12
     float specular;             // << 4 r 8
-    vec2 alignmentPadding;      //<< 8
+    vec2 alignmentPadding;      // << 8
 };
 
 ///////////////////////////////
@@ -96,10 +98,6 @@ uniform float u_Gamma;
 uniform bool u_DebugScene;
 uniform bool u_DisableTex;
 uniform int u_DebugWcType;
-
-//To clear errot
-uniform int u_ShadowSampleType;
-uniform float u_FarPlane;
 
 #define DEBUG_WC_MODEL_SPACE 0
 #define DEBUG_WC_NORMAL 1
@@ -147,8 +145,8 @@ float PointLightShadowCal(int lightIdx, vec3 frag_in_pos)
     float closestDepth = texture(u_PointShadowCubes[lightIdx], vfl).r;
     //[0;1] => [0;far_plane]
     //probably remap during depth samplign
-    //closestDepth *= pointLights[lightIdx].far;
-    closestDepth *= 25.0f;
+    closestDepth *= pointLights[lightIdx].far;
+    //closestDepth *= 25.0f;
     
     float currentDepth = length(vfl);
     float bias = 0.005f;
@@ -158,8 +156,11 @@ float PointLightShadowCal(int lightIdx, vec3 frag_in_pos)
 
 //--------------------------------Light Calculations---------------------------------------------
 
-vec3 DirLightColInfluence(DirectionalLight light)
+vec3 DirLightColInfluence(DirectionalLight light, vec3 hack_texture_col)
 {
+    if(!light.enable)
+        return vec3(0.0f);
+        
     vec3 result_colour = vec3(0.0f);
     
     //////////////////////
@@ -177,8 +178,8 @@ vec3 DirLightColInfluence(DirectionalLight light)
     float diff_factor = max(dot(nor, light_dir), 0.0f);
     
     //Quick hack
-    if(diff_factor <= 0.0f)
-		return amb_colour + (light.colour * diff_factor);
+    //if(diff_factor <= 0.0f)
+		//return amb_colour + (light.colour * diff_factor);
         
         
     ///////////////
@@ -203,23 +204,34 @@ vec3 DirLightColInfluence(DirectionalLight light)
     float shadow = DirShadowCalculation(fs_in.fragPosLightSpace, light);
     //shadow = 0.0f;
     vec3 lighting = amb_colour + (1.0f - shadow) *  ((scatteredLight + reflectedLight) );
+    
+    //amb_colour already has light colour 
+    //scatteredLight already has light colour
+    //reflectedlight already has light colour
+    //Amb * scatteredLight needs model texture colour
+        
+    amb_colour *= hack_texture_col;
+    scatteredLight *= hack_texture_col;
+        
+    lighting = amb_colour + ((1.0f - shadow) * (scatteredLight + reflectedLight));
         
     return lighting;
 }
 
 //all light are registered but influence is based on the count available in scenePointLightCount
 //Later have isenable
-vec3 PointLightsColInfluence()
+vec3 PointLightsColInfluence(vec3 hack_texture_col)
 {
     vec3 result_colour = vec3(0.0f);
     
     
     
     //for(int i = 0; i < scenePointLightCount; i++)
-    for(int i = 0; i < 3; i++)
+    for(int i = 0; i < MAX_POINT_LIGHTS; i++)
     {
 
-            
+        if(!pointLights[i].enable)   
+            continue;
         
         ///////////
 		//Ambinent
@@ -276,6 +288,17 @@ vec3 PointLightsColInfluence()
         
         vec3 lightingInfluence = (amb_colour + (1.0f - shadow) * ((diff + spec)/total_attenuation)) * pointLights[i].colour;
         //lightingInfluence = amb_colour + (1.0f - shadow) *  ((scatteredLight + reflectedLight)/total_attenuation );// * pointLights[i].colour;
+        
+        //amb_colour already has light colour 
+        //scatteredLight already has light colour
+        //reflectedlight already has light colour
+        //Amb * scatteredLight needs model texture colour
+        
+        amb_colour *= hack_texture_col;
+        scatteredLight *= hack_texture_col;
+        
+        lightingInfluence = amb_colour + ((1.0f - shadow) * ((scatteredLight + reflectedLight)/total_attenuation));
+        
         result_colour += lightingInfluence;
     }
     
@@ -304,10 +327,10 @@ void main()
     vec3 tex_ambinent = tex_sample_colour * tex_ambiency_strength;
     
     //for now
-    vec3 result_colour = DirLightColInfluence(dirLight);
-    result_colour += PointLightsColInfluence();
+    vec3 result_colour = DirLightColInfluence(dirLight, tex_ambinent);
+    result_colour += PointLightsColInfluence(tex_ambinent);
     
-    result_colour *= tex_ambinent;
+    //result_colour *= tex_ambinent;
     
     
     FragColour = vec4(result_colour, 1.0f);

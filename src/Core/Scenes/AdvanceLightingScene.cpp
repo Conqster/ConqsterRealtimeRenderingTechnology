@@ -127,6 +127,13 @@ void AdvanceLightingScene::OnUpdate(float delta_time)
 													   dirLightObject.cam_offset);
 	}
 
+
+	//point shadow far update 
+	float shfar = ptShadowConfig.cam_far;
+	for (auto& pt : lightObject)
+		pt.light.shadow_far = shfar;
+
+
 	OnRender();
 }
 
@@ -185,11 +192,6 @@ void AdvanceLightingScene::OnRender()
 
 	
 	modelShader.SetUniform1i("u_ShadowMap", 1);
-	modelShader.SetUniform1i("u_ShadowSampleType", shadowSamplingType);
-
-	//depthCube.Read(2);
-	//modelShader.SetUniform1i(("u_PointShadowCubes[" + std::to_string(0) + "]").c_str(), 2);
-	modelShader.SetUniform1f("u_FarPlane", ptShadowConfig.cam_far);
 
 	//so far the texture as not been overwritten
 	for (int i = 0; i < MAX_LIGHT; i++)
@@ -680,11 +682,6 @@ void AdvanceLightingScene::OnRenderUI()
 				ImGui::SliderFloat("Light Proj Offset", &dirLightObject.cam_offset, 0.0f, 100.0f);
 				ImGui::Checkbox("Debug Dir Shadow Para", &shadow.debugPara);
 
-				static int cur_sel_type = 0;
-				const char* element_name[] = { "PCF", "POISSON SAMPLING" };
-				ImGui::Combo("Shadow Sampling Type", &cur_sel_type, element_name, IM_ARRAYSIZE(element_name));
-				shadowSamplingType = (ShadowSamplingType)cur_sel_type;
-
 				ImGui::TreePop();
 			}
 		}
@@ -948,8 +945,6 @@ void AdvanceLightingScene::CreateObjects()
 
 	ShaderFilePath screen_shader_file_path
 	{
-		//"src/ShaderFiles/Learning/Debugger/DepthMapVertex.glsl", //vertex shader
-		//"src/ShaderFiles/Learning/Debugger/DepthMapFrag.glsl", //fragment shader
 		"src/ShaderFiles/Learning/ScreenFrameVertex.glsl", //vertex shader
 		"src/ShaderFiles/Learning/ScreenFrameFrag.glsl", //vertex shader
 	};
@@ -961,8 +956,6 @@ void AdvanceLightingScene::CreateObjects()
 		"src/ShaderFiles/Learning/Debugger/DebugCubeMapDepthFrag.glsl", //fragment shader
 	};
 	debugPtLightMapShader.Create("shadow_depth", point_light_debuging_file);
-
-
 
 
 	////////////////////////////////////////
@@ -1056,9 +1049,14 @@ void AdvanceLightingScene::CreateObjects()
 		lightObject[i].light.position = (glm::vec3(1.0f, 0.0f, 0.0f) * lightObject[i].childLightOffset) + lightObject[i].objectPosition;
 		lightObject[i].light.colour = (i < 5) ? colours[i] : glm::vec3(0.3f, 0.0f, 0.3f);
 		lightObject[i].light.ambientIntensity = 0.05f;
-		lightObject[i].light.diffuseIntensity = 1.0f;
-		lightObject[i].light.specularIntensity = 1.0f;
+		lightObject[i].light.diffuseIntensity = 0.4f;
+		lightObject[i].light.specularIntensity = 0.6f;
 		lightObject[i].light.enable = true;
+
+		//attenuation
+		lightObject[i].light.attenuation[0] = 1.0f; //constant
+		lightObject[i].light.attenuation[1] = 0.07f; //linear
+		lightObject[i].light.attenuation[2] = 0.017f; //quadratic
 
 		//for testing / debugging
 		//lightObject[i].moveSpeed = 0.0f;
@@ -1072,8 +1070,11 @@ void AdvanceLightingScene::CreateObjects()
 	//directional light
 	auto& dl = dirLightObject.dirlight;
 	dl.ambientIntensity = 0.05f;
-	dl.colour = glm::vec3(0.3f);
+	dl.diffuseIntensity = 0.4f;
+	dl.specularIntensity = 0.2f;
+	dl.colour = glm::vec3(1.0f, 0.9568f, 0.8392f);
 	dl.enable = true;
+	dl.castShadow = true;
 	gamma = 1.80f; //for game correction
 	dl.enable = true;
 	dl.direction = glm::vec3(-1.0f, 1.0f, -1.0f);
@@ -1091,7 +1092,7 @@ void AdvanceLightingScene::CreateObjects()
 		ptDepthMapCubes.push_back(sc);
 	}
 	//direcdtional 
-	dirDepthMap.Generate(1024 * 2, 1024 * 2);
+	dirDepthMap.Generate(1024, 1024);
 	dirLightObject.dirLightShadow.config.cam_far = 70.0f;
 	
 
@@ -1217,7 +1218,6 @@ void AdvanceLightingScene::InstanceObjectPass(Shader* debug_shader)
 		instancingShader.SetUniform1i("u_GammaCorrection", doGammaCorrection);
 		instancingShader.SetUniform1f("u_Gamma", gamma);
 
-		instancingShader.SetUniform1f("u_FarPlane", ptShadowConfig.cam_far);
 
 		//so far the texture unit as not been overwritten 
 		for (int i = 0; i < MAX_LIGHT; i++)
