@@ -114,7 +114,7 @@ For more detailed information, please refer to the [Development Issue](ReadMe_Do
 |<p align = "center"> *Skybox, Framebuffer (renderpass), Depth test.* </p>|
 
 #### MSAA (Framebuffer Image Post Processing)
-|<img src = "ReadMe_Docs/Skybox, Framebuffer, Depthtest.png"/>|
+|<img src = "ReadMe_Docs/MSAA 1x-8x.gif"/>|
 |:-|
 |<p align = "center"> *Multisample Anti-alising 1x-8x, Post Processing.* </p>|
 
