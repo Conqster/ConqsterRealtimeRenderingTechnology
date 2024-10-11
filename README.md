@@ -45,19 +45,10 @@ You can also access scenes by index: `ScenesByNamePrt()` returns an array of sce
 ### 4. Scene
 The Base `Scene` class is a wrapper around OpenGL functions and window creation, designed to facilitate learning by allowing you to experiment with new rendering techniques without overwriting previous leaned methods.
 
-|<a href="https://www.youtube.com/watch?v=9skO5a-XUGg"><img src = "ReadMe_Docs/Computer Graphics.png"/>|
+|<a href="https://www.youtube.com/watch?v=9skO5a-XUGg"><img src = "ReadMe_Docs/milestone_light_shadow.png"/>|
 |:-|
 |<p align = "center"> *A Youtube video of current Milestone with light rendering simulation.* </p>|
 
-## Table of Contents
-- [Goals](#goals)
-  - [Primary Goals](#primary-goals)
-  - [Secondary Goals](#secondary-goals)
-- [Current Features](#current-features)
-- [Development Issues](#development-issues)
-- [External Libraries](#external-libraries)
-- [Detailed Documentation](ReadMe_Docs/Documentation.md)
-- [Learning Resources](#learning-resources)
 
 ## Goals
 ### Primary Goals
@@ -77,20 +68,26 @@ Includes:
   
 
 ## Current Features
-Implemented foundation game architecture and basic 3D renderer (model-view-projection and basic lighting) with OpenGL:
-- Intergrated foundational game architecture components such as Game Loop, GameObject and Rendering pipeline.
-- [Mesh construction](ReadMe_Docs/Documentation.md#mesh-construction)
-  - [Square](ReadMe_Docs/Documentation.md#square-mesh)
-  - [Cube](ReadMe_Docs/Documentation.md#cube-mesh)
-  - [Sphere](ReadMe_Docs/Documentation.md#sphere-mesh)
-- Camera/View (model-view-projection).
-- [Lighting (Ambient + Diffuse)](ReadMe_Docs/Documentation.md#lighting).
-- [Light Source](ReadMe_Docs/Documentation.md#light-source)
-  - Directional
-  - [Point](ReadMe_Docs/Documentation.md#point-light)
-  - [Spot](ReadMe_Docs/Documentation.md#spot-light)
-- Instancing
+### OpenGL Rendering
+- Environment Mapping (Skybox)
+- Mesh Primitive Construction
+- Light Source (Directional, Point & Spot)
+- Omnidirectional Shadow mapping for Point Lights
+- Directional Light Shadow mapping
+- Multisample Anti-alising (MSAA)
+- Object Instancing
+- Post Processing (Grayscale, Blurring, Edge detection)
+- Scene property debugging (Model-World-Space Normals, Model Space Normal debugging)
+- Naive Gamma Correction
+
+### Engine
+- Debug Gizmos Primitive
+- Multiscene management
+- Model Loading via Assimp
+- Image Loading via std_image
+- Editing UI via ImGui
 - Model loading via Assimp
+
 
 ## Development Issues
 Issues encounted during development:
@@ -101,11 +98,36 @@ Issues encounted during development:
 For more detailed information, please refer to the [Development Issue](ReadMe_Docs/DevelopmentIssues.md)
 
 ## Some Screenshots
-### Skybox, Framebuffer
+#### Omnidirectional Shadow (Point Light)
+|<img src = "ReadMe_Docs/Dynamic_omnidirectional_shadow.gif"/>|
+|:-|
+|<p align = "center"> *Omnidirectional Shadow, Point Light Shadows.* </p>|
 
+#### Directional Shadow (Directional Light)
+|<img src = "ReadMe_Docs/Dynamic_directional_shadow.gif"/>|
+|:-|
+|<p align = "center"> *Directional Shadow, Directional Light Shadows.* </p>|
+
+#### Skybox, Framebuffer
 |<img src = "ReadMe_Docs/Skybox, Framebuffer, Depthtest.png"/>|
 |:-|
 |<p align = "center"> *Skybox, Framebuffer (renderpass), Depth test.* </p>|
+
+#### MSAA (Framebuffer Image Post Processing)
+|<img src = "ReadMe_Docs/Skybox, Framebuffer, Depthtest.png"/>|
+|:-|
+|<p align = "center"> *Multisample Anti-alising 1x-8x, Post Processing.* </p>|
+
+### Debugging 
+#### Scene Objects Debugging
+|<img src = "ReadMe_Docs/debugging_scene.gif"/>|
+|:-|
+|<p align = "center"> *Debugging, Normals (Model Space, World Space).* </p>|
+
+#### Model Normals (Geometry Shaders)
+|<img src = "ReadMe_Docs/sphere_normals.png"/>|
+|:-|
+|<p align = "center"> *Debugging, Model Normals (Geometry Shaders).* </p>|
 
 ## External Libraries
 Current libaries in use: GLM, GLEW, GLFW, stb-image, Assimp.
@@ -115,8 +137,10 @@ Current libaries in use: GLM, GLEW, GLFW, stb-image, Assimp.
 For more detailed information, please refer to the [Detailed Documentation](ReadMe_Docs/Documentation.md)
 
 ## Learning Resources
-- [learnopengl.com](https://learnopengl.com/Getting-started)
-- [The Cherno C++ videos](https://www.youtube.com/playlist?list=PLlrATfBNZ98dudnM48yfGUldqGD0S4FFb)
-- OpenGl Programming Guide 9th Edition (Red Book)
+- [learnopengl.com.](https://learnopengl.com/Getting-started)
+- [The Cherno C++ videos.](https://www.youtube.com/playlist?list=PLlrATfBNZ98dudnM48yfGUldqGD0S4FFb)
+- OpenGl Programming Guide 9th Edition (Red Book).
 - Mathematics for 3D Game Programming and Computer Graphics - Eric Lengyel.
 - Foundations of Game Engine Development (Volume 2 - Rendering) Eric Lengyel
+- [Forward and Deferred Rendering - Cambridge Computer Science Talks.](https://youtu.be/n5OiqJP2f7w?si=QQGg5Mj2bPoBzMiu)
+- Core Techniques and Algorithms in Game Programming.
