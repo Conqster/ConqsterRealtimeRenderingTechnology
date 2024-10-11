@@ -7,15 +7,15 @@
 #include "Camera.h"
 #include <windows.h>
 
-#include "Scenes/MainScene.h"
-#include "Scenes/Light&ModelScene.h"
-#include "Scenes/AdvanceOpenGLScene.h"
-#include "Scenes/FaceCullingScene.h"
-#include "Scenes/Textures_FrameBufferScene.h"
-#include "Scenes/GeometryScene.h"
-#include "Scenes/InstancingScene.h"
-#include "Scenes/AntiAliasingScene.h"
-#include "Scenes/AdvanceLightingScene.h"
+#include "Scene Graph/Scenes/MainScene.h"
+#include "Scene Graph/Scenes/Light&ModelScene.h"
+#include "Scene Graph/Scenes/AdvanceOpenGLScene.h"
+#include "Scene Graph/Scenes/FaceCullingScene.h"
+#include "Scene Graph/Scenes/Textures_FrameBufferScene.h"
+#include "Scene Graph/Scenes/GeometryScene.h"
+#include "Scene Graph/Scenes/InstancingScene.h"
+#include "Scene Graph/Scenes/AntiAliasingScene.h"
+#include "Scene Graph/Scenes/AdvanceLightingScene.h"
 
 //FOR TESTING: Remove later
 #include "External Libs/imgui/imgui.h"

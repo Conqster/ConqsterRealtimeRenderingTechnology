@@ -1,15 +1,6 @@
 #pragma once
 #include "glm/glm.hpp"
 
-
-//struct Input_Button_Action
-//{
-//	int button;
-//	int action;
-//};
-
-
-
 constexpr int NUM_BUTTONS = 7;
 constexpr int NUM_ACTIONS = 3;
 constexpr int NUM_KEYS = 1024;

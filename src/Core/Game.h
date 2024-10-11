@@ -1,6 +1,6 @@
 #pragma once
-#include "Scenes/Scene.h"
-#include "Scenes/SceneManager.h"
+#include "Scene Graph/Scenes/Scene.h"
+#include "Scene Graph/Scenes/SceneManager.h"
 #include "Window.h"
 
 #include "Util/GameTime.h"
