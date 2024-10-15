@@ -1,6 +1,6 @@
 # Conqster Realtime Rendering Technology (CRRT)
 
-CRRT is personal learning project focused on real-time 3D rendeing using OpenGL. Designed to explore, implement various rendering techniques and features. 
+CRRT is personal learning project focused on real-time 3D rendering using OpenGL. Designed to explore, implement various rendering techniques and features. 
 
 |<a href="https://www.youtube.com/watch?v=9skO5a-XUGg"><img src = "Docs/milestone_light_shadow.png"/>|
 |:-|
@@ -28,12 +28,11 @@ The primary aim of this project is to deepen my understanding of:
 - Mesh Primitive Construction
 - Naive Gamma Correction
 
-### Engine
+### Utilities
 - Multiscene management
 - Model Loading via Assimp
 - Image Loading via stb_image
 - Editing UI via ImGui
-- Model loading via Assimp
 
 
 ## Quick Render Samples
@@ -70,8 +69,9 @@ The primary aim of this project is to deepen my understanding of:
 
 
 ## Documentation 
-- [Quick Start.](Docs/Documentation.md)
-- [Development Issues.](Docs/DevelopmentIssues.md)
+- [Quick Start.](Docs/QuickStart.md)
+- [Development Issues.](Docs/DevelopmentIssues.md).
+
 For more detailed information, please refer to the [Detailed Documentation.](Docs/Documentation.md)
 
 ## Dependencies
