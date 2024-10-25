@@ -490,22 +490,7 @@ void AdvanceLightingScene::OnRenderUI()
 {
 	ImGui::Begin("Advance Lighting Scene");
 
-	ImGui::SeparatorText("Window info");
-	ImGui::Text("Win Title: %s", window->GetInitProp()->title);
-	ImGui::Text("Window Width: %d", window->GetWidth());
-	ImGui::Text("Window Height: %d", window->GetHeight());
 
-	ImGui::Text("Init Width: %d", window->GetInitProp()->width);
-	ImGui::Text("Init Height: %d", window->GetInitProp()->height);
-	//CAMERA
-	ImGui::SeparatorText("Camera info");
-	ImGui::Text("Position x: %f, y: %f, z: %f",
-		m_Camera->GetPosition().x,
-		m_Camera->GetPosition().y,
-		m_Camera->GetPosition().z);
-
-	ImGui::Text("Pitch: %f", m_Camera->Ptr_Pitch());
-	ImGui::Text("Yaw: %f", m_Camera->Ptr_Yaw());
 
 
 	if (ImGui::TreeNode("Camera Properties"))

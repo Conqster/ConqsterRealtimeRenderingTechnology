@@ -121,6 +121,8 @@ void Game::OnStart()
 
 void Game::OnLoadSceneUI(const char* label, bool can_load)
 {
+	can_load = m_GameState == State::LOADSCENE;
+
 	/////////////////////////////////////////////
 	// UI - ImGui
 	// Later create a sub ui panel, to abstract out ImGui function from Game.
@@ -145,14 +147,6 @@ void Game::OnLoadSceneUI(const char* label, bool can_load)
 
 	}
 
-
-	ImGui::SeparatorText("Stats");
-	ImGuiIO& io = ImGui::GetIO();
-	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-	//ImGui::Text("Game Time: %f", del);
-	ImGui::Text("Mouse Pos: %f, %f", m_Window->GetMouseScreenPosition().x, m_Window->GetMouseScreenPosition().y);
-	ImGui::Text("Event Mouse Pos: %f, %f", EventHandle::MousePosition().x, EventHandle::MousePosition().y);
-	ImGui::Text("Screen Size: %d, %d", m_Window->GetWidth(), m_Window->GetHeight());
 
 	ImGui::End();
 
@@ -181,7 +175,7 @@ void Game::Run()
 			m_Window->OnWaitUpdate();
 
 			m_UI->OnStartFrame();
-			OnLoadSceneUI("load scene", true);
+			//OnLoadSceneUI("load scene", true);
 			m_UI->OnEndFrame();
 			//m_Window->OnUpdate();
 			//std::cout << "Loading scene\n";
@@ -193,8 +187,33 @@ void Game::Run()
 
 			//std::cout << "running scene\n";
 			m_UI->OnStartFrame();
+
+			ImGuiWindowFlags ui_win_flag = ImGuiWindowFlags_MenuBar; 
+			ui_win_flag |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBringToFrontOnFocus;
+			ui_win_flag |= ImGuiWindowFlags_NoBackground;
+
+			//Coord 
+			const ImGuiViewport* viewport = ImGui::GetMainViewport();
+			ImGui::SetNextWindowPos(viewport->WorkPos);
+			ImGui::SetNextWindowSize(viewport->WorkSize);
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+			ImGui::Begin("Experimetal Menubar", nullptr, ui_win_flag);
+			ImGui::PopStyleVar();
+			ImGui::PopStyleVar(2);
+			if (m_MenubarCallback)
+			{
+				if (ImGui::BeginMenuBar())
+				{
+					m_MenubarCallback();
+					ImGui::EndMenuBar();
+				}
+			}
+			ImGui::End();
+
 			m_CurrentScene->OnRenderUI();
-			OnLoadSceneUI("switch scene", false);
+			//OnLoadSceneUI("switch scene", false);
 			m_UI->OnEndFrame();
 
 			m_Window->OnUpdate();
@@ -233,6 +252,53 @@ void Game::OnEnd()
 		m_Window = nullptr;
 	}
 }
+
+void Game::StatsUI()
+{
+	ImGui::SeparatorText("Stats");
+	ImGuiIO& io = ImGui::GetIO();
+	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+	//ImGui::Text("Game Time: %f", del);
+	ImGui::Text("Mouse Pos: %f, %f", m_Window->GetMouseScreenPosition().x, m_Window->GetMouseScreenPosition().y);
+	ImGui::Text("Event Mouse Pos: %f, %f", EventHandle::MousePosition().x, EventHandle::MousePosition().y);
+	ImGui::Text("Screen Size: %d, %d", m_Window->GetWidth(), m_Window->GetHeight());
+}
+
+void Game::CameraStatsUI()
+{
+	if (m_CurrentScene)
+	{
+		Camera* cam = m_CurrentScene->GetCamera();
+
+		ImGui::SeparatorText("Camera Stats");
+		ImGui::Text("Position x: %f, y: %f, z: %f",
+			cam->GetPosition().x,
+			cam->GetPosition().y,
+			cam->GetPosition().z);
+
+		ImGui::Text("Pitch: %f", cam->Ptr_Pitch());
+		ImGui::Text("Yaw: %f", cam->Ptr_Yaw());
+	}
+}
+
+void Game::WindowStatsUI()
+{
+	ImGui::SeparatorText("Window Stats");
+	ImGui::Text("Win Title: %s", m_Window->GetInitProp()->title);
+	ImGui::Text("Window Width: %d", m_Window->GetWidth());
+	ImGui::Text("Window Height: %d", m_Window->GetHeight());
+
+	ImGui::Text("Init Width: %d", m_Window->GetInitProp()->width);
+	ImGui::Text("Init Height: %d", m_Window->GetInitProp()->height);
+}
+
+void Game::AllStatsTab()
+{
+	StatsUI();
+	CameraStatsUI();
+	WindowStatsUI();
+}
+
 
 
 void Game::Input()
@@ -327,7 +393,6 @@ void Game::Input()
 	}
 	
 }
-
 
 
 

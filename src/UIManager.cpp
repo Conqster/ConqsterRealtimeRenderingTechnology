@@ -30,6 +30,9 @@ void UIManager::OnStartFrame()
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
+
+	
+
 }
 
 void UIManager::OnEndFrame()

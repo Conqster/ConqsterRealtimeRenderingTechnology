@@ -35,6 +35,7 @@ void Scene::OnRenderUI()
 }
 
 
+
 void Scene::OnDestroy()
 {
 	delete m_Camera;
