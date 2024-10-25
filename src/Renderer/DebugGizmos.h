@@ -33,6 +33,7 @@ public:
 
 private:
 	static bool active;
+	static bool use;
 	static Shader m_Shader;
 	static SphereMesh sphere;
 

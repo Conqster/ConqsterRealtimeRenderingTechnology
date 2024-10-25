@@ -6,6 +6,7 @@
 #include "Util/MathsHelpers.h"
 
 bool DebugGizmos::active = false;
+bool DebugGizmos::use = true;
 Shader DebugGizmos::m_Shader;
 SphereMesh DebugGizmos::sphere;
 
@@ -30,6 +31,9 @@ void DebugGizmos::Startup()
 //Make sure Camera data uniform buffer is generated & update d
 void DebugGizmos::DrawLine(glm::vec3 v1, glm::vec3 v2, glm::vec3 colour, float thickness)
 {
+	if (!use)
+		return;
+
 	if (!active)
 		Generate();
 
@@ -49,11 +53,17 @@ void DebugGizmos::DrawLine(glm::vec3 v1, glm::vec3 v2, glm::vec3 colour, float t
 
 void DebugGizmos::DrawRay(glm::vec3 v1, glm::vec3 dir, float dist, glm::vec3 colour, float thickness)
 {
+	if (!use)
+		return;
+
 	DrawLine(v1, v1 + (dir * dist), colour, thickness);
 }
 
 void DebugGizmos::DrawWireSphere(glm::vec3 p, float radius, glm::vec3 colour, float thickness)
 {
+	if (!use)
+		return;
+
 	if (!active)
 		Generate();
 
@@ -69,6 +79,9 @@ void DebugGizmos::DrawWireSphere(glm::vec3 p, float radius, glm::vec3 colour, fl
 
 void DebugGizmos::DrawSphere(glm::vec3 p, float radius, glm::vec3 colour)
 {
+	if (!use)
+		return;
+
 	if (!active)
 		Generate();
 
@@ -84,6 +97,9 @@ void DebugGizmos::DrawSphere(glm::vec3 p, float radius, glm::vec3 colour)
 
 void DebugGizmos::DrawSquare(glm::vec3 center, glm::vec3 forward, float left, float right, float bottom, float top, glm::vec3 colour, float thickness)
 {
+	if (!use)
+		return;
+
 	if (!active)
 		Generate();
 
@@ -123,6 +139,9 @@ void DebugGizmos::DrawSquare(glm::vec3 center, glm::vec3 forward, float left, fl
 
 void DebugGizmos::DrawBox(AABB aabb, glm::vec3 colour, float thickness)
 {
+	if (!use)
+		return;
+
 	if (!active)
 		Generate();
 
@@ -185,6 +204,9 @@ void DebugGizmos::DrawBox(AABB aabb, glm::vec3 colour, float thickness)
 
 void DebugGizmos::DrawCross(glm::vec3 center, float size, bool axis_colour, glm::vec3 colour, float thickness)
 {
+	if (!use)
+		return;
+
 	float half_size = size * 0.5f;
 	//front to back (Z axis) blue
 	glm::vec3 _colour = (axis_colour) ? glm::vec3(0.0f, 0.0f, 1.0f) : colour;
@@ -210,6 +232,9 @@ glm::vec3 Perpen(const glm::vec3& v)
 
 void DebugGizmos::DrawWireDisc(glm::vec3 center, glm::vec3 right, glm::vec3 up, float radius, int step, glm::vec3 colour, float thickness)
 {
+	if (!use)
+		return;
+
 	//Quick hack
 	glm::vec3 prev = center + (right * radius);
 	for (float theta = 0.0f; theta < 2.0f * MathsHelper::PI; theta += (MathsHelper::PI/step))
@@ -225,6 +250,9 @@ void DebugGizmos::DrawWireDisc(glm::vec3 center, glm::vec3 right, glm::vec3 up, 
 
 void DebugGizmos::DrawWireThreeDisc(glm::vec3 center, float radius, int steps, glm::vec3 colour, float thickness)
 {
+	if (!use)
+		return;
+
 	DrawWireDisc(center, glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), radius, steps, colour, thickness);
 	DrawWireDisc(center, glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f), radius, steps, colour, thickness);
 	DrawWireDisc(center, glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), radius, steps, colour, thickness);
@@ -232,6 +260,9 @@ void DebugGizmos::DrawWireThreeDisc(glm::vec3 center, float radius, int steps, g
 
 void DebugGizmos::DrawWireCone(glm::vec3 center, glm::vec3 up, glm::vec3 right, float radius, float height, glm::vec3 colour, float thickness)
 {
+	if (!use)
+		return;
+
 	//debug center
 	DrawCross(center);
 
@@ -258,6 +289,9 @@ void DebugGizmos::DrawWireCone(glm::vec3 center, glm::vec3 up, glm::vec3 right, 
 
 void DebugGizmos::DrawOrthoCameraFrustrm(glm::vec3 pos, glm::vec3 forward, float cam_near, float cam_far, float size, glm::vec3 colour, float thickness)
 {
+	if (!use)
+		return;
+
 	if (!active)
 		Generate();
 
@@ -331,6 +365,9 @@ void DebugGizmos::DrawOrthoCameraFrustrm(glm::vec3 pos, glm::vec3 forward, float
 
 void DebugGizmos::DrawPerspectiveCameraFrustum(glm::vec3 pos, glm::vec3 forward, float fov, float aspect, float cam_near, float cam_far, glm::vec3 colour, float thickness)
 {
+	if (!use)
+		return;
+
 	if (!active)
 		Generate();
 
@@ -419,6 +456,9 @@ void DebugGizmos::DrawPerspectiveCameraFrustum(glm::vec3 pos, glm::vec3 forward,
 
 void DebugGizmos::DrawPerspectiveCameraFrustum(glm::vec3 pos, glm::vec3 forward, glm::vec3 up, float fov, float aspect, float cam_near, float cam_far, glm::vec3 colour, float thickness)
 {
+	if (!use)
+		return;
+
 	if (!active)
 		Generate();
 

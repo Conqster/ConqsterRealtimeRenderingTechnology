@@ -141,8 +141,6 @@ void main()
     
     
     FragColour = vec4(result_colour, 1.0f);
-    //FragColour = vec4(DirLightColInfluence(dirLight), 1.0f);
-    //FragColour = vec4(1.0f, 0.0f, 1.0f, 1.0f);
     
     //////////
 	//For Debugging
@@ -228,64 +226,68 @@ float PointLightShadowCal(int lightIdx, vec3 frag_in_pos)
 
 vec3 DirLightColInfluence(DirectionalLight light, vec3 hack_texture_col)
 {
-    if(!light.enable)
-        return vec3(0.0f);
-        
+
     vec3 result_colour = vec3(0.0f);
     
-    //////////////////////
-	//Ambinent
-	//////////////////////
-    vec3 amb_colour = light.ambinent * light.colour;
     
-    //context utilities
-    vec3 light_dir = normalize(light.direction);
-	vec3 nor = normalize(fs_in.normal);
+    if(light.enable)
+    {
+        //////////////////////
+        //Ambinent
+        //////////////////////
+        vec3 amb_colour = light.ambinent * light.colour;
     
-    /////////////////////
-	//Diffuse
-	/////////////////////
-    float diff_factor = max(dot(nor, light_dir), 0.0f);
+        //context utilities
+        vec3 light_dir = normalize(light.direction);
+        vec3 nor = normalize(fs_in.normal);
     
-    //Quick hack
-    //if(diff_factor <= 0.0f)
-		//return amb_colour + (light.colour * diff_factor);
+        /////////////////////
+        //Diffuse
+        /////////////////////
+        float diff_factor = max(dot(nor, light_dir), 0.0f);
+    
+        //Quick hack
+        //if(diff_factor <= 0.0f)
+            //return amb_colour + (light.colour * diff_factor);
         
         
-    ///////////////
-	//Speculat highlight
-	///////////////
-    float spec = 0.0f;
-	vec3 view_dir = normalize(u_ViewPos - fs_in.fragPos);
-    if(u_Blinn_Phong)
-	{
-		vec3 halway_dir = normalize(light_dir + view_dir);
-		spec = pow(max(dot(nor, halway_dir), 0.0f), u_Shininess);
-	}
-	else
-	{
-		vec3 reflectDir = reflect(-light_dir, nor);
-		spec = pow(max(dot(view_dir, reflectDir), 0.0f), u_Shininess);
-	}
+        ///////////////
+        //Speculat highlight
+        ///////////////
+        float spec = 0.0f;
+        vec3 view_dir = normalize(u_ViewPos - fs_in.fragPos);
+        if(u_Blinn_Phong)
+        {
+            vec3 halway_dir = normalize(light_dir + view_dir);
+            spec = pow(max(dot(nor, halway_dir), 0.0f), u_Shininess);
+        }
+        else
+        {
+            vec3 reflectDir = reflect(-light_dir, nor);
+            spec = pow(max(dot(view_dir, reflectDir), 0.0f), u_Shininess);
+        }
     
-    vec3 scatteredLight = light.colour * light.diffuse * diff_factor;
-	vec3 reflectedLight = light.colour * light.specular *spec;
+        vec3 scatteredLight = light.colour * light.diffuse * diff_factor;
+        vec3 reflectedLight = light.colour * light.specular *spec;
     
-    float shadow = DirShadowCalculation(fs_in.fragPosLightSpace, light);
-    //shadow = 0.0f;
-    vec3 lighting = amb_colour + (1.0f - shadow) *  ((scatteredLight + reflectedLight) );
+        float shadow = DirShadowCalculation(fs_in.fragPosLightSpace, light);
+        //shadow = 0.0f;
+        vec3 lighting = amb_colour + (1.0f - shadow) *  ((scatteredLight + reflectedLight) );
     
-    //amb_colour already has light colour 
-    //scatteredLight already has light colour
-    //reflectedlight already has light colour
-    //Amb * scatteredLight needs model texture colour
+        //amb_colour already has light colour 
+        //scatteredLight already has light colour
+        //reflectedlight already has light colour
+        //Amb * scatteredLight needs model texture colour
         
-    amb_colour *= hack_texture_col;
-    scatteredLight *= hack_texture_col;
+        amb_colour *= hack_texture_col;
+        scatteredLight *= hack_texture_col;
         
-    lighting = amb_colour + ((1.0f - shadow) * (scatteredLight + reflectedLight));
+        result_colour = amb_colour + ((1.0f - shadow) * (scatteredLight + reflectedLight));
+    }
+    
+    
         
-    return lighting;
+    return result_colour;
 }
 
 //all light are registered but influence is based on the count available in scenePointLightCount
