@@ -119,7 +119,7 @@ void Game::OnStart()
 	std::cout << "Failed to init window &/ Scene!!!!!\n";
 }
 
-void Game::OnLoadSceneUI(const char* label, bool can_load)
+void Game::OnLoadSceneUI(const char* label, bool* open_win, bool can_load)
 {
 	can_load = m_GameState == State::LOADSCENE;
 
@@ -127,7 +127,7 @@ void Game::OnLoadSceneUI(const char* label, bool can_load)
 	// UI - ImGui
 	// Later create a sub ui panel, to abstract out ImGui function from Game.
 	/////////////////////////////////////////////
-	ImGui::Begin(label);
+	ImGui::Begin(label, open_win);
 
 	static int cur_sel = 0;
 	ImGui::Combo("Scenes", &cur_sel, m_SceneManager->ScenesByNamePtr(), m_SceneManager->SceneCount());
@@ -144,6 +144,8 @@ void Game::OnLoadSceneUI(const char* label, bool can_load)
 		m_CurrentScene = m_SceneManager->LoadScene(m_SceneManager->ScenesByNamePtr()[cur_sel], m_Window);
 		if (m_CurrentScene)
 			m_GameState = State::RUNNINGSCENE;
+
+		*open_win = false;
 
 	}
 
@@ -188,20 +190,34 @@ void Game::Run()
 			//std::cout << "running scene\n";
 			m_UI->OnStartFrame();
 
+			ImGui::ShowDemoWindow();
+
 			ImGuiWindowFlags ui_win_flag = ImGuiWindowFlags_MenuBar; 
 			ui_win_flag |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBringToFrontOnFocus;
 			ui_win_flag |= ImGuiWindowFlags_NoBackground;
+			ui_win_flag |= ImGuiConfigFlags_NavNoCaptureKeyboard;
 
 			//Coord 
 			const ImGuiViewport* viewport = ImGui::GetMainViewport();
 			ImGui::SetNextWindowPos(viewport->WorkPos);
-			ImGui::SetNextWindowSize(viewport->WorkSize);
+			ImGui::SetNextWindowSize(viewport->WorkSize, ImGuiCond_Always);
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+			ImGui::PushFont(m_UI->GetFont(m_UIFont));
+			//float font_size = ImGui::GetFontSize() * 0.5f;
+			float font_size = m_UI->GetFont(m_UIFont)->FontSize * 0.125f;
+			std::cout << "Font Size: " << font_size << std::endl;
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, font_size));
 			ImGui::Begin("Experimetal Menubar", nullptr, ui_win_flag);
 			ImGui::PopStyleVar();
 			ImGui::PopStyleVar(2);
+			ImGui::PopStyleVar();
+			//Font
+			//ImGui::PushFont(m_UI->GetFonts()[1]);
+			//m_UI->GetFont("default");
+
+			
 			if (m_MenubarCallback)
 			{
 				if (ImGui::BeginMenuBar())
@@ -210,6 +226,7 @@ void Game::Run()
 					ImGui::EndMenuBar();
 				}
 			}
+			ImGui::PopFont();
 			ImGui::End();
 
 			m_CurrentScene->OnRenderUI();
@@ -297,6 +314,17 @@ void Game::AllStatsTab()
 	StatsUI();
 	CameraStatsUI();
 	WindowStatsUI();
+}
+
+void Game::ChangeUIFont()
+{
+	for (auto avail : m_UI->AvaliableFontString())
+	{
+		if (ImGui::MenuItem(avail, nullptr))
+			m_UIFont = avail;
+	}
+	
+
 }
 
 

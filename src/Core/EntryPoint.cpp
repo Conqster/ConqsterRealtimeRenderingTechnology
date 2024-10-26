@@ -13,11 +13,17 @@ int main()
 
 	new_game->SetMenubarCallback([new_game]()
 	{
+
+		static bool loadSceneWin = false;
+		if (loadSceneWin)  new_game->OnLoadSceneUI("Scenes", &loadSceneWin);
+
 		if (ImGui::BeginMenu("File"))
 		{
 			if (ImGui::BeginMenu("Load Scene"))
 			{
-				new_game->OnLoadSceneUI("Scenes"); //Rename Scenes
+				ImGui::MenuItem("OpenScenes", nullptr, &loadSceneWin);
+
+				//new_game->OnLoadSceneUI("Scenes"); //Rename Scenes
 				//List scene
 				if(ImGui::MenuItem("Temp Scene1"))
 				{ }
@@ -48,6 +54,21 @@ int main()
 			ImGui::EndMenu();
 		}
 
+
+
+
+		//----------------------------------------------Edit-------------------------------------------------------------------
+		if (ImGui::BeginMenu("Edit"))
+		{
+			ImGui::Separator();
+			//if(ImGui::IsItemClicked())
+			if (ImGui::BeginMenu("Change Font"))
+			{
+				new_game->ChangeUIFont();
+				ImGui::EndMenu();
+			}
+			ImGui::EndMenu();
+		}
 
 		//----------------------------------------------Stat-------------------------------------------------------------------
 		if (ImGui::BeginMenu("Stat"))

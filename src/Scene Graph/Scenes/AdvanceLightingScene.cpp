@@ -44,7 +44,7 @@ void AdvanceLightingScene::OnInit(Window* window)
 void AdvanceLightingScene::OnUpdate(float delta_time)
 {
 	//object updating 
-
+	cachedeltatime = delta_time;
 
 	for (auto& lb : lightObject)
 	{
@@ -245,6 +245,40 @@ void AdvanceLightingScene::OnRender()
 	screenShader.UnBind();
 	glViewport(0, 0, window->GetWidth(), window->GetHeight());
 	//return;
+
+
+
+	/////////////////////////]
+	// Glow Effect
+	/////////////////////////
+	glowShader.Bind();
+	glowShader.SetUniformVec3("u_GlowColour", glowColour);
+	glowShader.SetUniformVec3("u_ModelColour", baseModelColour);
+	glowShader.SetUniform1f("u_GlowIntensity", glowIntensity);
+	glowShader.SetUniform1f("u_GlowExp", glowExponent);
+	glowShader.SetUniformVec3("u_ViewPos", m_Camera->GetPosition());
+	//glowShader.SetUniform1f("u_Time", cachedeltatime);
+	glowShader.SetUniform1f("u_Time", glfwGetTime());
+	glowShader.SetUniform1f("u_Speed", glowSpeed);
+	glowShader.SetUniform1f("u_IntensityOffset", glowIntensityOffset);
+
+
+	//models 
+	plainTex->Activate();
+	glm::mat4 glowSphereModel = glm::mat4(1.0f);
+	for (int i = 0; i < MAX_SPHERE; i++)
+	{
+		glowSphereModel = glm::mat4(1.0f);
+		glowSphereModel = glm::translate(glowSphereModel, spheresPos[i]);
+		glowSphereModel = glm::scale(glowSphereModel, glm::vec3(1.01f) * spheresScale[i]);
+		glowShader.SetUniformMat4f("u_Model", glowSphereModel);
+		sphere.Render();
+	}
+
+
+	plainTex->DisActivate();
+	glowShader.UnBind();
+
 
 
 
@@ -732,6 +766,17 @@ void AdvanceLightingScene::OnRenderUI()
 		ImGui::TreePop();
 	}
 
+	//////////////////////////////////////////
+	// GLOW
+	//////////////////////////////////////////
+	ImGui::Spacing();
+	ImGui::SeparatorText("Glow Effect");
+	ImGui::ColorEdit3("Glow Sphere Base Colour", &baseModelColour[0]);
+	ImGui::ColorEdit3("Glow Colour", &glowColour[0]);
+	ImGui::SliderFloat("Glow Intensity", &glowIntensity, -1.0f, 100.0f);
+	ImGui::SliderFloat("Glow Exponent", &glowExponent, 0.0f, 160.0f);
+	ImGui::SliderFloat("Glow Speed", &glowSpeed, 0.0f, 10.0f);
+	ImGui::SliderFloat("Glow Intensity Offset", &glowIntensityOffset, -2.0f, 5.0f);
 
 	///////////////////////////////////////////
 	// NORMAL DEBUGGING
@@ -940,6 +985,12 @@ void AdvanceLightingScene::CreateObjects()
 	};
 	debugPtLightMapShader.Create("shadow_depth", point_light_debuging_file);
 
+	ShaderFilePath glow_shader_file
+	{
+		"Assets/Shaders/Learning/AdvanceLighting/ModelVertex.glsl", //vertex shader
+		"Assets/Shaders/Learning/AdvanceLighting/Glow.glsl", //frag shader
+	};
+	glowShader.Create("glow_shader", glow_shader_file);
 
 	////////////////////////////////////////
 	// UNIFORM BUFFERs
@@ -1136,7 +1187,7 @@ void AdvanceLightingScene::DrawObjects(Shader& shader)
 
 	//SPHERES
 	plainTex->Activate();
-	for (int i = 0; i < MAX_CUBE; i++)
+	for (int i = 0; i < MAX_SPHERE; i++)
 	{
 		model = glm::mat4(1.0f);
 		model = glm::translate(model, spheresPos[i]);

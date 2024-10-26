@@ -26,6 +26,7 @@ private:
 	SceneManager* m_SceneManager = nullptr;
 
 	std::function<void()> m_MenubarCallback;
+	std::string m_UIFont = "Roboto-Bold";
 	UIManager* m_UI = nullptr;
 
 	bool m_Running = false;
@@ -38,11 +39,12 @@ public:
 	void OnStart();
 	void SetMenubarCallback(const std::function<void()>& menubar) { m_MenubarCallback = menubar; }
 	void CloseProgram() { m_Running = false; }
-	void OnLoadSceneUI(const char* label, bool can_load = false);
+	void OnLoadSceneUI(const char* label, bool* open_win, bool can_load = false);
 	void StatsUI();
 	void CameraStatsUI();
 	void WindowStatsUI();
 	void AllStatsTab();
+	void ChangeUIFont();
 	void Run();
 	void OnEnd();
 

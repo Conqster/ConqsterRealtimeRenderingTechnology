@@ -171,6 +171,17 @@ private:
 	Shader instancingShader;
 	Shader screenShader;
 	Shader debugPtLightMapShader;
+	Shader glowShader;
+	//glow effect
+	glm::vec3 baseModelColour = glm::vec3(0.0f, 0.0f, 1.0f);
+	glm::vec3 glowColour = glm::vec3(1.0f);
+	float glowIntensity = 1.0f;
+	float glowExponent = 1.4f;
+	float cachedeltatime; //cache deltaTime for know
+	float glowSpeed = 5.986f;
+	float glowIntensityOffset = 3.0f;
+
+
 
 	bool useNewShader = true;
 	//////Textures
