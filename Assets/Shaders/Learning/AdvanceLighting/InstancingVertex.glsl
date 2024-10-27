@@ -5,6 +5,10 @@ layout (location = 1) in vec4 col;
 layout (location = 2) in vec2 uv;
 layout (location = 3) in vec3 nor;
 
+//temp
+layout (location = 4) in vec3 tangent;
+layout (location = 5) in vec3 biTangent;
+
 layout (std140)  uniform u_CameraMat
 {
 	mat4 projection;
@@ -22,6 +26,7 @@ out VS_OUT
 	vec4 colour;
 	vec4 position;
 	vec4 fragPosLightSpace;
+	mat3 TBN;
 }vs_out;
 
 uniform mat4 u_Model;
@@ -58,4 +63,12 @@ void main()
 	vs_out.position = pos;
 	
 	vs_out.fragPosLightSpace = u_LightSpaceMatrix * inst_model * pos;
+	
+	
+	//temp
+	//this could be done in the CPU 
+	vec3 t = normalize(vec3(u_Model * vec4(tangent, 0.0f)));
+	vec3 b = normalize(vec3(u_Model * vec4(biTangent, 0.0f)));
+	vec3 n = normalize(vec3(u_Model * vec4(nor, 0.0f)));
+	vs_out.TBN = mat3(t, b, n);
 }

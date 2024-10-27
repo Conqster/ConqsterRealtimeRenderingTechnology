@@ -83,7 +83,7 @@ public:
 	virtual void OnDestroy() override;
 private:
 	void CreateObjects();
-	void DrawObjects(Shader& shader);
+	void DrawObjects(Shader& shader, bool nor_map = false);
 	void LightPass(Shader& shader);
 	void InstanceObjectPass(Shader* shader = nullptr);
 	void ShadowPass();
@@ -108,7 +108,7 @@ private:
 	bool debugLightPos = true;
 	bool debugScene = false;
 	bool debugVertexPosColour = false;
-	bool disableTexture = true;
+	bool disableTexture = false;
 	bool useBlinnPhong = true;
 	enum DebugModelType : int
 	{
@@ -175,8 +175,10 @@ private:
 	bool useNewShader = true;
 	//////Textures
 	Texture* brickTex;
+	Texture* brickNorMap;
 	Texture* plainTex;
 	Texture* manchesterTex;
+	bool useNorMap = false;
 
 
 	///////////////////////

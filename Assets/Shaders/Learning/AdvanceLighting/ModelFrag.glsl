@@ -15,6 +15,7 @@ in VS_OUT
 	vec4 colour;
 	vec4 position;
 	vec4 fragPosLightSpace;
+	mat3 TBN;
 }fs_in;
 
 
@@ -69,6 +70,7 @@ const int MAX_POINT_LIGHTS = 5;
 //------------------------Object/Model Specific-----------
 uniform sampler2D u_Texture;
 
+
 //--------------------Uniform Buffers Layout--------------
 layout (std140) uniform u_LightBuffer
 {
@@ -86,6 +88,11 @@ uniform samplerCube u_PointShadowCubes[MAX_POINT_LIGHTS];
   // PointLight pointLights[MAX_POINT_LIGHTS];   //aligned
 
 //------------------------------Utilites----------------------------------
+uniform bool u_HasNorMap;                                   //need a material struct
+uniform sampler2D u_NormalMap;
+//helper
+vec3 fragNor;
+
 uniform vec3 u_ViewPos;                                     //move into Light buffer
 uniform int u_Shininess;                                    //move into light buffer
 uniform bool u_Blinn_Phong;
@@ -118,6 +125,17 @@ vec3 PointLightsColInfluence(vec3 hack_texture_col);
 
 void main()
 {
+
+	if(u_HasNorMap)
+	{
+		fragNor = texture(u_NormalMap, fs_in.texCoords).rgb;
+		fragNor = fragNor * 2.0 - 1.0; //[0,1] >> [-1, 1]
+		fragNor = normalize(fs_in.TBN * fragNor);  //transform nor from tangent to world space
+	}
+	else
+	{
+		fragNor = normalize(fs_in.normal);
+	}
     vec3 tex_colour = texture(u_Texture, fs_in.texCoords).rgb;
     
     
@@ -187,7 +205,8 @@ float DirShadowCalculation(vec4 fragLightSpace, DirectionalLight light)
     projCoords = projCoords * 0.5f + 0.5f; 
     float closestDepth = texture(u_ShadowMap, projCoords.xy).r;
 	float currentDepth = projCoords.z;
-    float bias = max(0.007f * (1.0f - dot(normalize(fs_in.normal), light.direction)), 0.001f);
+    //float bias = max(0.007f * (1.0f - dot(normalize(fs_in.normal), light.direction)), 0.001f);
+    float bias = max(0.007f * (1.0f - dot(normalize(fragNor), light.direction)), 0.001f);
     float shadow = currentDepth - bias > closestDepth ? 1.0f : 0.0f;
     
     //Using PCF
@@ -239,7 +258,8 @@ vec3 DirLightColInfluence(DirectionalLight light, vec3 hack_texture_col)
     
         //context utilities
         vec3 light_dir = normalize(light.direction);
-        vec3 nor = normalize(fs_in.normal);
+        //vec3 nor = normalize(fs_in.normal);
+        vec3 nor = fragNor;
     
         /////////////////////
         //Diffuse
@@ -313,8 +333,8 @@ vec3 PointLightsColInfluence(vec3 hack_texture_col)
         
          //context utilities
         vec3 light_dir = normalize(pointLights[i].position - fs_in.fragPos);
-        vec3 nor = normalize(fs_in.normal);
-        
+        //vec3 nor = normalize(fs_in.normal);
+        vec3 nor = fragNor;
         
         ///////////
 		//Diffuse

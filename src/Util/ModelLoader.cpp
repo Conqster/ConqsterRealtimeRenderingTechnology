@@ -230,7 +230,7 @@ std::vector<Texture> ModelLoader::LoadMaterialTextures(aiMaterial* mat, aiTextur
 			std::string file_repath = dir + '/' + path.C_Str();
 
 
-			tex.LoadTexture(file_repath, TextureFormat::RGBA, ConvertType(type));
+			tex.LoadTexture(file_repath, false, TextureFormat::RGBA, ConvertType(type));
 			tex.RelativePath(path.C_Str());
 			temp.push_back(tex);
 			cacheLoadedTextures.push_back(tex);

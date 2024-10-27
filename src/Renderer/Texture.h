@@ -59,14 +59,14 @@ private:
 	int m_Width, m_Height, m_BitDepth;
 public:
 	Texture();
-	Texture(const std::string& fileLoc, TextureFormat format = TextureFormat::RGBA, TextureType type = TextureType_NONE);
+	Texture(const std::string& fileLoc, bool flip = false, TextureFormat format = TextureFormat::RGBA, TextureType type = TextureType_NONE);
 	~Texture();
 
 	void RegisterUse();
 	void UnRegisterUse();
 	inline int const RefCount() const { return m_RefCount; }
 
-	bool LoadTexture(const std::string& fileLoc, TextureFormat format = TextureFormat::RGBA, TextureType type = TextureType_NONE);
+	bool LoadTexture(const std::string& fileLoc, bool flip = false,  TextureFormat format = TextureFormat::RGBA, TextureType type = TextureType_NONE);
 	void Activate(unsigned int slot = 0) const;
 	void DisActivate() const;
 	void Clear();

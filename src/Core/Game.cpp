@@ -55,6 +55,8 @@ void Game::OnStart()
 		FilePaths::Instance().RegisterPath("marble", "Assets/Textures/marble.jpeg");
 		FilePaths::Instance().RegisterPath("metal", "Assets/Textures/metal.jpeg");
 		FilePaths::Instance().RegisterPath("plain", "Assets/Textures/plain64.png");
+		FilePaths::Instance().RegisterPath("floor-brick-diff", "Assets/Textures/floor_brick/patterned_brick_floor_diff.jpg");
+		FilePaths::Instance().RegisterPath("floor-brick-nor", "Assets/Textures/floor_brick/patterned_brick_floor_nor.jpg");
 
 
 		FilePaths::Instance().RegisterPath("bunny", "Assets/Models/stanford-bunny.obj");

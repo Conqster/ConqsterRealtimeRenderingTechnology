@@ -183,24 +183,26 @@ void AdvanceLightingScene::OnRender()
 	//Quick hack
 	/////////////////////////////////////
 	if (dirLightObject.dirlight.castShadow)
-		dirDepthMap.Read(1);
-	else
-		plainTex->Activate(1);
+		dirDepthMap.Read(2);         //model texture already take up 1 & 
+	else							 // normal map potenially taken 2
+		plainTex->Activate(2);       // use a plain tex if no shadow casting 
+	modelShader.SetUniform1i("u_ShadowMap", 2);
 
 
 	
-	modelShader.SetUniform1i("u_ShadowMap", 1);
 
 	//so far the texture as not been overwritten
 	for (int i = 0; i < MAX_LIGHT; i++)
 	{
-		//lightObject[i].depthCube.Read(2 + i); //bind to texture unit 
-		ptDepthMapCubes[i].Read(2 + i);//bind to texture unit 
-		modelShader.SetUniform1i(("u_PointShadowCubes[" + std::to_string(i) + "]").c_str(), 2 + i);
+		//tex unit 0 >> texture 
+		//tex unit 1 >> potenially normal map
+		//tex unit 2 >> shadow map
+		ptDepthMapCubes[i].Read(3 + i);//bind to texture unit 
+		modelShader.SetUniform1i(("u_PointShadowCubes[" + std::to_string(i) + "]").c_str(), 3 + i);
 	}
 	
 	LightPass(modelShader);
-	DrawObjects(modelShader);
+	DrawObjects(modelShader, true);
 	
 	//Pass Instance Objects
 	LightPass(instancingShader);
@@ -552,6 +554,7 @@ void AdvanceLightingScene::OnRenderUI()
 		ImGui::SeparatorText("Ground");
 		ImGui::DragFloat3("Ground Pos", &groundPos[0], 0.1f);
 		ImGui::SliderFloat("Ground Scale", &groundScale, 100.0f, 1000.0f);
+		ImGui::Checkbox("Use Normal Map", &useNorMap);
 
 		//ImGui::SeparatorText("Model 1");
 		//ImGui::DragFloat3("Model 1 pos", &model_1Pos[0], 0.1f);
@@ -997,7 +1000,8 @@ void AdvanceLightingScene::CreateObjects()
 	// CREATE TEXTURES 
 	////////////////////////////////////////
 	//brick texture 
-	brickTex = new Texture(FilePaths::Instance().GetPath("brick")/*, TextureFormat::SRGBA*/);
+	brickTex = new Texture(FilePaths::Instance().GetPath("floor-brick-diff")/*, TextureFormat::SRGBA*/);
+	brickNorMap = new Texture(FilePaths::Instance().GetPath("floor-brick-nor"));
 	//plain texture
 	plainTex = new Texture(FilePaths::Instance().GetPath("plain")/*, TextureFormat::SRGBA*/);
 	//manchester-image
@@ -1101,7 +1105,7 @@ void AdvanceLightingScene::CreateObjects()
 	playerTest.aabb.Translate(glm::vec3(-15.0f, 2.25f, -8.0f));
 }
 
-void AdvanceLightingScene::DrawObjects(Shader& shader)
+void AdvanceLightingScene::DrawObjects(Shader& shader, bool nor_map)
 {
 	shader.Bind();
 
@@ -1112,14 +1116,21 @@ void AdvanceLightingScene::DrawObjects(Shader& shader)
 	model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 	model = glm::scale(model, glm::vec3(1.0f) * groundScale);
 	shader.SetUniformMat4f("u_Model", model);
-	//brickTex->Activate();
-	//manchesterTex->Activate();
-	plainTex->Activate(0);
+	
 	//ground 1
+	brickTex->Activate(0);
+	if (nor_map)
+	{
+		brickNorMap->Activate(1);
+		shader.SetUniform1i("u_NormalMap", 1);
+		shader.SetUniform1i("u_HasNorMap", useNorMap);
+	}
+	//plainTex->Activate(0);
 	ground.Render();
-	//brickTex->DisActivate();
-	plainTex->DisActivate();
-	//manchesterTex->DisActivate();
+	brickTex->DisActivate();
+	if(nor_map)
+		shader.SetUniform1i("u_HasNorMap", 0);
+	//plainTex->DisActivate();
 	//modelShader.UnBind();
 
 

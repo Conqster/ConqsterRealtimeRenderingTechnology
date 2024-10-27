@@ -25,13 +25,13 @@ Texture::Texture()
 {
 }
 
-Texture::Texture(const std::string& fileLoc, TextureFormat format, TextureType type)
+Texture::Texture(const std::string& fileLoc, bool flip,  TextureFormat format, TextureType type)
 	:m_Id(0), m_FileLocation(fileLoc),
 	 m_LocalBuffer(nullptr), m_Height(0), 
 	 m_Width(0), m_BitDepth(0), m_RefCount(0),
 	 m_TexFormat(format), m_TexType(type)
 {
-	LoadTexture(fileLoc, m_TexFormat);
+	LoadTexture(fileLoc, flip, m_TexFormat);
 }
 
 Texture::~Texture()
@@ -55,12 +55,12 @@ void Texture::UnRegisterUse()
 		Clear();
 }
 
-bool Texture::LoadTexture(const std::string& fileLoc, TextureFormat format, TextureType type)
+bool Texture::LoadTexture(const std::string& fileLoc, bool flip , TextureFormat format, TextureType type)
 {
 	m_FileLocation = fileLoc;
 	m_TexType = type;
 	m_TexFormat = format;
-	//stbi_set_flip_vertically_on_load(0);
+	stbi_set_flip_vertically_on_load(flip);
 	int desire_channel = (type == TextureType_NONE) ? 4 : 0;
 		//m_LocalBuffer = stbi_load(fileLoc.c_str(), &m_Width, &m_Height, &m_BitDepth, desire_channel);
 
