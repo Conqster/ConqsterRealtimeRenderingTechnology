@@ -47,3 +47,15 @@ Later Fix Point Shadow method
 	- Have a centralised storage for common / generalised data like near, far 
 	- Only store unique data if necessary like light space matrix
 	- fix direction for scene capture 
+
+Tangent Space
+	- model normal map is in a tangent map and then transformed into world space. For
+		- Light modelling using TBN (tangent bitangent normal) matrix from model space.
+		- mat TBN = mat3(t, b, n). where all elements t, b, n are translated based on model in model space.
+			- i.e t = model * tangent; etc 
+		- all vectors (t, b, n) are perpendicular to each other, i.e having t, n ,  b = cross(n, t);
+	- Important for Parallax mapping, 
+		- All calculation of height is performed in tangent space before converting to world space pixel/point 
+
+ISSUE ISSE 
+	- problem with trying to pass a float as an int, but find a way to redirect/cast type

@@ -800,9 +800,7 @@ void AdvanceLightingScene::CreateObjects()
 	//model_2 = modelLoader.Load(FilePaths::Instance().GetPath("electrical-charger"), true);
 	//model_1 = modelLoader.Load("Assets/Textures/backpack/backpack.obj", true);
 
-	GLint maxTextureSize;
-	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextureSize);
-	printf("Max Texture 2D size, %d", maxTextureSize);
+
 	////////////////////////////////////////
 	// CREATE SPHERE MESH
 	////////////////////////////////////////

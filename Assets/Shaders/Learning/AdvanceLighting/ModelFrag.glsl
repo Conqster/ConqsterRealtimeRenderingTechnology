@@ -168,7 +168,8 @@ void main()
 		if(u_DebugWcType == DEBUG_WC_MODEL_SPACE)
 			FragColour = abs(fs_in.position);
 		else if(u_DebugWcType == DEBUG_WC_NORMAL)
-			FragColour = vec4((fs_in.normal), 1.0f);
+			//FragColour = vec4((fs_in.normal), 1.0f);
+			FragColour = vec4((fragNor), 1.0f);
 		else if(u_DebugWcType == DEBUG_WC_MODEL_NOR)
 			FragColour = vec4((fs_in.modelNor), 1.0f);
 		else if(u_DebugWcType == DEBUG_WC_MODEL_ABS_NOR)
@@ -228,7 +229,7 @@ float DirShadowCalculation(vec4 fragLightSpace, DirectionalLight light)
 float PointLightShadowCal(int lightIdx, vec3 frag_in_pos)
 {
     vec3 vfl = frag_in_pos - pointLights[lightIdx].position; 
-    float closestDepth = texture(u_PointShadowCubes[lightIdx], vfl).r;
+    float closestDepth = texture(u_PointShadowCubes[lightIdx], normalize(vfl)).r;
     //[0;1] => [0;far_plane]
     //probably remap during depth samplign
     closestDepth *= pointLights[lightIdx].far;

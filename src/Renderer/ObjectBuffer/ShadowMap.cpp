@@ -72,6 +72,13 @@ void ShadowMap::UnBind()
 //---------------------------------Shadow Cube---------------------------------/
 
 
+void ShadowCube::Generate(unsigned int width, unsigned int height)
+{
+	m_Width = width;
+	m_Height = height;
+	Generate();
+}
+
 void ShadowCube::Generate()
 {
 	GLCall(glGenFramebuffers(1, &m_Id));

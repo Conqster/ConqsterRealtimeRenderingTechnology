@@ -15,7 +15,8 @@
 #include "Scene Graph/Scenes/GeometryScene.h"
 #include "Scene Graph/Scenes/InstancingScene.h"
 #include "Scene Graph/Scenes/AntiAliasingScene.h"
-#include "Scene Graph/Scenes/AdvanceLightingScene.h"
+//#include "Scene Graph/Scenes/AdvanceLightingScene.h"
+#include "Scene Graph/Scenes/ParallaxExperimentalScene.h"
 
 //FOR TESTING: Remove later
 #include "External Libs/imgui/imgui.h"
@@ -69,7 +70,7 @@ void Game::OnStart()
 
 	//Register scenes
 	m_SceneManager = new SceneManager();
-	m_SceneManager->RegisterNewScene<MainScene>("Main Scene");
+	//m_SceneManager->RegisterNewScene<MainScene>("Main Scene");
 	m_SceneManager->RegisterNewScene<Texture_FrameBufferScene>("Texture_FrameBufferScene");
 	//m_SceneManager->RegisterNewScene<Light_ModelScene>("Light Model");
 	//m_SceneManager->RegisterNewScene<AdvanceOpenGLScene>("Advance Scene");
@@ -77,11 +78,13 @@ void Game::OnStart()
 	m_SceneManager->RegisterNewScene<GeometryScene>("Geometry Scene");
 	m_SceneManager->RegisterNewScene<InstancingScene>("Instance Scene");
 	m_SceneManager->RegisterNewScene<AntiAliasingScene>("AntiAliasing Scene");
-	m_SceneManager->RegisterNewScene<AdvanceLightingScene>("Advance Lighting Scene");
+	//m_SceneManager->RegisterNewScene<AdvanceLightingScene>("Advance Lighting Scene");
+	m_SceneManager->RegisterNewScene<ParallaxExperimentalScene>("Parallax Scene");
 
 	//Load
 	//m_CurrentScene = m_SceneManager->LoadScene("Instance Scene", m_Window);
-	m_CurrentScene = m_SceneManager->LoadScene("Advance Lighting Scene", m_Window);
+	//m_CurrentScene = m_SceneManager->LoadScene("Advance Lighting Scene", m_Window);
+	m_CurrentScene = m_SceneManager->LoadScene("Parallax Scene", m_Window);
 	//m_CurrentScene = m_SceneManager->LoadScene("Texture_FrameBufferScene", m_Window);
 	//m_CurrentScene = m_SceneManager->LoadScene("AntiAliasing Scene", m_Window);
 	//m_CurrentScene = m_SceneManager->LoadScene("Main Scene", m_Window);

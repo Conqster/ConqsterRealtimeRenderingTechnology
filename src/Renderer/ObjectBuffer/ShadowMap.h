@@ -8,7 +8,7 @@ public:
 	ShadowMap() = default;
 	~ShadowMap() = default;
 	ShadowMap(unsigned int width, unsigned int height) : m_Width(width), m_Height(height){}
-	void Generate(unsigned int width, unsigned int height);
+	virtual void Generate(unsigned int width, unsigned int height);
 	virtual void Generate();
 	void Write();
 	virtual void Read(unsigned int slot = 0);
@@ -33,6 +33,7 @@ public:
 	ShadowCube() = default;
 	~ShadowCube() = default;
 	ShadowCube(unsigned int width, unsigned int height) : ShadowMap(width, height) {}
+	void Generate(unsigned int width, unsigned int height) override;
 	virtual void Generate() override;
 	virtual void Read(unsigned int slot = 0) override;
 	virtual void UnBindMap() override;
