@@ -155,6 +155,7 @@
     <ClInclude Include="External Libs\imgui\imstb_truetype.h" />
     <ClInclude Include="External Libs\stb_image\stb_image.h" />
     <ClInclude Include="src\Geometry\AABB.h" />
+    <ClInclude Include="src\Renderer\Material.h" />
     <ClInclude Include="src\Renderer\Meshes\Meshes.h" />
     <ClInclude Include="src\Renderer\Renderer.h" />
     <ClInclude Include="src\Scene Graph\Model.h" />
@@ -177,7 +178,6 @@
     <ClInclude Include="src\Renderer\Lights\LightManager.h" />
     <ClInclude Include="src\Renderer\Lights\Lights.h" />
     <ClInclude Include="src\Renderer\Meshes\ModelMesh.h" />
-    <ClInclude Include="src\Renderer\NewMaterial.h" />
     <ClInclude Include="src\Renderer\ObjectBuffer\Framebuffer.h" />
     <ClInclude Include="src\Renderer\ObjectBuffer\MSAA.h" />
     <ClInclude Include="src\Renderer\ObjectBuffer\ShadowMap.h" />
@@ -237,7 +237,6 @@
     <ClCompile Include="src\Renderer\Lights\LightManager.cpp" />
     <ClCompile Include="src\Renderer\Lights\Lights.cpp" />
     <ClCompile Include="src\Renderer\Meshes\ModelMesh.cpp" />
-    <ClCompile Include="src\Renderer\NewMaterial.cpp" />
     <ClCompile Include="src\Renderer\ObjectBuffer\Framebuffer.cpp" />
     <ClCompile Include="src\Renderer\ObjectBuffer\MSAA.cpp" />
     <ClCompile Include="src\Renderer\ObjectBuffer\ShadowMap.cpp" />

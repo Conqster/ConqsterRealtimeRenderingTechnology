@@ -17,7 +17,8 @@ enum class TextureFormat
 	RGB = 3,  //for now because of model loading
 	RGBA,
 	SRGB,
-	SRGBA
+	SRGBA,
+	RED
 };
 
 
@@ -59,6 +60,7 @@ private:
 	int m_Width, m_Height, m_BitDepth;
 public:
 	Texture();
+	Texture(const Texture&) = default;
 	Texture(const std::string& fileLoc, bool flip = false, TextureFormat format = TextureFormat::RGBA, TextureType type = TextureType_NONE);
 	~Texture();
 
@@ -71,6 +73,7 @@ public:
 	void DisActivate() const;
 	void Clear();
 
+	inline int GetID() const { return m_Id; }
 	inline int GetWidth() const { return m_Width; }
 	inline int GetHeight() const { return m_Height; }
 

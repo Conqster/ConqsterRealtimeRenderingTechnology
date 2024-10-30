@@ -44,6 +44,8 @@ void main()
 	vec3 t = normalize(vec3(u_Model * vec4(tangent, 0.0f)));
 	vec3 n = normalize(vec3(u_Model * vec4(nor, 0.0f)));
 	vec3 b = cross(n, t);
+	
+	
 	vs_out.TBN = mat3(t, b, n);
 	
 	vs_out.normal = mat3(transpose(inverse(u_Model))) * nor;

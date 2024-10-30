@@ -78,24 +78,16 @@ void ParallaxExperimentalScene::OnRender()
 	modelShader.SetUniformVec3("u_ViewPos", m_Camera->GetPosition());
 
 	modelShader.SetUniformMat4f("u_DirLightSpaceMatrix", dirLightObject.dirLightShadow.GetLightSpaceMatrix());
-	/////////////////////////////////////
-	//Quick hack
-	/////////////////////////////////////
-	if (dirLightObject.dirlight.castShadow)
-	{
-		dirDepthMap.Read(2);         //model texture already take up 1 & 
-		modelShader.SetUniform1i("u_DirShadowMap", 2);
 
-	}
-
-	//so far the texture as not been overwritten
-	int ptlight_count = 1; 
 	//tex unit 0 >> texture 
 	//tex unit 1 >> potenially normal map
-	//tex unit 2 >> shadow map
-	ptDepthCube.Read(3);//bind to texture unit 
-	//modelShader.SetUniform1i(("u_PointShadowCubes[" + std::to_string(3) + "]").c_str(), 3);
-	modelShader.SetUniform1i("u_PointShadowCube", 3);
+	//tex unit 2 >> potenially parallax map
+	//tex unit 3 >> shadow map (dir Light)
+	//tex unit 4 >> shadow cube (pt Light)
+	dirDepthMap.Read(3); 
+	modelShader.SetUniform1i("u_DirShadowMap", 3);
+	ptDepthCube.Read(4);
+	modelShader.SetUniform1i("u_PointShadowCube", 4);
 
 
 	DrawObjects(modelShader, true);
@@ -274,15 +266,35 @@ void ParallaxExperimentalScene::OnRenderUI()
 		ImGui::TreePop();
 	}
 	ImGui::End();
+
+
+	ImGui::Begin("Material Test");
+	ImGui::Text("1. %s", floorMat.name);
+	ImGui::ColorEdit3("Colour", &floorMat.baseColour[0]);
+	ImGui::Image((ImTextureID)(intptr_t)floorMat.baseMap->GetID(), ImVec2(100, 100));
+	ImGui::SameLine();ImGui::Text("Main Texture");
+	ImGui::Image((ImTextureID)(intptr_t)floorMat.normalMap->GetID(), ImVec2(100, 100));
+	ImGui::SameLine();ImGui::Text("Normal Map");
+	ImGui::Image((ImTextureID)(intptr_t)floorMat.parallaxMap->GetID(), ImVec2(100, 100));
+	ImGui::SameLine(); ImGui::Text("Parallax/Height Map");
+	ImGui::Checkbox("Use Parallax", &floorMat.useParallax);
+	ImGui::SliderFloat("Parallax/Height Scale", &floorMat.heightScale, 0.0f, 0.08f);
+	ImGui::SliderInt("Shinness", &floorMat.shinness, 32, 256);
+	ImGui::End();
 }
 
 void ParallaxExperimentalScene::OnDestroy()
 {
-	if (brickTex)
-		brickTex->Clear();
+	//if (brickTex)
+	//	brickTex->Clear();
 
-	if (brickNorMap)
-		brickNorMap->Clear();
+	//if (brickNorMap)
+	//	brickNorMap->Clear();
+
+	if (floorMat.baseMap)
+		floorMat.baseMap->Clear();
+	if (floorMat.normalMap)
+		floorMat.normalMap->Clear();
 
 	Scene::OnDestroy();
 }
@@ -317,9 +329,26 @@ void ParallaxExperimentalScene::CreateObjects()
 	// CREATE TEXTURES 
 	////////////////////////////////////////
 	//brick texture 
-	brickTex = new Texture(FilePaths::Instance().GetPath("floor-brick-diff")/*, TextureFormat::SRGBA*/);
-	brickNorMap = new Texture(FilePaths::Instance().GetPath("floor-brick-nor"));
+	//brickTex = new Texture(FilePaths::Instance().GetPath("floor-brick-diff")/*, TextureFormat::SRGBA*/);
+	//brickNorMap = new Texture(FilePaths::Instance().GetPath("floor-brick-nor"));
 	
+	//brickTex = new Texture(FilePaths::Instance().GetPath("brickwall-diff")/*, TextureFormat::SRGBA*/);
+	//brickNorMap = new Texture(FilePaths::Instance().GetPath("brickwall-nor"));
+	floorMat.name = "Floor Mat";
+
+	if (false)
+	{
+		floorMat.baseMap = std::make_shared<Texture>(FilePaths::Instance().GetPath("para-brick-diff"));
+		floorMat.normalMap = std::make_shared<Texture>(FilePaths::Instance().GetPath("para-brick-nor"));
+		floorMat.parallaxMap = std::make_shared<Texture>(FilePaths::Instance().GetPath("para-brick-disp"));
+	}
+	else
+	{
+		floorMat.baseMap = std::make_shared<Texture>(FilePaths::Instance().GetPath("cobblestone-diff"));
+		floorMat.normalMap = std::make_shared<Texture>(FilePaths::Instance().GetPath("cobblestone-nor"));
+		floorMat.parallaxMap = std::make_shared<Texture>(FilePaths::Instance().GetPath("cobblestone-disp"));
+	}
+
 
 
 	////////////////////////////////////////
@@ -387,7 +416,7 @@ void ParallaxExperimentalScene::CreateObjects()
 	ptDepthCube.Generate(1024, 1024);
 }
 
-void ParallaxExperimentalScene::DrawObjects(Shader& shader, bool nor_map)
+void ParallaxExperimentalScene::DrawObjects(Shader& shader, bool apply_tex)
 {
 	shader.Bind();
 	glm::mat model = glm::mat4(1.0f);
@@ -399,21 +428,36 @@ void ParallaxExperimentalScene::DrawObjects(Shader& shader, bool nor_map)
 	shader.SetUniformMat4f("u_Model", model);
 
 	//ground material
-	if (nor_map)
+	if (apply_tex)
 	{
-		brickTex->Activate(0);  //texture albedo
-		shader.SetUniform1i("u_Texture", 0);
-		brickNorMap->Activate(1);
-		shader.SetUniform1i("u_NormalMap", 1);
+		unsigned int tex_units = 0;
+		shader.SetUniformVec3("u_Material.baseColour", floorMat.baseColour);
+		if (floorMat.baseMap)
+		{
+			floorMat.baseMap->Activate(tex_units);
+			shader.SetUniform1i("u_Material.baseMap", tex_units++);
+		}
+		if (floorMat.normalMap)
+		{
+			floorMat.normalMap->Activate(tex_units);
+			shader.SetUniform1i("u_Material.normalMap", tex_units++);
+		}
+		if (floorMat.parallaxMap)
+		{
+			floorMat.parallaxMap->Activate(tex_units);
+			shader.SetUniform1i("u_Material.parallaxMap", tex_units++);
+		}
 		shader.SetUniform1i("u_UseNorMap", useNor);
-		shader.SetUniform1f("u_ModelShinness", groundShinness);
+		shader.SetUniform1i("u_Material.shinness", floorMat.shinness);
+		shader.SetUniform1i("u_Material.useParallax", floorMat.useParallax);
+		shader.SetUniform1f("u_Material.parallax", floorMat.heightScale);
 	}
 	ground.Render();
 
-	if (nor_map)
+	if (apply_tex)
 	{
 		shader.SetUniform1i("u_UseNorMap", 0);
-		brickTex->DisActivate(); //this should unbind all textures
+		floorMat.baseMap->DisActivate(); //this should unbind all textures
 
 	}
 
@@ -427,18 +471,6 @@ void ParallaxExperimentalScene::LightPass()
 	offset_pointer = 0;
 	dirLightObject.dirlight.UpdateUniformBufferData(m_LightDataUBO, offset_pointer);
 	ptLight.UpdateUniformBufferData(m_LightDataUBO, offset_pointer);
-	//shader.Bind();
-
-	//shader.SetUniformVec3("u_ViewPos", m_Camera->GetPosition());
-	//shader.SetUniform1i("u_Blinn_Phong", useBlinnPhong);
-
-	//////////////////////////
-	//// Point Light 
-	//////////////////////////
-	//shader.SetUniform1i("u_Shininess", specShinness);
-	////shader.SetUniform1i("u_LightCount", availablePtLightCount + 1); //+1 for directional light
-
-	//shader.UnBind();
 
 }
 

@@ -6,6 +6,8 @@
 #include "Renderer/Lights/Lights.h"
 #include "Renderer/ObjectBuffer/ShadowMap.h"
 
+#include "Renderer/Material.h"
+
 
 enum ResolutionSetting
 {
@@ -91,8 +93,11 @@ private:
 	Shader shadowDepthShader;
 
 	//////Textures
-	Texture* brickTex;
-	Texture* brickNorMap;
+	//Texture* brickTex;
+	//Texture* brickNorMap;
+
+	//Test material 
+	Material floorMat;
 
 	//ground
 	SquareMesh ground;

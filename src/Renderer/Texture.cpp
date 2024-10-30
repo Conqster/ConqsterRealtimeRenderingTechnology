@@ -13,6 +13,7 @@ static GLint OpenGLTexFormat(TextureFormat format)
 		case TextureFormat::RGBA: return GL_RGBA;
 		case TextureFormat::SRGB: return GL_SRGB;
 		case TextureFormat::SRGBA: return GL_SRGB_ALPHA;
+		case TextureFormat::RED: return GL_RED;
 	}
 
 	std::cout << "[TEXTURE]: Format not supported yet !!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
@@ -105,7 +106,8 @@ bool Texture::LoadTexture(const std::string& fileLoc, bool flip , TextureFormat 
 	if (type == TextureType_NONE)
 	{
 		//GLCall(glTexImage2D(GL_TEXTURE_2D, 0, OpenGLTexFormat(m_TexFormat), m_Width, m_Height, 0, GL_RGB, GL_UNSIGNED_BYTE, m_LocalBuffer));
-		GLCall(glTexImage2D(GL_TEXTURE_2D, 0, OpenGLTexFormat(m_TexFormat), m_Width, m_Height, 0, OpenGLTexFormat(m_TexFormat), GL_UNSIGNED_BYTE, m_LocalBuffer));
+		//GLCall(glTexImage2D(GL_TEXTURE_2D, 0, OpenGLTexFormat(m_TexFormat), m_Width, m_Height, 0, OpenGLTexFormat(m_TexFormat), GL_UNSIGNED_BYTE, m_LocalBuffer));
+		GLCall(glTexImage2D(GL_TEXTURE_2D, 0, OpenGLTexFormat(m_TexFormat), m_Width, m_Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_LocalBuffer));
 		//GLCall(glTexImage2D(GL_TEXTURE_2D, 0, OpenGLTexFormat(m_TexFormat), m_Width, m_Height, 0, OpenGLTexFormat((TextureFormat)m_BitDepth), GL_UNSIGNED_BYTE, m_LocalBuffer));
 
 	}
