@@ -181,7 +181,7 @@ vec3 CalPointLight(vec3 N, vec3 V, vec3 base_colour)
 								 (pointLights[i].attenuation.y * distance) +
 								 (pointLights[i].attenuation.z * distance * distance);
 								 
-		float shadow = (i != 0) ? PointLightShadowCal(0) : 0.0f;						  
+		float shadow = (i == 0) ? PointLightShadowCal(0) : 0.0f;						  
 		//Quick hack 
 		vec3 ambient_light = (diffuse + base_colour) * factor;
 		vec3 highlight = pointLights[i].colour * pointLights[i].specular * specular;

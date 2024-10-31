@@ -98,14 +98,17 @@ private:
 
 	//Test material 
 	Material floorMat;
+	Material planeMat;
 
 	//ground
 	SquareMesh ground;
 	glm::vec3 groundPos = glm::vec3();
 	float groundScale = 50.0f;
-	float groundShinness = 64.0f;
 	bool useNor = true;
 
+	//Plane 
+	//plane uses the same mesh with ground 
+	glm::mat4 planeWorldTran = glm::mat4(1.0f);
 
 	/////////////////////////
 	// UNIFROM BUFFERS

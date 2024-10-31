@@ -2,6 +2,9 @@
 
 #include "External Libs/imgui/imgui.h"
 #include "Util/FilePaths.h"
+#include "Util/MathsHelpers.h"
+
+#include <glm/gtx/quaternion.hpp>
 
 void ParallaxExperimentalScene::SetWindow(Window* window)
 {
@@ -181,7 +184,9 @@ void ParallaxExperimentalScene::OnRenderUI()
 		ImGui::DragFloat3("Ground Pos", &groundPos[0], 0.1f);
 		ImGui::SliderFloat("Ground Scale", &groundScale, 100.0f, 1000.0f);
 		ImGui::Checkbox("Use Normal Map", &useNor);
-		ImGui::SliderFloat("Ground Mat Shinness", &groundShinness, 32.0f, 256.0f);
+
+		ImGui::SeparatorText("Plane");
+
 
 		ImGui::TreePop();
 	}
@@ -280,6 +285,29 @@ void ParallaxExperimentalScene::OnRenderUI()
 	ImGui::Checkbox("Use Parallax", &floorMat.useParallax);
 	ImGui::SliderFloat("Parallax/Height Scale", &floorMat.heightScale, 0.0f, 0.08f);
 	ImGui::SliderInt("Shinness", &floorMat.shinness, 32, 256);
+	ImGui::End();
+
+
+	ImGui::Begin("Experiment with Transforms");
+
+	glm::vec3 translate, euler, scale;
+	
+	MathsHelper::DecomposeTransform(planeWorldTran, translate, euler, scale);
+
+	glm::vec3 prev_rot = euler;
+	bool update = ImGui::DragFloat3("Translate", &translate[0], 0.2f);
+	update |= ImGui::DragFloat3("Rotation", &euler[0], 0.2f);
+	update |= ImGui::DragFloat3("Scale", &scale[0], 0.2f);
+
+	if (update)
+	{
+		planeWorldTran = glm::mat4(1.0f);
+		
+		glm::quat quat = glm::quat(glm::radians(euler));
+		glm::mat4 rot = glm::toMat4(quat);
+		planeWorldTran = glm::translate(planeWorldTran, translate) * rot * glm::scale(planeWorldTran, scale);
+	}
+
 	ImGui::End();
 }
 
@@ -453,6 +481,14 @@ void ParallaxExperimentalScene::DrawObjects(Shader& shader, bool apply_tex)
 		shader.SetUniform1f("u_Material.parallax", floorMat.heightScale);
 	}
 	ground.Render();
+
+
+	//draw plane 
+	shader.SetUniformMat4f("u_Model", planeWorldTran);
+	ground.Render();
+
+
+
 
 	if (apply_tex)
 	{
