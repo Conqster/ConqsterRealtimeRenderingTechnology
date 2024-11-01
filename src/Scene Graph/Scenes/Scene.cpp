@@ -2,6 +2,7 @@
 #include "Scene.h"
 #include "Renderer/Renderer.h"
 
+#include "Util/FilePaths.h"
 
 
 void Scene::SetWindow(Window* window)
@@ -14,6 +15,8 @@ void Scene::OnInit(Window* window)
 {
 	this->window = window;
 	GLCall(glViewport(0, 0, window->GetWidth(), window->GetHeight()));
+
+	blank_tex = new Texture(FilePaths::Instance().GetPath("blank-image"));
 }
 
 
@@ -41,6 +44,9 @@ void Scene::OnDestroy()
 	m_Camera = nullptr;
 
 	window = nullptr;
+
+	if (blank_tex)
+		blank_tex->Clear();
 
 	//for now hard reset 
 	GLCall(glDisable(GL_DEPTH_TEST));

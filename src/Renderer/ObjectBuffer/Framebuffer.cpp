@@ -3,14 +3,25 @@
 #include "..\RendererErrorAssertion.h"
 #include <iostream>
 
+static GLint OpenGLFormat(FBO_Format format)
+{
+	switch (format)
+	{
+		case FBO_Format::RGB: return GL_RGB;
+		case FBO_Format::RGBA16F: return GL_RGBA16F;
+	}
+
+	std::cout << "[TEXTURE]: Format not supported yet !!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+}
+
 Framebuffer::Framebuffer() : m_Width(500), m_Height(500),
 				m_ID(0), m_RenderbufferID(0), m_TextureID(0)
 {}
 
-Framebuffer::Framebuffer(unsigned int width, unsigned int height) : m_Width(width),
+Framebuffer::Framebuffer(unsigned int width, unsigned int height, FBO_Format i_format) : m_Width(width),
 			m_Height(height), m_ID(0), m_RenderbufferID(0), m_TextureID(0)
 {
-	Generate();
+	Generate(i_format);
 }
 
 Framebuffer::~Framebuffer()
@@ -18,7 +29,7 @@ Framebuffer::~Framebuffer()
 	Delete();
 }
 
-bool Framebuffer::Generate()
+bool Framebuffer::Generate(FBO_Format i_format)
 {
 	glGenFramebuffers(1, &m_ID);
 	glBindFramebuffer(GL_FRAMEBUFFER, m_ID);
@@ -29,7 +40,8 @@ bool Framebuffer::Generate()
 	glGenTextures(1, &m_TextureID);
 	glBindTexture(GL_TEXTURE_2D, m_TextureID);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_Width, m_Height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	//glTexImage2D(GL_TEXTURE_2D, 0, OpenGLFormat(i_format), m_Width, m_Height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, OpenGLFormat(i_format), m_Width, m_Height, 0, GL_RGB, GL_FLOAT, NULL);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -58,11 +70,11 @@ bool Framebuffer::Generate()
 	return true;
 }
 
-bool Framebuffer::Generate(unsigned int width, unsigned int height)
+bool Framebuffer::Generate(unsigned int width, unsigned int height, FBO_Format i_format)
 {
 	m_Width = width;
 	m_Height = height;
-	return Generate();
+	return Generate(i_format);
 }
 
 

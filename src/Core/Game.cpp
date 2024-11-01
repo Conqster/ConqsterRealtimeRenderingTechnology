@@ -56,6 +56,7 @@ void Game::OnStart()
 		FilePaths::Instance().RegisterPath("marble", "Assets/Textures/marble.jpeg");
 		FilePaths::Instance().RegisterPath("metal", "Assets/Textures/metal.jpeg");
 		FilePaths::Instance().RegisterPath("plain", "Assets/Textures/plain64.png");
+		FilePaths::Instance().RegisterPath("blank-image", "Assets/Textures/BlankPlane.png");
 		FilePaths::Instance().RegisterPath("floor-brick-diff", "Assets/Textures/floor_brick/patterned_brick_floor_diff.jpg");
 		FilePaths::Instance().RegisterPath("floor-brick-nor", "Assets/Textures/floor_brick/patterned_brick_floor_nor.jpg");
 
@@ -66,11 +67,14 @@ void Game::OnStart()
 		FilePaths::Instance().RegisterPath("cobblestone-diff", "Assets/Textures/cobblestone/patterned_cobblestone_02_diff_4k.jpg");
 		FilePaths::Instance().RegisterPath("cobblestone-nor", "Assets/Textures/cobblestone/patterned_cobblestone_02_nor_gl_4k.jpg");
 		FilePaths::Instance().RegisterPath("cobblestone-disp", "Assets/Textures/cobblestone/patterned_cobblestone_02_disp_4k.jpg");
+		
+		FilePaths::Instance().RegisterPath("old_plank", "Assets/Textures/old_planks_diff.jpg");
 
 
 
 		FilePaths::Instance().RegisterPath("bunny", "Assets/Models/stanford-bunny.obj");
 		FilePaths::Instance().RegisterPath("backpack", "Assets/Models/backpack/backpack.obj");
+		FilePaths::Instance().RegisterPath("shapes", "Assets/Models/blendershapes/blend_shapes.obj");
 		FilePaths::Instance().RegisterPath("electrical-charger", "Assets/Textures/sci-fi_electrical_charger/scene.gltf");
 	}
 

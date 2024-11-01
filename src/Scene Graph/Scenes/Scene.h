@@ -31,4 +31,5 @@ struct LearnVertex
 		Window* window = nullptr;
 
 		glm::vec3 m_ClearScreenColour = glm::vec3(0.1f, 0.1f, 0.1f);
+		class Texture* blank_tex = nullptr;
 	};

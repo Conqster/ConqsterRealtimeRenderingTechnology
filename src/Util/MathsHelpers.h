@@ -29,7 +29,7 @@ struct MathsHelper
 	static inline void DecomposeTransform(glm::mat4& transform, glm::vec3& translate, glm::vec3& euler, glm::vec3& scale)
 	{
 		glm::mat4 Mt = transform;
-		translate = glm::vec3(Mt[3][0], Mt[3][1], Mt[3][2]);
+		translate = glm::vec3(Mt[3]);
 
 		if (std::abs(Mt[3][3] - 1.0f) > 1e-6f)
 			return;
@@ -39,12 +39,15 @@ struct MathsHelper
 				if (std::isnan(Mt[i][j]))
 					return;
 
+		//Remove translation for scale & rot extraction 
+		Mt[3] = glm::vec4(0.0f, 0.0f, 0.0f, Mt[3].w); 
+
 		scale.x = glm::length(glm::vec3(Mt[0][0], Mt[1][0], Mt[2][0]));
 		scale.y = glm::length(glm::vec3(Mt[0][1], Mt[1][1], Mt[2][1]));
 		scale.z = glm::length(glm::vec3(Mt[0][2], Mt[1][2], Mt[2][2]));
 
-		if (scale.x == 0.0f || scale.y == 0.0f || scale.z == 0.0f)
-			return;
+		if (glm::determinant(Mt) < 0)
+			scale.x = -scale.x;
 
 		glm::mat3 Mr;
 		Mr[0] = glm::vec3(Mt[0][0], Mt[1][0], Mt[2][0]) / scale.x;

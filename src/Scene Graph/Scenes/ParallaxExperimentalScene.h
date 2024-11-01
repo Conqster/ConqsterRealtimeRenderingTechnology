@@ -7,7 +7,10 @@
 #include "Renderer/ObjectBuffer/ShadowMap.h"
 
 #include "Renderer/Material.h"
+#include "Scene Graph/Model.h"
+#include "Util/ModelLoader.h"
 
+#include "Renderer/ObjectBuffer/Framebuffer.h"
 
 enum ResolutionSetting
 {
@@ -84,7 +87,15 @@ private:
 	void DrawObjects(Shader& shader, bool nor_map = false);
 	void LightPass();
 	void ShadowPass();
+	void MaterialShaderBindHelper(Material& mat, Shader& shader);
 
+
+	////////////////
+	// Utilities 
+	////////////////
+	ModelLoader modelLoader;
+	bool enableSceneShadow = true;
+	bool ptLightGizmos = true;
 
 	///////////////
 	// Shaders
@@ -99,22 +110,35 @@ private:
 	//Test material 
 	Material floorMat;
 	Material planeMat;
+	Material wallMat;
 
 	//ground
 	SquareMesh ground;
-	glm::vec3 groundPos = glm::vec3();
-	float groundScale = 50.0f;
+	glm::mat4 groundWorldTrans = glm::mat4(1.0f);
 	bool useNor = true;
 
 	//Plane 
 	//plane uses the same mesh with ground 
 	glm::mat4 planeWorldTran = glm::mat4(1.0f);
 
+	//Blender Shapes
+	std::shared_ptr<Model> blenderShapes;
+	glm::mat4 shapesTrans = glm::mat4(1.0f);
+
 	/////////////////////////
 	// UNIFROM BUFFERS
 	/////////////////////////
 	UniformBuffer m_CamMatUBO;
 	UniformBuffer m_LightDataUBO;
+
+	//////////////////////////////
+	// Post Processing
+	//////////////////////////////
+	LearnVertex hdrPostProcessQuad;
+	Framebuffer hdrFBO;
+	Shader hdrPostShader;
+	Framebuffer depthFBO;
+	Shader depthShader;
 
 	//---------------------Introduce material system------------------------------/
 
@@ -130,7 +154,8 @@ private:
 	}dirLightObject;
 	ShadowMap dirDepthMap;
 	//Point Light data-------------------/
-	PointLight ptLight;
+	static const int MAX_POINT_LIGHT = 4 + 3;
+	PointLight ptLight[MAX_POINT_LIGHT];
 	ShadowConfig ptShadowConfig;
 	ShadowCube ptDepthCube;
 

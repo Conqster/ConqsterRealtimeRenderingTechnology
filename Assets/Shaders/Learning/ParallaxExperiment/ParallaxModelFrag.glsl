@@ -60,7 +60,7 @@ in VS_OUT
 	vec3 normal;
 }fs_in;
 
-const int MAX_POINT_LIGHTS = 5;
+const int MAX_POINT_LIGHTS = 4 + 3;
 //--------------uniform--------------/
 //Model specify 
 uniform Material u_Material;
@@ -74,6 +74,7 @@ layout (std140) uniform u_LightBuffer
     DirectionalLight dirLight;                  //aligned
     PointLight pointLights[MAX_POINT_LIGHTS];   //aligned
 };
+uniform bool u_EnableSceneShadow;
 uniform sampler2D u_DirShadowMap;
 uniform samplerCube u_PointShadowCube;
 
@@ -146,7 +147,7 @@ vec3 CalDirLight(vec3 N, vec3 V, vec3 base_colour)
 		//specular
 		float specular = pow(max(dot(N, H), 0.0f), u_Material.shinness);
 		
-		float shadow = DirShadowCalculation(N, fs_in.fragPosLightSpace);
+		float shadow = (u_EnableSceneShadow) ? DirShadowCalculation(N, fs_in.fragPosLightSpace) : 0.0f;
 		vec3 ambient_light = (base_colour + diffuse) * factor;
 		vec3 highlight = dirLight.colour * dirLight.specular * specular;
 		result = (1.0 - shadow) * (ambient_light + highlight);
@@ -181,11 +182,11 @@ vec3 CalPointLight(vec3 N, vec3 V, vec3 base_colour)
 								 (pointLights[i].attenuation.y * distance) +
 								 (pointLights[i].attenuation.z * distance * distance);
 								 
-		float shadow = (i == 0) ? PointLightShadowCal(0) : 0.0f;						  
+		float shadow = (i == 0 && u_EnableSceneShadow) ? PointLightShadowCal(0) : 0.0f;						  
 		//Quick hack 
 		vec3 ambient_light = (diffuse + base_colour) * factor;
 		vec3 highlight = pointLights[i].colour * pointLights[i].specular * specular;
-		result = ((1.0 - shadow) * (ambient_light + highlight))/total_attenuation;
+		result += ((1.0 - shadow) * (ambient_light + highlight))/total_attenuation;
 	}
 	return result;
 }
@@ -241,7 +242,6 @@ float PointLightShadowCal(int idx)
 
 vec2 ParallaxOffset(vec2 texcoords, vec3 vdir)
 {
-
 	float height = texture(u_Material.parallaxMap, texcoords).r;
 	//return texcoords - vdir.xy * (height * u_Material.parallax);
 	
@@ -257,22 +257,24 @@ vec2 ParallaxOffset(vec2 texcoords, vec3 vdir)
 	
 	vec2 curr_texcoord = texcoords;
 	float curr_depth = 0.0f;
-	//float curr_depth_value = 1.0f - texture(u_Material.parallaxMap, curr_texcoord).r;
 	float curr_depth_value = texture(u_Material.parallaxMap, curr_texcoord).r;
+	//curr_depth_value = 1.0f - curr_depth_value;
 	
 	while(curr_depth < curr_depth_value)
 	{
 		curr_texcoord -= delta_uv;
-		//curr_depth_value = 1.0f - texture(u_Material.parallaxMap, curr_texcoord).r;
 		curr_depth_value = texture(u_Material.parallaxMap, curr_texcoord).r;
+		//curr_depth_value = 1.0f - curr_depth_value;
 		curr_depth += layer_depth;
 	}
 	
 	vec2 prev_texcoord = curr_texcoord + delta_uv;
 	float after_depth = curr_depth_value - curr_depth;
-	//float before_depth = 1.0f - texture(u_Material.parallaxMap, prev_texcoord).r - curr_depth + layer_depth;
 	float before_depth = texture(u_Material.parallaxMap, prev_texcoord).r - curr_depth + layer_depth;
+	//before_depth = 1.0f - before_depth;
 	float weight = after_depth /(after_depth - before_depth);
 	vec2 final_texcoords = prev_texcoord * weight + curr_texcoord * (1.0f - weight);
+
+	
 	return final_texcoords;
 }
