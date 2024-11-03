@@ -9,6 +9,7 @@ struct Material
 
 	const char* name = "default";
 	//later add a shader ref
+	std::shared_ptr<Shader> shader = nullptr;
 
 	glm::vec3 baseColour = glm::vec3(1.0f); //base coour contributes to base map (* multply as a mask)
 

@@ -4,8 +4,52 @@
 #include "Renderer/Material.h"
 #include "Renderer/Meshes/Meshes.h"
 
+void Entity::UpdateWorldTransform()
+{
+	if (m_Parent)//auto transverse the parent child link
+		m_WorldTransform = m_Parent->GetWorldTransform() * m_LocalTransform;
+	else
+		m_WorldTransform = m_LocalTransform;
+
+	m_DirtyTranform = false;
+}
+
+void Entity::MarkTransformDirty()
+{
+	m_DirtyTranform = true;
+	for (auto& c : m_Children)
+		c->MarkTransformDirty();
+}
+
+const glm::mat4& Entity::GetWorldTransform()
+{
+	if (m_DirtyTranform)
+		UpdateWorldTransform();
+
+	return m_WorldTransform;
+}
+
+void Entity::AddLocalChild(const Entity& entity)
+{
+	m_Children.emplace_back(std::make_shared<Entity>(entity));
+	m_Children.back()->m_Parent = GetRef();
+	m_Children.back()->MarkTransformDirty();
+}
+
+void Entity::AddWorldChild(const Entity& entity)
+{
+	m_Children.emplace_back(std::make_shared<Entity>(entity));
+	m_Children.back()->m_Parent = GetRef();
+	m_Children.back()->m_LocalTransform = glm::inverse(m_WorldTransform) * m_Children.back()->m_WorldTransform;
+	m_Children.back()->MarkTransformDirty();
+}
+
 void Entity::Draw(Shader& shader)
 {
+	if (m_Children.size() > 0)
+		for (auto& e : m_Children)
+			e->Draw(shader);
+
 	if (!m_Mesh)
 		return;
 
@@ -40,7 +84,10 @@ void Entity::Draw(Shader& shader)
 	}
 
 
-	shader.SetUniformMat4f("u_Model", m_Transform);
+	//shader.SetUniformMat4f("u_Model", m_Transform);
+	//use GetWorldTransform as it might have a parent
+	shader.SetUniformMat4f("u_Model", GetWorldTransform());//expensive but works for now
+
 	m_Mesh->Render();
 }
 

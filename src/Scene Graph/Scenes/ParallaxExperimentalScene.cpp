@@ -487,7 +487,7 @@ void ParallaxExperimentalScene::OnRenderUI()
 	{
 		ImGui::Begin("Entities Debug UI");
 		for (auto& e : sceneEntities)
-			EntityDebugUI(e);
+			EntityDebugUI(*e);
 		ImGui::End();
 	}
 
@@ -738,7 +738,7 @@ void ParallaxExperimentalScene::CreateObjects()
 	//rotate plane 180 around  y 
 	///glm::mat4 model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
-	groundWorldTrans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -12.0f, 0.0f)) *
+	groundWorldTrans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -120.0f, 0.0f)) *
 					   glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) *
 					   glm::scale(glm::mat4(1.0f), glm::vec3(50.0f));
 
@@ -749,7 +749,7 @@ void ParallaxExperimentalScene::CreateObjects()
 
 	
 	blenderShapes = modelLoader.Load(FilePaths::Instance().GetPath("shapes"), true);
-	shapesTrans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 2.0f, 25.0f)) *
+	shapesTrans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -200.0f, 25.0f)) *
 					 glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) *
 					 glm::scale(glm::mat4(1.0f), glm::vec3(1.0f));
 
@@ -796,18 +796,26 @@ void ParallaxExperimentalScene::CreateObjects()
 	//create a plane entity 
 	glm::mat4 temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -12.0f, 0.0f)) *
 						   glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) *
-						   glm::scale(glm::mat4(1.0f), glm::vec3(50.0f));
+						   glm::scale(glm::mat4(1.0f), glm::vec3(10.0f));
 	int id_idx = 0;
 	Entity floor_plane_entity = Entity(id_idx++, "floor-plane-entity", temp_trans, std::make_shared<Mesh>(ground), floorMat);
-	sceneEntities.emplace_back(floor_plane_entity);
+	sceneEntities.emplace_back(std::make_shared<Entity>(floor_plane_entity));
 	Entity plane2_entity = Entity(id_idx++, "plane-entity", temp_trans, std::make_shared<Mesh>(ground), planeMat);
-	sceneEntities.emplace_back(plane2_entity);
+	sceneEntities.emplace_back(std::make_shared<Entity>(plane2_entity));
 	Entity wall_plane_entity = Entity(id_idx++, "wall-plane-entity", temp_trans, std::make_shared<Mesh>(ground), wallMat);
-	sceneEntities.emplace_back(wall_plane_entity);
-	Entity cube_entity = Entity(id_idx++, "plane-entity", temp_trans, std::make_shared<Mesh>(glowingCube), planeMat);
-	sceneEntities.emplace_back(cube_entity);
-	
+	sceneEntities.emplace_back(std::make_shared<Entity>(wall_plane_entity));
+	Entity cube_entity = Entity(id_idx++, "cube-entity", temp_trans, std::make_shared<Mesh>(glowingCube), planeMat);
+	sceneEntities.emplace_back(std::make_shared<Entity>(cube_entity));
 
+	temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(2.0f, 0.0f, 0.0f));/* *
+				 glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+				 glm::scale(glm::mat4(1.0f), glm::vec3(5.0f));*/
+	
+	Entity cube2_entity = Entity(id_idx++, "cube2-entity", temp_trans, std::make_shared<Mesh>(glowingCube), planeMat);
+	//cube2_entity.SetParent(std::make_shared<Entity>(sceneEntities.back()));
+	sceneEntities.back()->AddLocalChild(cube2_entity);
+	Entity cube3_entity = Entity(id_idx++, "cube2-entity", temp_trans, std::make_shared<Mesh>(glowingCube), wallMat);
+	sceneEntities.back()->AddWorldChild(cube3_entity);
 
 
 	//--------------------Light--------------------------------/
@@ -907,7 +915,7 @@ void ParallaxExperimentalScene::DrawObjects(Shader& shader, bool apply_tex)
 
 
 	for (auto& e : sceneEntities)
-		e.Draw(shader);
+		e->Draw(shader);
 
 
 	if (apply_tex)
@@ -998,6 +1006,7 @@ void ParallaxExperimentalScene::EntityDebugUI(Entity& entity)
 	ImGui::Spacing();
 	ImGui::PushID(entity.GetID());
 	ImGui::Text("Name: %s, ID: %d", entity.GetName(), entity.GetID());
+	ImGui::Text("Number of Children: %d", entity.GetChildren().size());
 	ImGui::SeparatorText("Transform");
 	glm::vec3 translate, euler, scale;
 	MathsHelper::DecomposeTransform(entity.GetTransform(), translate, euler, scale);
@@ -1011,5 +1020,19 @@ void ParallaxExperimentalScene::EntityDebugUI(Entity& entity)
 							glm::scale(glm::mat4(1.0f), scale));
 	}
 	ImGui::Text("Material Name: %s", entity.GetMaterial()->name);
+
+
+
+	if (entity.GetChildren().size() > 0)
+	{
+		if (ImGui::TreeNode("Children"))
+		{
+			for (auto& e : entity.GetChildren())
+				EntityDebugUI(*e);
+
+			ImGui::TreePop();
+		}
+	}
+
 	ImGui::PopID();
 }

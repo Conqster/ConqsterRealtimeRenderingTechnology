@@ -162,7 +162,7 @@ private:
 	Shader glowingCubeShader;
 
 	//---------------------Test Entity------------------------------/
-	std::vector<Entity> sceneEntities;
+	std::vector<std::shared_ptr<Entity>> sceneEntities;
 
 
 	//---------------------------Lighting Utilities--------------------------/
