@@ -26,7 +26,7 @@ struct MathsHelper
 
 
 
-	static inline void DecomposeTransform(glm::mat4& transform, glm::vec3& translate, glm::vec3& euler, glm::vec3& scale)
+	static inline void DecomposeTransform(const glm::mat4& transform, glm::vec3& translate, glm::vec3& euler, glm::vec3& scale)
 	{
 		glm::mat4 Mt = transform;
 		translate = glm::vec3(Mt[3]);

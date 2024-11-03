@@ -1,7 +1,8 @@
 #version 400
-
-//--------------attributes--------------/
-out vec4 FragColour; 
+//#version 330 core
+layout (location = 0) out vec4 FragColour;
+layout (location = 1) out vec4 BrightColour;
+layout (location = 2) out vec4 BaseColour;
 
 //--------------------Point Light------------------------------
 struct PointLight
@@ -67,6 +68,7 @@ uniform Material u_Material;
 uniform bool u_UseNorMap;
 
 uniform vec3 u_ViewPos;
+uniform float rate;
 
 //Light specify
 layout (std140) uniform u_LightBuffer
@@ -124,6 +126,17 @@ void main()
 	final_colour += CalPointLight(N, V, base_colour);
 	
 	FragColour = vec4(final_colour, 1.0f);
+	
+	/////////////
+	//Bright Colour
+	/////////////
+	float brightness = dot(FragColour.rgb, vec3(0.2126, 0.7152, 0.0722) * rate);
+	BrightColour = (brightness > 1.0f) ? FragColour : vec4(vec3(0.0f), 1.0f);
+
+	/////////////
+	//Base Colour
+	/////////////
+	BaseColour = vec4(base_colour, 1.0f);
 }
 
 

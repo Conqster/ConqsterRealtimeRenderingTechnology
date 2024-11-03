@@ -158,6 +158,7 @@
     <ClInclude Include="src\Renderer\Material.h" />
     <ClInclude Include="src\Renderer\Meshes\Meshes.h" />
     <ClInclude Include="src\Renderer\Renderer.h" />
+    <ClInclude Include="src\Scene Graph\Entity.h" />
     <ClInclude Include="src\Scene Graph\Model.h" />
     <ClInclude Include="src\Scene Graph\Scenes\ParallaxExperimentalScene.h" />
     <ClInclude Include="src\Util\ModelLoader.h" />
@@ -214,6 +215,7 @@
     <ClCompile Include="External Libs\imgui\imgui_impl_opengl3.cpp" />
     <ClCompile Include="External Libs\imgui\imgui_tables.cpp" />
     <ClCompile Include="External Libs\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="src\Scene Graph\Entity.cpp" />
     <ClCompile Include="src\Scene Graph\Model.cpp" />
     <ClCompile Include="src\Scene Graph\Scenes\ParallaxExperimentalScene.cpp" />
     <ClCompile Include="src\Util\ModelLoader.cpp" />

@@ -38,3 +38,39 @@ private:
 				 m_RenderbufferID,
 				 m_TextureID;
 };
+
+
+
+//----------------------------------------------Multiple Render Targets MRT----------------------/
+
+
+class MRTFramebuffer
+{
+public:
+	MRTFramebuffer();
+	MRTFramebuffer(unsigned int width, unsigned int height, FBO_Format i_format = FBO_Format::RGB);
+	~MRTFramebuffer();
+
+	bool Generate(FBO_Format i_format = FBO_Format::RGB);
+	bool Generate(unsigned int width, unsigned int height, FBO_Format i_format = FBO_Format::RGB);
+
+
+
+	void Bind();
+	void UnBind();
+	void Delete();
+
+	void BindTextureIdx(unsigned int idx, unsigned int slot = 0);
+
+	inline glm::vec2 GetSize() { return glm::vec2(m_Width, m_Height); }
+	inline unsigned int GetColourAttachment(unsigned int idx) { return colourAttachments[idx]; }
+
+
+private:
+	unsigned int m_Width,
+		m_Height;
+
+	unsigned int m_ID,
+				 m_RenderbufferID,
+				 colourAttachments[3]; //hard code for now
+};

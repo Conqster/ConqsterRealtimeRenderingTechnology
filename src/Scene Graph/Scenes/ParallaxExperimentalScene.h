@@ -11,6 +11,9 @@
 #include "Util/ModelLoader.h"
 
 #include "Renderer/ObjectBuffer/Framebuffer.h"
+#include "Renderer/Meshes/CubeMesh.h"
+
+#include "../Entity.h"
 
 enum ResolutionSetting
 {
@@ -66,6 +69,8 @@ struct DirShadowCalculation
 };
 
 
+class Entity;
+
 
 class ParallaxExperimentalScene : public Scene
 {
@@ -96,6 +101,7 @@ private:
 	ModelLoader modelLoader;
 	bool enableSceneShadow = true;
 	bool ptLightGizmos = true;
+	float hdrExposure = 1.0f;
 
 	///////////////
 	// Shaders
@@ -108,9 +114,9 @@ private:
 	//Texture* brickNorMap;
 
 	//Test material 
-	Material floorMat;
-	Material planeMat;
-	Material wallMat;
+	std::shared_ptr<Material> floorMat;
+	std::shared_ptr<Material> planeMat;
+	std::shared_ptr<Material> wallMat;
 
 	//ground
 	SquareMesh ground;
@@ -140,7 +146,23 @@ private:
 	Framebuffer depthFBO;
 	Shader depthShader;
 
-	//---------------------Introduce material system------------------------------/
+	MRTFramebuffer MRT_FBO;
+	Shader MRTShader;
+	Shader bloomShader;
+	bool horiBloom = false;
+	float bloomrate = 1.0f;
+
+	Framebuffer pingFBO1;
+	Framebuffer pingFBO2;
+	Shader pingBloomShader;
+
+	CubeMesh glowingCube;
+	glm::vec3 glowingCubeColour = glm::vec3(0.0f, 0.0f, 1.0f);
+	glm::mat4 glowingCubeTrans = glm::mat4(1.0f);
+	Shader glowingCubeShader;
+
+	//---------------------Test Entity------------------------------/
+	std::vector<Entity> sceneEntities;
 
 
 	//---------------------------Lighting Utilities--------------------------/
@@ -198,4 +220,7 @@ private:
 
 		return tempMatrix;
 	}
+
+
+	void EntityDebugUI(Entity& entity);
 };

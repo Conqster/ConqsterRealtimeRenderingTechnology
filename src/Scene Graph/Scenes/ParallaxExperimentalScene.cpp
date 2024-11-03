@@ -6,6 +6,8 @@
 
 #include <glm/gtx/quaternion.hpp>
 
+#include "../Entity.h"
+
 void ParallaxExperimentalScene::SetWindow(Window* window)
 {
 	this->window = window;
@@ -46,6 +48,7 @@ void ParallaxExperimentalScene::OnUpdate(float delta_time)
 	}
 
 
+
 	//point shadow far update 
 	float shfar = ptShadowConfig.cam_far;
 	ptLight[0].shadow_far = shfar;
@@ -72,7 +75,7 @@ void ParallaxExperimentalScene::OnRender()
 	if(enableSceneShadow)
 		ShadowPass();
 
-
+	
 	/////////////////////
 	// First Pass : Draw Scene to HDR buffer
 	/////////////////////#
@@ -99,6 +102,10 @@ void ParallaxExperimentalScene::OnRender()
 		modelShader.SetUniform1i("u_PointShadowCube", 4);
 	}
 	DrawObjects(modelShader, true);
+	glowingCubeShader.Bind();
+	glowingCube.Render();
+	glowingCubeShader.SetUniformMat4f("u_Model", glowingCubeTrans);
+	glowingCubeShader.UnBind();
 	hdrFBO.UnBind();
 
 	/////////////////////
@@ -107,16 +114,139 @@ void ParallaxExperimentalScene::OnRender()
 	depthFBO.Bind();
 	GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 	DrawObjects(depthShader, false);
+	glowingCubeShader.Bind();
+	glowingCube.Render(); //model pos already set 
+	glowingCubeShader.UnBind();
 	depthFBO.UnBind();
+
+
+	////////////////////////
+	// TEST PASS : Multi Render Pass 
+	////////////////////////
+	MRT_FBO.Bind();
+	GLCall(glClearColor(m_ClearScreenColour.r, m_ClearScreenColour.g, m_ClearScreenColour.b, 1.0f));
+	GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+	MRTShader.Bind();
+	floorMat->baseMap->DisActivate();
+	MRTShader.SetUniformVec3("u_ViewPos", m_Camera->GetPosition());
+	MRTShader.SetUniform1i("u_EnableSceneShadow", enableSceneShadow);
+	MRTShader.SetUniform1f("rate", bloomrate);
+
+	if (enableSceneShadow)
+	{
+		MRTShader.SetUniformMat4f("u_DirLightSpaceMatrix", dirLightObject.dirLightShadow.GetLightSpaceMatrix());
+		//tex unit 0 >> texture 
+		//tex unit 1 >> potenially normal map
+		//tex unit 2 >> potenially parallax map
+		//tex unit 3 >> shadow map (dir Light)
+		//tex unit 4 >> shadow cube (pt Light)
+		dirDepthMap.Read(3);
+		MRTShader.SetUniform1i("u_DirShadowMap", 3);
+		ptDepthCube.Read(4);
+		MRTShader.SetUniform1i("u_PointShadowCube", 4);
+	}
+	DrawObjects(MRTShader, true);
+	MRTShader.UnBind();
+	glowingCubeShader.Bind();
+	glowingCubeShader.SetUniform1f("rate", bloomrate);
+	glowingCubeShader.SetUniformVec3("u_Colour", glowingCubeColour);
+	glowingCube.Render(); //model pos already set 
+	glowingCubeShader.UnBind();
+	MRT_FBO.UnBind();
+
+
 
 	/////////////////////
 	// Third Pass : Draw HDR buffer image
 	/////////////////////
-	hdrPostShader.Bind();
-	hdrFBO.BindTexture(0);
+	//hdrPostShader.Bind();
+	////hdrFBO.BindTexture(0);
+	//MRT_FBO.BindTextureIdx(1, 0);
+	//hdrPostShader.SetUniform1f("exposure", hdrExposure);
+	//GLCall(glBindVertexArray(hdrPostProcessQuad.VAO));
+	//GLCall(glDrawArrays(GL_TRIANGLES, 0, 6));
+	//GLCall(glBindVertexArray(0));
+	//hdrPostShader.UnBind();
+
+	//use bloom 
+	bloomShader.Bind();
+	MRT_FBO.BindTextureIdx(1, 0);
+	bloomShader.SetUniform1i("horizontal", horiBloom);
+	bloomShader.SetUniform1f("rate", 1.0f);
 	GLCall(glBindVertexArray(hdrPostProcessQuad.VAO));
-	GLCall(glDrawArrays(GL_TRIANGLES, 0, 6))
+	GLCall(glDrawArrays(GL_TRIANGLES, 0, 6));
 	GLCall(glBindVertexArray(0));
+	bloomShader.UnBind();
+
+
+	//return;
+	//Render scene on horizontal then vertical 
+	bool horizontal = true;
+	bool first_it = true;
+	int amount = 10;
+	//GLCall(glBindTexture(GL_TEXTURE_2D, 0));
+	for (int i = 0; i < amount; i++)
+	{
+		if (horizontal)
+			pingFBO2.Bind();
+		else
+			pingFBO1.Bind();
+		bloomShader.Bind();
+		GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+		//set shader to horizontal 
+		bloomShader.SetUniform1i("horizontal", horizontal);
+		bloomShader.SetUniform1f("rate", 1.0f);
+
+		if(first_it)
+			MRT_FBO.BindTextureIdx(1, 0); //use the actual prev bloom output 
+		else
+		{
+			if (horizontal)
+				pingFBO1.BindTexture(0);
+			else
+				pingFBO2.BindTexture(0);
+		}
+		//draw screen quad
+		GLCall(glBindVertexArray(hdrPostProcessQuad.VAO));
+		GLCall(glDrawArrays(GL_TRIANGLES, 0, 6));
+		GLCall(glBindVertexArray(0));
+
+		horizontal = !horizontal;
+		if (first_it)
+			first_it = false;
+	}
+	pingFBO1.UnBind();
+
+	//pingFBO2.Bind();
+	//bloomShader.Bind();
+	//GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+	//MRT_FBO.BindTextureIdx(1, 0);
+	//bloomShader.SetUniform1i("horizontal", horiBloom);
+	//bloomShader.SetUniform1f("rate", 1.0f);
+	//GLCall(glBindVertexArray(hdrPostProcessQuad.VAO));
+	//GLCall(glDrawArrays(GL_TRIANGLES, 0, 6));
+	//GLCall(glBindVertexArray(0));
+	//bloomShader.UnBind();
+	//pingFBO2.UnBind();
+
+
+	//use final bloom
+	GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+	pingBloomShader.Bind();
+	hdrFBO.BindTexture(0);
+	pingBloomShader.SetUniform1i("u_SceneTex", 0);
+	if (horizontal)
+		pingFBO1.BindTexture(1);
+	else
+		pingFBO2.BindTexture(1);
+	pingBloomShader.SetUniform1i("u_BloomBlurTex", 1);
+	pingBloomShader.SetUniform1f("u_Exposure", hdrExposure);
+	GLCall(glBindVertexArray(hdrPostProcessQuad.VAO));
+	GLCall(glDrawArrays(GL_TRIANGLES, 0, 6));
+	GLCall(glBindVertexArray(0));
+	pingBloomShader.UnBind();
+
+	return;
 
 	//Debuging 
 	if (ptLightGizmos)
@@ -211,6 +341,8 @@ void ParallaxExperimentalScene::OnRenderUI()
 		ImGui::Checkbox("Use Normal Map", &useNor);
 		glm::vec3 translate, euler, scale;
 
+
+
 		ImGui::PushID("Ground");
 		MathsHelper::DecomposeTransform(groundWorldTrans, translate, euler, scale);
 		bool update = ImGui::DragFloat3("Translate", &translate[0], 0.2f);
@@ -222,6 +354,19 @@ void ParallaxExperimentalScene::OnRenderUI()
 			glm::mat4 rot = glm::toMat4(quat);
 			groundWorldTrans = glm::translate(glm::mat4(1.0f), translate) * rot * glm::scale(glm::mat4(1.0f), scale);
 		}
+		ImGui::PopID();
+
+		ImGui::SeparatorText("Glowing Cube");
+		ImGui::PushID("Glowing Cube");
+		ImGui::ColorEdit3("Glow Colour", &glowingCubeColour[0]);
+		MathsHelper::DecomposeTransform(glowingCubeTrans, translate, euler, scale);
+		update = ImGui::DragFloat3("Translate", &translate[0], 0.2f);
+		update |= ImGui::DragFloat3("Rotation", &euler[0], 0.2f);
+		update |= ImGui::DragFloat3("Scale", &scale[0], 0.2f);
+		if (update)
+			glowingCubeTrans = glm::translate(glm::mat4(1.0f), translate) *
+			glm::toMat4(glm::quat(glm::radians(euler))) *
+			glm::scale(glm::mat4(1.0f), scale);
 		ImGui::PopID();
 
 		ImGui::SeparatorText("Plane");
@@ -249,7 +394,6 @@ void ParallaxExperimentalScene::OnRenderUI()
 						  glm::scale(glm::mat4(1.0f), scale);
 		ImGui::PopID();
 
-
 		ImGui::TreePop();
 	}
 
@@ -261,6 +405,9 @@ void ParallaxExperimentalScene::OnRenderUI()
 	{
 		ImGui::SeparatorText("Light Global Properties");
 		ImGui::Checkbox("Enable Scene Shadow", &enableSceneShadow);
+		ImGui::SliderFloat("HDR Exposure", &hdrExposure, 0.0f, 1.0f);
+		ImGui::Checkbox("Horizontal Bloom", &horiBloom);
+		ImGui::SliderFloat("Bloom Rate", &bloomrate , 0.0f, 10.0f);
 
 
 		//////////////////////////////////////
@@ -269,7 +416,7 @@ void ParallaxExperimentalScene::OnRenderUI()
 		ImGui::Spacing();
 		ImGui::SeparatorText("Directional Light");
 		ImGui::Checkbox("Enable Directional", &dirLightObject.dirlight.enable);
-		ImGui::SameLine();
+		//ImGui::SameLine();
 		//ImGui::Checkbox("Cast Shadow", &dirLightObject.dirlight.castShadow);
 		ImGui::DragFloat3("Light Direction", &dirLightObject.dirlight.direction[0], 0.1f, -1.0f, 1.0f);
 		ImGui::ColorEdit3("Dir Light colour", &dirLightObject.dirlight.colour[0]);
@@ -336,18 +483,41 @@ void ParallaxExperimentalScene::OnRenderUI()
 	}
 	ImGui::End();
 
+	if (sceneEntities.size() > 0)
+	{
+		ImGui::Begin("Entities Debug UI");
+		for (auto& e : sceneEntities)
+			EntityDebugUI(e);
+		ImGui::End();
+	}
+
+
+	
 
 	ImGui::Begin("Frame Buffers");
-	ImGui::Text("Rendered Scene");
-	ImVec2 size(400.0f, 400.0f);
-	size.y *= (hdrFBO.GetSize().y / hdrFBO.GetSize().x); //invert
-	ImGui::Image((ImTextureID)(intptr_t)hdrFBO.GetColourAttachment(), size, ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f));
-	ImGui::Text("Scene Frame View Depth");
-	size = ImVec2(400.0f, 400.0f);
-	size.y *= (depthFBO.GetSize().y / depthFBO.GetSize().x); //invert
-	ImGui::Image((ImTextureID)(intptr_t)depthFBO.GetColourAttachment(), size, ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f));
+	ImVec2 glob_size(400.0f, 400.0f);
+	glob_size.y *= (hdrFBO.GetSize().y / hdrFBO.GetSize().x); //invert
+	ImGui::SeparatorText("Rendered Scene");
+	ImGui::Image((ImTextureID)(intptr_t)hdrFBO.GetColourAttachment(), glob_size, ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f));
+	ImGui::SeparatorText("Scene Frame View Depth");
+	///glob_size = ImVec2(400.0f, 400.0f);
+	//glob_size.y *= (depthFBO.GetSize().y / depthFBO.GetSize().x); //invert
+	ImGui::Image((ImTextureID)(intptr_t)depthFBO.GetColourAttachment(), glob_size, ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f));
+	ImGui::Spacing();
+	ImGui::SeparatorText("Scene Frag");
+	//glob_size = ImVec2(550.0f, 550.0f);
+	//glob_size.y *= (MRT_FBO.GetSize().y / MRT_FBO.GetSize().x); //invert
+	ImGui::Image((ImTextureID)(intptr_t)MRT_FBO.GetColourAttachment(0), glob_size, ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f));
+	ImGui::SeparatorText("Scene Bright Frag");
+	ImGui::Image((ImTextureID)(intptr_t)MRT_FBO.GetColourAttachment(1), glob_size, ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f));
+	ImGui::SeparatorText("Scene Solid/Albedo Frag");
+	ImGui::Image((ImTextureID)(intptr_t)MRT_FBO.GetColourAttachment(2), glob_size, ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f));
+	ImGui::Spacing();
+	ImGui::SeparatorText("Scene Horizontal Blur");
+	ImGui::Image((ImTextureID)(intptr_t)pingFBO1.GetColourAttachment(), glob_size, ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f));
+	ImGui::SeparatorText("Scene Vertical Blur");
+	ImGui::Image((ImTextureID)(intptr_t)pingFBO2.GetColourAttachment(), glob_size, ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f));
 	ImGui::End();
-
 
 	bool mat_ui = ImGui::Begin("Material");
 	if (mat_ui)
@@ -355,59 +525,59 @@ void ParallaxExperimentalScene::OnRenderUI()
 		int tex_id;
 		static int blank_tex_id = blank_tex->GetID();
 		auto temp_mat = floorMat;
-		ImGui::PushID(temp_mat.name);
-		ImGui::Text("1. %s", temp_mat.name);
-		ImGui::ColorEdit3("Colour", &temp_mat.baseColour[0]);
-		tex_id = (temp_mat.baseMap) ? temp_mat.baseMap->GetID() : blank_tex_id;
+		ImGui::PushID(temp_mat->name);
+		ImGui::Text("1. %s", temp_mat->name);
+		ImGui::ColorEdit3("Colour", &temp_mat->baseColour[0]);
+		tex_id = (temp_mat->baseMap) ? temp_mat->baseMap->GetID() : blank_tex_id;
 		ImGui::Image((ImTextureID)(intptr_t)tex_id, ImVec2(100, 100));
 		ImGui::SameLine(); ImGui::Text("Main Texture");
-		tex_id = (temp_mat.normalMap) ? temp_mat.normalMap->GetID() : blank_tex_id;
+		tex_id = (temp_mat->normalMap) ? temp_mat->normalMap->GetID() : blank_tex_id;
 		ImGui::Image((ImTextureID)(intptr_t)tex_id, ImVec2(100, 100));
 		ImGui::SameLine(); ImGui::Text("Normal Map");
-		tex_id = (temp_mat.parallaxMap) ? temp_mat.parallaxMap->GetID() : blank_tex_id;
+		tex_id = (temp_mat->parallaxMap) ? temp_mat->parallaxMap->GetID() : blank_tex_id;
 		ImGui::Image((ImTextureID)(intptr_t)tex_id, ImVec2(100, 100));
 		ImGui::SameLine(); ImGui::Text("Parallax/Height Map");
-		ImGui::Checkbox("Use Parallax", &temp_mat.useParallax);
-		ImGui::SliderFloat("Parallax/Height Scale", &temp_mat.heightScale, 0.0f, 0.08f);
-		ImGui::SliderInt("Shinness", &temp_mat.shinness, 32, 256);
+		ImGui::Checkbox("Use Parallax", &temp_mat->useParallax);
+		ImGui::SliderFloat("Parallax/Height Scale", &temp_mat->heightScale, 0.0f, 0.08f);
+		ImGui::SliderInt("Shinness", &temp_mat->shinness, 32, 256);
 		ImGui::PopID();
 		floorMat = temp_mat;
 
 		temp_mat = planeMat;
-		ImGui::PushID(temp_mat.name);
-		ImGui::Text("2. %s", temp_mat.name);
-		ImGui::ColorEdit3("Colour", &temp_mat.baseColour[0]);
-		tex_id = (temp_mat.baseMap) ? temp_mat.baseMap->GetID() : blank_tex_id;
+		ImGui::PushID(temp_mat->name);
+		ImGui::Text("2. %s", temp_mat->name);
+		ImGui::ColorEdit3("Colour", &temp_mat->baseColour[0]);
+		tex_id = (temp_mat->baseMap) ? temp_mat->baseMap->GetID() : blank_tex_id;
 		ImGui::Image((ImTextureID)(intptr_t)tex_id, ImVec2(100, 100));
 		ImGui::SameLine(); ImGui::Text("Main Texture");
-		tex_id = (temp_mat.normalMap) ? temp_mat.normalMap->GetID() : blank_tex_id;
+		tex_id = (temp_mat->normalMap) ? temp_mat->normalMap->GetID() : blank_tex_id;
 		ImGui::Image((ImTextureID)(intptr_t)tex_id, ImVec2(100, 100));
 		ImGui::SameLine(); ImGui::Text("Normal Map");
-		tex_id = (temp_mat.parallaxMap) ? temp_mat.parallaxMap->GetID() : blank_tex_id;
+		tex_id = (temp_mat->parallaxMap) ? temp_mat->parallaxMap->GetID() : blank_tex_id;
 		ImGui::Image((ImTextureID)(intptr_t)tex_id, ImVec2(100, 100));
 		ImGui::SameLine(); ImGui::Text("Parallax/Height Map");
-		ImGui::Checkbox("Use Parallax", &temp_mat.useParallax);
-		ImGui::SliderFloat("Parallax/Height Scale", &temp_mat.heightScale, 0.0f, 0.08f);
-		ImGui::SliderInt("Shinness", &temp_mat.shinness, 32, 256);
+		ImGui::Checkbox("Use Parallax", &temp_mat->useParallax);
+		ImGui::SliderFloat("Parallax/Height Scale", &temp_mat->heightScale, 0.0f, 0.08f);
+		ImGui::SliderInt("Shinness", &temp_mat->shinness, 32, 256);
 		ImGui::PopID();
 		planeMat = temp_mat;
 
 		temp_mat = wallMat;
-		ImGui::PushID(temp_mat.name);
-		ImGui::Text("3. %s", temp_mat.name);
-		ImGui::ColorEdit3("Colour", &temp_mat.baseColour[0]);
-		tex_id = (temp_mat.baseMap) ? temp_mat.baseMap->GetID() : blank_tex_id;
+		ImGui::PushID(temp_mat->name);
+		ImGui::Text("3. %s", temp_mat->name);
+		ImGui::ColorEdit3("Colour", &temp_mat->baseColour[0]);
+		tex_id = (temp_mat->baseMap) ? temp_mat->baseMap->GetID() : blank_tex_id;
 		ImGui::Image((ImTextureID)(intptr_t)tex_id, ImVec2(100, 100));
 		ImGui::SameLine(); ImGui::Text("Main Texture");
-		tex_id = (temp_mat.normalMap) ? temp_mat.normalMap->GetID() : blank_tex_id;
+		tex_id = (temp_mat->normalMap) ? temp_mat->normalMap->GetID() : blank_tex_id;
 		ImGui::Image((ImTextureID)(intptr_t)tex_id, ImVec2(100, 100));
 		ImGui::SameLine(); ImGui::Text("Normal Map");
-		tex_id = (temp_mat.parallaxMap) ? temp_mat.parallaxMap->GetID() : blank_tex_id;
+		tex_id = (temp_mat->parallaxMap) ? temp_mat->parallaxMap->GetID() : blank_tex_id;
 		ImGui::Image((ImTextureID)(intptr_t)tex_id, ImVec2(100, 100));
 		ImGui::SameLine(); ImGui::Text("Parallax/Height Map");
-		ImGui::Checkbox("Use Parallax", &temp_mat.useParallax);
-		ImGui::SliderFloat("Parallax/Height Scale", &temp_mat.heightScale, 0.0f, 0.08f);
-		ImGui::SliderInt("Shinness", &temp_mat.shinness, 32, 256);
+		ImGui::Checkbox("Use Parallax", &temp_mat->useParallax);
+		ImGui::SliderFloat("Parallax/Height Scale", &temp_mat->heightScale, 0.0f, 0.08f);
+		ImGui::SliderInt("Shinness", &temp_mat->shinness, 32, 256);
 		ImGui::PopID();
 		wallMat = temp_mat;
 	}
@@ -423,19 +593,19 @@ void ParallaxExperimentalScene::OnDestroy()
 	//if (brickNorMap)
 	//	brickNorMap->Clear();
 
-	if (floorMat.baseMap)
-		floorMat.baseMap->Clear();
-	if (floorMat.normalMap)
-		floorMat.normalMap->Clear();
-	if (floorMat.parallaxMap)
-		floorMat.parallaxMap->Clear();
+	if (floorMat->baseMap)
+		floorMat->baseMap->Clear();
+	if (floorMat->normalMap)
+		floorMat->normalMap->Clear();
+	if (floorMat->parallaxMap)
+		floorMat->parallaxMap->Clear();
 
-	if (planeMat.baseMap)
-		planeMat.baseMap->Clear();
-	if (planeMat.normalMap)
-		planeMat.normalMap->Clear();
-	if (planeMat.parallaxMap)
-		planeMat.parallaxMap->Clear();
+	if (planeMat->baseMap)
+		planeMat->baseMap->Clear();
+	if (planeMat->normalMap)
+		planeMat->normalMap->Clear();
+	if (planeMat->parallaxMap)
+		planeMat->parallaxMap->Clear();
 
 
 	GLCall(glDeleteBuffers(1, &hdrPostProcessQuad.VBO));
@@ -448,7 +618,14 @@ void ParallaxExperimentalScene::OnDestroy()
 void ParallaxExperimentalScene::CreateObjects()
 {
 	ground.Create();
-
+	glowingCube.Create();
+	ShaderFilePath shader
+	{
+		"Assets/Shaders/Learning/ParallaxExperiment/ParallaxModelVertex.glsl", //vertex shader
+		"Assets/Shaders/Learning/GlowingObjectFrag.glsl", //fragment shader
+	};
+	glowingCubeShader.Create("mrt_shader", shader);
+	glowingCubeTrans = glm::translate(glm::mat4(1.0f), glm::vec3(-10.0f, 2.0f, 0.0f));
 
 	//Post process quad
 	float vertices[] 
@@ -494,6 +671,32 @@ void ParallaxExperimentalScene::CreateObjects()
 	depthShader.Create("depth test shader", depth_test_shader);
 
 
+	//Multiple Render Target
+	MRT_FBO.Generate(window->GetWidth(), window->GetHeight(), FBO_Format::RGBA16F);
+	ShaderFilePath mrt_shader
+	{
+		"Assets/Shaders/Learning/ParallaxExperiment/ParallaxModelVertex.glsl", //vertex shader
+		"Assets/Shaders/Learning/MultiColourAttachment/SceneCol_Bright_Solid.glsl", //fragment shader
+	};
+	MRTShader.Create("mrt_shader", mrt_shader);
+
+	//effect
+	//Post Process shader
+	ShaderFilePath bloom_shader_file_path
+	{
+		"Assets/Shaders/Learning/MSAA/AA_PostProcess_Vertex.glsl",
+		"Assets/Shaders/Learning/Effects/SimpleGaussianBlurBloom.glsl"
+	};
+	bloomShader.Create("bloom effect post shader", bloom_shader_file_path);
+
+	pingFBO1.Generate(window->GetWidth(), window->GetHeight(), FBO_Format::RGBA16F);
+	pingFBO2.Generate(window->GetWidth(), window->GetHeight(), FBO_Format::RGBA16F);
+	ShaderFilePath ping_bloom_shader_file_path
+	{
+		"Assets/Shaders/Learning/MSAA/AA_PostProcess_Vertex.glsl",
+		"Assets/Shaders/Learning/Effects/TestBloomResult.glsl"
+	};
+	pingBloomShader.Create("bloom effect post shader", ping_bloom_shader_file_path);
 	//////////////////////////////////////
 	// GENERATE SHADERS
 	//////////////////////////////////////
@@ -518,16 +721,19 @@ void ParallaxExperimentalScene::CreateObjects()
 	////////////////////////////////////////
 	// CREATE TEXTURES 
 	////////////////////////////////////////
-	floorMat.name = "Floor Mat";
-	floorMat.baseMap = std::make_shared<Texture>(FilePaths::Instance().GetPath("cobblestone-diff"));
-	floorMat.normalMap = std::make_shared<Texture>(FilePaths::Instance().GetPath("cobblestone-nor"));
-	floorMat.parallaxMap = std::make_shared<Texture>(FilePaths::Instance().GetPath("cobblestone-disp"));
+	floorMat = std::make_shared<Material>();
+	floorMat->name = "Floor Mat";
+	floorMat->baseMap = std::make_shared<Texture>(FilePaths::Instance().GetPath("cobblestone-diff"));
+	floorMat->normalMap = std::make_shared<Texture>(FilePaths::Instance().GetPath("cobblestone-nor"));
+	floorMat->parallaxMap = std::make_shared<Texture>(FilePaths::Instance().GetPath("cobblestone-disp"));
 
-	planeMat.name = "Plane Material";
-	planeMat.baseMap = std::make_shared<Texture>(FilePaths::Instance().GetPath("plain"));
+	planeMat = std::make_shared<Material>();
+	planeMat->name = "Plane Material";
+	planeMat->baseMap = std::make_shared<Texture>(FilePaths::Instance().GetPath("plain"));
 
-	wallMat.name = "Wall Material";
-	wallMat.baseMap = std::make_shared<Texture>(FilePaths::Instance().GetPath("old_plank"));
+	wallMat = std::make_shared<Material>();
+	wallMat->name = "Wall Material";
+	wallMat->baseMap = std::make_shared<Texture>(FilePaths::Instance().GetPath("old_plank"));
 
 	//rotate plane 180 around  y 
 	///glm::mat4 model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
@@ -555,11 +761,11 @@ void ParallaxExperimentalScene::CreateObjects()
 	long long int buf_size = 2 * sizeof(glm::mat4);// +sizeof(glm::vec2);   //to store view, projection
 	m_CamMatUBO.Generate(buf_size);
 	m_CamMatUBO.BindBufferRndIdx(0, buf_size, 0);
-	modelShader.Bind();
+	
 	//i think what happens here is that the shader program 
 	//scan/check its itself(program) for the block "u_CameraMat"
 	//woudl be success if found
-	modelShader.SetUniformBlockIdx("u_CameraMat", 0);
+
 	//------------------Light Data UBO-----------------------------/
 	//struct
 	//DirectionalLight dirLight;
@@ -571,8 +777,36 @@ void ParallaxExperimentalScene::CreateObjects()
 
 	m_LightDataUBO.Generate(light_buffer_size);
 	m_LightDataUBO.BindBufferRndIdx(1, light_buffer_size, 0);
+	
+
+	//Assign UBO, if necessary 
 	modelShader.Bind();
+	modelShader.SetUniformBlockIdx("u_CameraMat", 0);
 	modelShader.SetUniformBlockIdx("u_LightBuffer", 1);
+	MRTShader.Bind();
+	MRTShader.SetUniformBlockIdx("u_CameraMat", 0);
+	MRTShader.SetUniformBlockIdx("u_LightBuffer", 1);
+	
+	glowingCubeShader.Bind();
+	glowingCubeShader.SetUniformBlockIdx("u_CameraMat", 0);
+	
+
+	//---------------------Test Entity------------------------------/
+	//std::vector<Entity> sceneEntities;
+	//create a plane entity 
+	glm::mat4 temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -12.0f, 0.0f)) *
+						   glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+						   glm::scale(glm::mat4(1.0f), glm::vec3(50.0f));
+	int id_idx = 0;
+	Entity floor_plane_entity = Entity(id_idx++, "floor-plane-entity", temp_trans, std::make_shared<Mesh>(ground), floorMat);
+	sceneEntities.emplace_back(floor_plane_entity);
+	Entity plane2_entity = Entity(id_idx++, "plane-entity", temp_trans, std::make_shared<Mesh>(ground), planeMat);
+	sceneEntities.emplace_back(plane2_entity);
+	Entity wall_plane_entity = Entity(id_idx++, "wall-plane-entity", temp_trans, std::make_shared<Mesh>(ground), wallMat);
+	sceneEntities.emplace_back(wall_plane_entity);
+	Entity cube_entity = Entity(id_idx++, "plane-entity", temp_trans, std::make_shared<Mesh>(glowingCube), planeMat);
+	sceneEntities.emplace_back(cube_entity);
+	
 
 
 
@@ -587,7 +821,6 @@ void ParallaxExperimentalScene::CreateObjects()
 	dl.colour = glm::vec3(1.0f, 0.9568f, 0.8392f);
 	dl.enable = true;
 	dl.castShadow = true;
-	dl.enable = true;
 	dl.direction = glm::vec3(-1.0f, 1.0f, -1.0f);
 
 	//Point Light
@@ -596,7 +829,7 @@ void ParallaxExperimentalScene::CreateObjects()
 	for (int i = 0; i < MAX_POINT_LIGHT; i++)
 	{
 		ptLight[i].colour = glm::vec3(20.0f);
-		ptLight[i].ambientIntensity = 1.0f;// 0.05f;
+		ptLight[i].ambientIntensity = 0.5f; // 1.0f;// 0.05f;
 		ptLight[i].diffuseIntensity = 0.4f;
 		ptLight[i].specularIntensity = 0.6f;
 		ptLight[i].enable = true;
@@ -652,31 +885,35 @@ void ParallaxExperimentalScene::DrawObjects(Shader& shader, bool apply_tex)
 
 	//ground material
 	if(apply_tex)
-		MaterialShaderBindHelper(floorMat, shader);
+		MaterialShaderBindHelper(*floorMat, shader);
 	//ground 
 	shader.SetUniformMat4f("u_Model", groundWorldTrans);
 	ground.Render();
 
-	floorMat.baseMap->DisActivate();
+	floorMat->baseMap->DisActivate();
 
 	//draw plane 
 	if (apply_tex)
-		MaterialShaderBindHelper(planeMat, shader);
+		MaterialShaderBindHelper(*planeMat, shader);
 	shader.SetUniformMat4f("u_Model", planeWorldTran);
 	ground.Render();
 
 
 	//draw blender shapes
 	if (apply_tex)
-		MaterialShaderBindHelper(wallMat, shader);
+		MaterialShaderBindHelper(*wallMat, shader);
 	shader.SetUniformMat4f("u_Model", shapesTrans);
 	blenderShapes->Draw();
+
+
+	for (auto& e : sceneEntities)
+		e.Draw(shader);
 
 
 	if (apply_tex)
 	{
 		shader.SetUniform1i("u_UseNorMap", 0);
-		floorMat.baseMap->DisActivate(); //this should unbind all textures
+		floorMat->baseMap->DisActivate(); //this should unbind all textures
 
 	}
 
@@ -753,4 +990,26 @@ void ParallaxExperimentalScene::MaterialShaderBindHelper(Material& mat, Shader& 
 	shader.SetUniform1i("u_Material.shinness", mat.shinness);
 	shader.SetUniform1i("u_Material.useParallax", mat.useParallax);
 	shader.SetUniform1f("u_Material.parallax", mat.heightScale);
+}
+
+void ParallaxExperimentalScene::EntityDebugUI(Entity& entity)
+{
+	ImGui::Spacing();
+	ImGui::Spacing();
+	ImGui::PushID(entity.GetID());
+	ImGui::Text("Name: %s, ID: %d", entity.GetName(), entity.GetID());
+	ImGui::SeparatorText("Transform");
+	glm::vec3 translate, euler, scale;
+	MathsHelper::DecomposeTransform(entity.GetTransform(), translate, euler, scale);
+	bool update = ImGui::DragFloat3("Translate", &translate[0], 0.2f);
+	update |= ImGui::DragFloat3("Rotation", &euler[0], 0.2f);
+	update |= ImGui::DragFloat3("Scale", &scale[0], 0.2f);
+	if (update)
+	{
+		entity.SetTransform(glm::translate(glm::mat4(1.0f), translate) *
+							glm::toMat4(glm::quat(glm::radians(euler))) *
+							glm::scale(glm::mat4(1.0f), scale));
+	}
+	ImGui::Text("Material Name: %s", entity.GetMaterial()->name);
+	ImGui::PopID();
 }
