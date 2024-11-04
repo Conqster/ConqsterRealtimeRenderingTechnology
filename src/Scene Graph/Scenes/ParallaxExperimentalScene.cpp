@@ -7,6 +7,7 @@
 #include <glm/gtx/quaternion.hpp>
 
 #include "../Entity.h"
+#include "Renderer/RenderCommand.h"
 
 void ParallaxExperimentalScene::SetWindow(Window* window)
 {
@@ -19,10 +20,10 @@ void ParallaxExperimentalScene::OnInit(Window* window)
 
 	window->UpdateProgramTitle("Parallax Experimental Scene");
 
-	glEnable(GL_DEPTH_TEST);
 
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
+	RenderCommand::EnableDepthTest();
+	RenderCommand::EnableFaceCull();
+	RenderCommand::CullBack();
 
 
 
@@ -60,8 +61,8 @@ void ParallaxExperimentalScene::OnUpdate(float delta_time)
 
 void ParallaxExperimentalScene::OnRender()
 {
-	GLCall(glClearColor(m_ClearScreenColour.r, m_ClearScreenColour.g, m_ClearScreenColour.b, 1.0f));
-	GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+	RenderCommand::ClearColour(m_ClearScreenColour);
+	RenderCommand::Clear();
 
 	////////////////////////////////////////
 	// UPDATE UNIFORM BUFFERs
@@ -80,7 +81,7 @@ void ParallaxExperimentalScene::OnRender()
 	// First Pass : Draw Scene to HDR buffer
 	/////////////////////#
 	hdrFBO.Bind();
-	GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+	RenderCommand::Clear();
 	//for shadow
 	modelShader.Bind();
 
@@ -112,7 +113,7 @@ void ParallaxExperimentalScene::OnRender()
 	// Second Pass : Depth Test
 	/////////////////////
 	depthFBO.Bind();
-	GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+	RenderCommand::Clear();
 	DrawObjects(depthShader, false);
 	glowingCubeShader.Bind();
 	glowingCube.Render(); //model pos already set 
@@ -124,8 +125,8 @@ void ParallaxExperimentalScene::OnRender()
 	// TEST PASS : Multi Render Pass 
 	////////////////////////
 	MRT_FBO.Bind();
-	GLCall(glClearColor(m_ClearScreenColour.r, m_ClearScreenColour.g, m_ClearScreenColour.b, 1.0f));
-	GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+	RenderCommand::ClearColour(m_ClearScreenColour);
+	RenderCommand::Clear();
 	MRTShader.Bind();
 	floorMat->baseMap->DisActivate();
 	MRTShader.SetUniformVec3("u_ViewPos", m_Camera->GetPosition());
@@ -192,7 +193,7 @@ void ParallaxExperimentalScene::OnRender()
 		else
 			pingFBO1.Bind();
 		bloomShader.Bind();
-		GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+		RenderCommand::Clear();
 		//set shader to horizontal 
 		bloomShader.SetUniform1i("horizontal", horizontal);
 		bloomShader.SetUniform1f("rate", 1.0f);
@@ -231,7 +232,7 @@ void ParallaxExperimentalScene::OnRender()
 
 
 	//use final bloom
-	GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+	RenderCommand::Clear();
 	pingBloomShader.Bind();
 	hdrFBO.BindTexture(0);
 	pingBloomShader.SetUniform1i("u_SceneTex", 0);
@@ -941,13 +942,13 @@ void ParallaxExperimentalScene::LightPass()
 
 void ParallaxExperimentalScene::ShadowPass()
 {
-	glCullFace(GL_FRONT);
+	RenderCommand::CullFront();
 	//--------------------Dir Light------------/
 	shadowDepthShader.Bind();
 	shadowDepthShader.SetUniform1i("u_IsOmnidir", 0);
 	shadowDepthShader.SetUniformMat4f("u_LightSpaceMat", dirLightObject.dirLightShadow.GetLightSpaceMatrix());
 	dirDepthMap.Write();
-	glClear(GL_DEPTH_BUFFER_BIT);
+	RenderCommand::ClearDepthOnly();//clear the depth buffer 
 	//SCENES/OBJECT TO RENDER
 	DrawObjects(shadowDepthShader);
 	dirDepthMap.UnBind();
@@ -964,12 +965,13 @@ void ParallaxExperimentalScene::ShadowPass()
 		shadowDepthShader.SetUniformMat4f(("u_ShadowMatrices[" + std::to_string(f) + "]").c_str(), shadowMats[f]);
 	}
 	ptDepthCube.Write();//ready to write in the depth cube framebuffer for light "i"
-	glClear(GL_DEPTH_BUFFER_BIT); //clear the depth buffer 
+	RenderCommand::ClearDepthOnly();//clear the depth buffer 
 	DrawObjects(shadowDepthShader);
 	ptDepthCube.UnBind();
 
-	glCullFace(GL_BACK);
-	glViewport(0, 0, window->GetWidth(), window->GetHeight()); //reset the view back just in case
+
+	RenderCommand::CullBack();
+	RenderCommand::Viewport(0, 0, window->GetWidth(), window->GetHeight());
 
 }
 
