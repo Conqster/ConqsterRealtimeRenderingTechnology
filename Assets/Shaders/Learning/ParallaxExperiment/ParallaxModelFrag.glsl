@@ -68,6 +68,9 @@ uniform bool u_UseNorMap;
 
 uniform vec3 u_ViewPos;
 
+//Hack 
+uniform int u_PtLightCount = 0;
+
 //Light specify
 layout (std140) uniform u_LightBuffer
 {
@@ -157,7 +160,7 @@ vec3 CalPointLight(vec3 N, vec3 V, vec3 base_colour)
 	vec3 result = vec3(0.0f);
 	
 	//only one light for now
-	for(int i = 0; i < MAX_POINT_LIGHTS; i++)
+	for(int i = 0; i < u_PtLightCount; i++)
 	{
 		if(!pointLights[i].enable)
 			continue;

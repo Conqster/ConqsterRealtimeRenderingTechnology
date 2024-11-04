@@ -2,7 +2,7 @@
 
 CRRT is personal learning project focused on real-time 3D rendering using OpenGL. Designed to explore, implement various rendering techniques and features. 
 
-|<a href="https://www.youtube.com/watch?v=9skO5a-XUGg"><img src = "Docs/milestone_light_shadow.png"/>|
+|<a href="https://www.youtube.com/watch?v=9skO5a-XUGg"><img src = "Docs/scene milestone inc texture mapping.png"/>|
 |:-|
 |<p align = "center"> *A Youtube video of current Milestone with light rendering simulation.* </p>|
 
@@ -55,6 +55,11 @@ The primary aim of this project is to deepen my understanding of:
 |<img src = "Docs/MSAA 1x-8x.gif"/>|
 |:-|
 |<p align = "center"> *Multisample Anti-alising 1x-8x, Post Processing.* </p>|
+
+#### Scene Model Material  (Material Based Modeling)
+|<img src = "Docs/render_scene_sample_wc_mat.png"/>|
+|:-|
+|<p align = "center"> *Model's rendered with material data instance, Material Based Modeling.* </p>|
 
 ### Debugging 
 #### Scene Objects Debugging

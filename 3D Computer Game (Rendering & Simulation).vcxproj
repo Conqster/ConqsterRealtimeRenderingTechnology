@@ -159,8 +159,11 @@
     <ClInclude Include="src\Renderer\Meshes\Meshes.h" />
     <ClInclude Include="src\Renderer\RenderCommand.h" />
     <ClInclude Include="src\Renderer\Renderer.h" />
+    <ClInclude Include="src\Renderer\RendererConfig.h" />
     <ClInclude Include="src\Scene Graph\Entity.h" />
     <ClInclude Include="src\Scene Graph\Model.h" />
+    <ClInclude Include="src\Scene Graph\Scenes\ExperimentScene.h" />
+    <ClInclude Include="src\Scene Graph\Scenes\NewScene.h" />
     <ClInclude Include="src\Scene Graph\Scenes\ParallaxExperimentalScene.h" />
     <ClInclude Include="src\Util\ModelLoader.h" />
     <ClInclude Include="src\Scene Graph\Scenes\AdvanceLightingScene.h" />
@@ -219,6 +222,8 @@
     <ClCompile Include="src\Renderer\RenderCommand.cpp" />
     <ClCompile Include="src\Scene Graph\Entity.cpp" />
     <ClCompile Include="src\Scene Graph\Model.cpp" />
+    <ClCompile Include="src\Scene Graph\Scenes\ExperimentScene.cpp" />
+    <ClCompile Include="src\Scene Graph\Scenes\NewScene.cpp" />
     <ClCompile Include="src\Scene Graph\Scenes\ParallaxExperimentalScene.cpp" />
     <ClCompile Include="src\Util\ModelLoader.cpp" />
     <ClCompile Include="src\Scene Graph\Scenes\AdvanceLightingScene.cpp" />

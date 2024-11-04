@@ -8,6 +8,7 @@ struct Material
 	Material() = default;
 
 	const char* name = "default";
+	int id = 0; //<-------- temp id
 	//later add a shader ref
 	std::shared_ptr<Shader> shader = nullptr;
 
