@@ -72,6 +72,7 @@ void ExperimentScene::OnRender()
 	//Post Rendering (post Process) 
 
 
+	return;
 	//After Rendering (Clean-up/Miscellenous)
 	SceneDebugger();
 }
@@ -263,24 +264,30 @@ void ExperimentScene::BuildSceneEntities()
 	//	by shadowcast
 }
 
+
 void ExperimentScene::ShadowPass(Shader& depth_shader)
 {
 	//need sorted data
 	//material is not need only mesh geometry 
+	dirDepthMap.Write();
 	RenderCommand::CullFront();
 	RenderCommand::ClearDepthOnly();//clear the depth buffer 
 	//directional light
 	depth_shader.Bind();
 	shadowDepthShader.SetUniform1i("u_IsOmnidir", 0);
 	shadowDepthShader.SetUniformMat4f("u_LightSpaceMat", dirLightObject.dirLightShadow.GetLightSpaceMatrix());
-	dirDepthMap.Write();
 	//Draw Objects with material 
 	//Renderer::DrawMesh(Mesh)
+
+
 	for (auto& e : m_SceneEntities)
 	{
 		depth_shader.SetUniformMat4f("u_Model", e->GetWorldTransform());
 		//material's not needed
 		e->GetMesh()->Render(); //Later move render out of Mesh >> Renderer in use (as its should just be a data container)
+		//check/traverse children
+		//QuickHack 
+		RenderEnitiyMesh(depth_shader, e);
 	}
 	dirDepthMap.UnBind(); 
 
@@ -290,6 +297,18 @@ void ExperimentScene::ShadowPass(Shader& depth_shader)
 	RenderCommand::Viewport(0, 0, window->GetWidth(), window->GetHeight());
 }
 
+void ExperimentScene::RenderEnitiyMesh(Shader& shader, const std::shared_ptr<Entity>& entity)
+{
+	auto& children = entity->GetChildren();
+	for (int i = 0; i < children.size(); i++)
+	{
+		//Render self
+		shader.SetUniformMat4f("u_Model", children[i]->GetWorldTransform());
+		children[i]->GetMesh()->Render();
+		//Recursive transverse child
+		RenderEnitiyMesh(shader, children[i]);
+	}
+}
 
 /// <summary>
 /// Post GPU data is not require yet but whynot 

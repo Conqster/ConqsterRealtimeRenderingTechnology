@@ -97,7 +97,10 @@ private:
 
 
 	//------------------------------Utility functions------------------------/
-	
+	//Quick Hack
+	void RenderEnitiyMesh(Shader& shader, const std::shared_ptr<Entity>& entity);
+
+
 	void MaterialShaderBindHelper(Material& mat, Shader& shader);
 	void MainUI();
 	void EnititiesUI();
