@@ -20,8 +20,8 @@ void Skybox::Create(const std::vector<std::string> faces_image_path)
 	m_TextureMap.LoadTexture(faces_image_path);
 
 	ShaderFilePath skybox_shader_file_path{ 
-		"Assets/Shaders/SkyboxVertex.glsl",
-		"Assets/Shaders/SkyboxFragment.glsl" };
+		"Assets/Shaders/Utilities/Skybox/SkyboxVertex.glsl",
+		"Assets/Shaders/Utilities/Skybox/SkyboxFragment.glsl" };
 
 	m_Shader.Create("skybox_shader", skybox_shader_file_path);
 
@@ -39,6 +39,7 @@ void Skybox::Create(const std::vector<std::string> faces_image_path)
 void Skybox::Draw(Camera& camera, Window& window) 
 {
 	m_Shader.Bind();
+	glCullFace(GL_FRONT);
 	GLCall(glDepthMask(GL_FALSE));
 
 	glm::mat4 sky_view = glm::mat4(glm::mat3(camera.CalViewMat()));
@@ -55,6 +56,7 @@ void Skybox::Draw(Camera& camera, Window& window)
 	m_TextureMap.DisActivate();
 	//m_Mesh.GetVAO()->Unbind();
 	m_Shader.UnBind();
+	glCullFace(GL_BACK);
 }
 
 void Skybox::ActivateMap(uint16_t slot)

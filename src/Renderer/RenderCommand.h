@@ -2,6 +2,13 @@
 #include "glm/glm.hpp"
 #include "RendererErrorAssertion.h"
 
+enum DepthMode
+{
+	NEVER = GL_NEVER,
+	LEEQUAL = GL_LEQUAL,
+};
+
+
 class RenderCommand
 {
 public:
@@ -23,4 +30,7 @@ public:
 	static void DisableDepthTest();
 	static void EnableFaceCull();
 	static void DisableFaceCull();
+
+	//FUNC
+	static void DepthTestMode(DepthMode mode);
 };

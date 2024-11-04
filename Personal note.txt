@@ -57,5 +57,8 @@ Tangent Space
 	- Important for Parallax mapping, 
 		- All calculation of height is performed in tangent space before converting to world space pixel/point 
 
-ISSUE ISSE 
+ISSUE ISSE >> FIXED
 	- problem with trying to pass a float as an int, but find a way to redirect/cast type
+
+
+NEED TO WORK ON (MESH THAT DOES NOT HAVE TANGENT & BITANGENT) algorithm to calculate them. 

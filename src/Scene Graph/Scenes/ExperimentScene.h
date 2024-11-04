@@ -13,6 +13,8 @@
 
 #include "Renderer/Shader.h"
 
+#include "Renderer/Skybox.h"  //update when Skybox is update
+
 class Entity;
 struct Material;
 class Shader;
@@ -70,8 +72,8 @@ private:
 	Shader m_SceneShader;//std::vector<std::shared_ptr<Shader>> m_SceneShaders;
 	Shader shadowDepthShader;  //this is not scene deoth shader
 	std::vector<std::shared_ptr<Material>> m_SceneMaterials;
+	Skybox m_Skybox;
 	//std::vector<std::shared_ptr<Framebuffer>> m_SceneFBOs; //Lateeeerrr
-	//Skybox m_Skybox;
 
 	//Utilities
 	ModelLoader m_ModelLoader;

@@ -72,7 +72,6 @@ void ExperimentScene::OnRender()
 	//Post Rendering (post Process) 
 
 
-	return;
 	//After Rendering (Clean-up/Miscellenous)
 	SceneDebugger();
 }
@@ -96,7 +95,7 @@ void ExperimentScene::InitRenderer()
 
 	RenderCommand::CullBack();
 
-
+	RenderCommand::DepthTestMode(DepthMode::LEEQUAL);
 	//Other render behaivour / Data
 	//Resolution setting 
 	//Shadow config modification
@@ -106,6 +105,20 @@ void ExperimentScene::InitRenderer()
 
 void ExperimentScene::CreateEntities()
 {
+	///////////////////////////////////////////////////////////////////////
+	// SKY BOX: Cube Texture Map
+	///////////////////////////////////////////////////////////////////////
+	std::vector<std::string> def_skybox_faces
+	{
+		"Assets/Textures/Skyboxes/default_skybox/right.jpg",
+		"Assets/Textures/Skyboxes/default_skybox/left.jpg",
+		"Assets/Textures/Skyboxes/default_skybox/top.jpg",
+		"Assets/Textures/Skyboxes/default_skybox/bottom.jpg",
+		"Assets/Textures/Skyboxes/default_skybox/front.jpg",
+		"Assets/Textures/Skyboxes/default_skybox/back.jpg"
+	};
+	m_Skybox.Create(def_skybox_faces);
+
 	//////////////////////////////////////
 	// GENERATE SHADERS
 	//////////////////////////////////////
@@ -138,8 +151,8 @@ void ExperimentScene::CreateEntities()
 	floorMat->normalMap = std::make_shared<Texture>(FilePaths::Instance().GetPath("cobblestone-nor"));
 	floorMat->parallaxMap = std::make_shared<Texture>(FilePaths::Instance().GetPath("cobblestone-disp"));
 
-	m_SceneMaterials.emplace_back(plainMat);
 	m_SceneMaterials.emplace_back(floorMat);
+	m_SceneMaterials.emplace_back(plainMat);
 
 
 	////////////////////////////////////////
@@ -147,7 +160,7 @@ void ExperimentScene::CreateEntities()
 	////////////////////////////////////////
 	glm::mat4 temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f)) *
 						   glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) *
-						   glm::scale(glm::mat4(1.0f), glm::vec3(50.0f));
+						   glm::scale(glm::mat4(1.0f), glm::vec3(10.0f));
 
 	SquareMesh square_mesh;
 	square_mesh.Create();
@@ -157,21 +170,30 @@ void ExperimentScene::CreateEntities()
 	Entity floor_plane_entity = Entity(id_idx++, "floor-plane-entity", temp_trans, std::make_shared<Mesh>(square_mesh), floorMat);
 	m_SceneEntities.emplace_back(std::make_shared<Entity>(floor_plane_entity));
 	//move up 
-	temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 2.0f, 0.0f));
+	temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 1.6f, 0.0f));
 	Entity cube_entity = Entity(id_idx++, "cube-entity", temp_trans, std::make_shared<Mesh>(cube_mesh), plainMat);
 	m_SceneEntities.emplace_back(std::make_shared<Entity>(cube_entity));
 	//move right
-	temp_trans = glm::translate(temp_trans, glm::vec3(10.0f, 0.0f, 0.0f));
+	temp_trans = glm::translate(temp_trans, glm::vec3(5.0f, 0.0f, 0.0f)) * 
+				 glm::scale(temp_trans, glm::vec3(2.0f));
 	Entity cube1_entity = Entity(id_idx++, "cube1-entity", temp_trans, std::make_shared<Mesh>(cube_mesh), plainMat);
 	m_SceneEntities.emplace_back(std::make_shared<Entity>(cube1_entity));
 	//move up & add to previous as world child & scale down
-	temp_trans = glm::translate(temp_trans, glm::vec3(0.0f, 1.0f, 0.0f)) *
-				 glm::scale(glm::mat4(1.0f), glm::vec3(10.0f));
+	temp_trans = glm::translate(temp_trans, glm::vec3(0.0f, 2.0f, 0.0f)) *
+				 glm::scale(glm::mat4(1.0f), glm::vec3(0.5f));
 	Entity cube1child_entity = Entity(id_idx++, "cube1child-entity", temp_trans, std::make_shared<Mesh>(cube_mesh), plainMat);
 	m_SceneEntities.back()->AddWorldChild(cube1child_entity);
 
-	
-
+	//create  a sphere with world pos an center
+	//then add as cube1child_entity child
+	SphereMesh sphere_mesh;
+	sphere_mesh.Create();
+	temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 3.5f, 0.0f));// *
+				// glm::scale(glm::mat4(1.0f), glm::vec3(0.5f));
+	Entity sphere_entity = Entity(id_idx++, "sphere-entity", temp_trans, std::make_shared<Mesh>(sphere_mesh), plainMat);
+	//cube1child_entity.AddWorldChild(sphere_entity);
+	//Quick Hack
+	m_SceneEntities.back()->GetChildren()[0]->AddWorldChild(sphere_entity);
 }
 
 /// <summary>
@@ -375,6 +397,10 @@ void ExperimentScene::DrawScene()
 	//this bind & unbind shader & material data every frame
 	for (auto& e : m_SceneEntities)
 		e->Draw(m_SceneShader);
+
+
+	//Render Sky box
+	m_Skybox.Draw(*m_Camera, *window);
 }
 
 void ExperimentScene::SceneDebugger()

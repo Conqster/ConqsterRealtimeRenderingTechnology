@@ -59,3 +59,8 @@ void RenderCommand::DisableFaceCull()
 {
 	glDisable(GL_CULL_FACE);
 }
+
+void RenderCommand::DepthTestMode(DepthMode mode)
+{
+	glDepthFunc(mode);
+}
