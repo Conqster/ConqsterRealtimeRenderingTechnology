@@ -46,6 +46,11 @@ The primary aim of this project is to deepen my understanding of:
 |:-|
 |<p align = "center"> *Directional Shadow, Directional Light Shadows.* </p>|
 
+#### Scene Renderer (Material Based-Parent-children relation)
+|<img src = "Docs/Scene Renderer (Material Based-Parent-children relation).mp4"/>|
+|:-|
+|<p align = "center"> *Model's rendered with material data instance, Material Based Modeling & Parent - children relation.* </p>|
+
 #### Skybox, Framebuffer
 |<img src = "Docs/Skybox, Framebuffer, Depthtest.png"/>|
 |:-|
