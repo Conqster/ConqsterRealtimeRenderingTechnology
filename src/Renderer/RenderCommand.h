@@ -2,7 +2,7 @@
 #include "glm/glm.hpp"
 #include "RendererErrorAssertion.h"
 
-enum DepthMode
+enum class DepthMode
 {
 	NEVER = GL_NEVER,
 	LEEQUAL = GL_LEQUAL,
@@ -33,4 +33,5 @@ public:
 
 	//FUNC
 	static void DepthTestMode(DepthMode mode);
+	static void DepthMask(bool mask);
 };

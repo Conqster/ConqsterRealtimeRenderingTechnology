@@ -17,7 +17,7 @@ struct Vertex
 	float normals[3];
 };
 
-
+///A Mesh does not know about materials
 /// <summary>
 ///TO-DO: Probaly later have something called a shared mesh 
 ///		   It might be similar to batch rendering i think
@@ -42,6 +42,7 @@ protected:
 public:
 	Mesh();
 	Mesh(const VertexArray vao, VertexBuffer vbo);
+	void Generate(std::vector<Vertex> vertices, std::vector<unsigned int> indices);
 	~Mesh();
 
 	virtual void Create();

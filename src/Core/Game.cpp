@@ -171,6 +171,8 @@ void Game::OnLoadSceneUI(const char* label, bool can_load)
 	ImGui::SeparatorText("Stats");
 	ImGuiIO& io = ImGui::GetIO();
 	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+	ImGui::SameLine();
+	ImGui::Checkbox("VSync", m_Window->GetVSync());
 	//ImGui::Text("Game Time: %f", del);
 	ImGui::Text("Mouse Pos: %f, %f", m_Window->GetMouseScreenPosition().x, m_Window->GetMouseScreenPosition().y);
 	ImGui::Text("Event Mouse Pos: %f, %f", EventHandle::MousePosition().x, EventHandle::MousePosition().y);
@@ -210,7 +212,8 @@ void Game::Run()
 
 			break;
 		case RUNNINGSCENE:
-
+		
+		
 			m_CurrentScene->OnUpdate(m_Time.DeltaTime());
 
 			//std::cout << "running scene\n";

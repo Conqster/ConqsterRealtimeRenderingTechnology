@@ -62,5 +62,10 @@ void RenderCommand::DisableFaceCull()
 
 void RenderCommand::DepthTestMode(DepthMode mode)
 {
-	glDepthFunc(mode);
+	glDepthFunc((GLenum)mode);
+}
+
+void RenderCommand::DepthMask(bool mask)
+{
+	glDepthMask((GLboolean)mask);
 }

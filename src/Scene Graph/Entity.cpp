@@ -100,3 +100,18 @@ void Entity::Destroy()
 	//for (auto& t : textures)
 	//	t.UnRegisterUse();
 }
+
+void Entity::AddLocalChild(const std::shared_ptr<Entity>& entity)
+{
+	m_Children.emplace_back(entity);
+	m_Children.back()->m_Parent = GetRef();
+	m_Children.back()->MarkTransformDirty();
+}
+
+void Entity::AddWorldChild(const std::shared_ptr<Entity>& entity)
+{
+	m_Children.emplace_back(entity);
+	m_Children.back()->m_Parent = GetRef();
+	m_Children.back()->m_LocalTransform = glm::inverse(m_WorldTransform) * m_Children.back()->m_WorldTransform;
+	m_Children.back()->MarkTransformDirty();
+}

@@ -79,7 +79,12 @@ bool Window::Init()
 	glfwMakeContextCurrent(m_Window);
 	std::cout << "[GRAPHICS INFO]: openGL Version: " << glGetString(GL_VERSION) << "\n";
 
-	glfwSwapInterval(1);
+	//Enable Vsync
+	///glfwSwapInterval(1);
+	//Disable Vsync
+	//glfwSwapInterval(0);
+	//glfwSwapInterval((int)m_VSync);
+	SetVSync(true);
 
 	//Set glfw callbacks  
 	EventHandle::CreateCallBacks(m_Window);
@@ -187,6 +192,9 @@ void Window::OnUpdate(bool full)
 		EventHandle::WaitPollEvents();
 
 	glfwSwapBuffers(m_Window);
+
+	if (m_VSync != preVSync)
+		SetVSync(m_VSync);
 }
 
 void Window::OnWaitUpdate()
@@ -194,6 +202,17 @@ void Window::OnWaitUpdate()
 	OnUpdate(false);
 }
 
+
+inline void const Window::SetVSync(bool value)
+{
+	if (preVSync != value)
+	{
+		preVSync = value;
+		glfwSwapInterval((int)m_VSync);
+	}
+
+	preVSync = m_VSync;
+}
 
 Window::~Window()
 {

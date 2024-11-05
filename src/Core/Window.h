@@ -54,6 +54,10 @@ public:
 
 	void UpdateProgramTitle(const char* title);
 
+	//need to organise this file
+	inline bool* const GetVSync() { return &m_VSync; }
+	inline void const SetVSync(bool value);
+
 	~Window();
 private:
 	static int m_Width;
@@ -69,4 +73,7 @@ private:
 
 	bool m_LockCursor = false;
 	bool m_Initilised = false;
+
+	bool m_VSync = true;
+	bool preVSync = false;
 };

@@ -6,6 +6,7 @@
 #include "../Texture.h"
 //#include "../Shader.h"
 
+#include "../Material.h"
 
 void ModelMesh::Create()
 {
@@ -114,6 +115,35 @@ AABB ModelMesh::RecalculateAABB()
 		aabb.Encapsulate(v + center);
 
 	return aabb;
+}
+
+void ModelMesh::Generate(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::shared_ptr<Material> mat)
+{
+	m_Vertices = vertices;
+	//to recenter AABB as mesh origin/center is not 0,0,0
+	aabb = AABB(glm::vec3(vertices[0].position[0], vertices[0].position[1], vertices[0].position[2]));
+	for (auto& v : vertices)
+		UpdateAABB(glm::vec3(v.position[0], v.position[1], v.position[2]));
+
+
+	//m_Textures.emplace_back(mat->baseMap);
+	GLCall(glEnable(GL_BLEND));
+	GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+
+	VAO.Generate();
+
+	VBO = VertexBuffer(&vertices[0], sizeof(vertices[0]) * vertices.size());
+	IBO = IndexBuffer(&indices[0], indices.size());
+	VertexBufferLayout vbLayout;
+	//layout 0 position 4 floats x, y, z, w
+	vbLayout.Push<float>(4);
+	//layout 1 colour 4 floats r, g, b, a
+	vbLayout.Push<float>(4);
+	//texture coord floats u v
+	vbLayout.Push<float>(2);
+	//normals nx, ny, nz
+	vbLayout.Push<float>(3);
+	VAO.AddBufferLayout(VBO, vbLayout);
 }
 
 

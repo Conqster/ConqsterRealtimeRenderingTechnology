@@ -3,6 +3,8 @@
 #include "glm/glm.hpp"
 #include <memory>
 
+///A Mesh does not know about materials & Vices versa
+class Shader;
 struct Material
 {
 	Material() = default;

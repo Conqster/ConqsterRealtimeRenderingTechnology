@@ -158,15 +158,22 @@ void ExperimentScene::CreateEntities()
 	////////////////////////////////////////
 	// CREATE ENTITIES 
 	////////////////////////////////////////
-	glm::mat4 temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f)) *
+
+	//TEST TEST TEST TEST 
+	glm::mat4 temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(10.0f, 0.0f, 0.0f));
+	std::shared_ptr<Entity> newModel = m_NewModelLoader.LoadAsEntity(FilePaths::Instance().GetPath("shapes"), true);
+	m_SceneEntities.emplace_back(newModel);
+
+	temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f)) *
 						   glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) *
-						   glm::scale(glm::mat4(1.0f), glm::vec3(10.0f));
+						   glm::scale(glm::mat4(1.0f), glm::vec3(15.0f));
 
 	SquareMesh square_mesh;
 	square_mesh.Create();
 	CubeMesh cube_mesh;
 	cube_mesh.Create();
 	int id_idx = 0;
+	id_idx = newModel->GetID() + 1;
 	Entity floor_plane_entity = Entity(id_idx++, "floor-plane-entity", temp_trans, std::make_shared<Mesh>(square_mesh), floorMat);
 	m_SceneEntities.emplace_back(std::make_shared<Entity>(floor_plane_entity));
 	//move up 
@@ -194,6 +201,19 @@ void ExperimentScene::CreateEntities()
 	//cube1child_entity.AddWorldChild(sphere_entity);
 	//Quick Hack
 	m_SceneEntities.back()->GetChildren()[0]->AddWorldChild(sphere_entity);
+
+
+
+	//Dealing with models
+	blenderShapes = m_ModelLoader.Load(FilePaths::Instance().GetPath("shapes"), true);
+	shapesTrans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 5.0f, 25.0f)) *
+					 glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) *
+					 glm::scale(glm::mat4(1.0f), glm::vec3(0.5f));
+
+	modelWcNewLoader = m_NewModelLoader.Load(FilePaths::Instance().GetPath("shapes"), true);
+	modelWcNewLoaderTrans = glm::translate(shapesTrans, glm::vec3(0.0f, 0.0f, 50.0f));
+
+	
 }
 
 /// <summary>
@@ -306,7 +326,8 @@ void ExperimentScene::ShadowPass(Shader& depth_shader)
 	{
 		depth_shader.SetUniformMat4f("u_Model", e->GetWorldTransform());
 		//material's not needed
-		e->GetMesh()->Render(); //Later move render out of Mesh >> Renderer in use (as its should just be a data container)
+		if(e->GetMesh())
+			e->GetMesh()->Render(); //Later move render out of Mesh >> Renderer in use (as its should just be a data container)
 		//check/traverse children
 		//QuickHack 
 		RenderEnitiyMesh(depth_shader, e);
@@ -401,6 +422,20 @@ void ExperimentScene::DrawScene()
 
 	//Render Sky box
 	m_Skybox.Draw(*m_Camera, *window);
+
+
+	//Dealing with models
+	m_SceneShader.Bind();
+	auto& use_mat = (m_SceneMaterials.size() >= 1) ? m_SceneMaterials[1] : m_SceneMaterials[0];
+	if (use_mat)
+		MaterialShaderBindHelper(*use_mat, m_SceneShader);
+	m_SceneShader.SetUniformMat4f("u_Model", shapesTrans);
+	blenderShapes->Draw();
+
+	m_SceneShader.Bind();
+	m_SceneShader.SetUniformMat4f("u_Model", modelWcNewLoaderTrans);
+	modelWcNewLoader->Draw();
+
 }
 
 void ExperimentScene::SceneDebugger()
@@ -419,6 +454,37 @@ void ExperimentScene::SceneDebugger()
 
 		//Shadow Camera Sample Position 
 		DebugGizmos::DrawCross(dirLightObject.sampleWorldPos);
+	}
+
+
+	//RenderCommand::DisableDepthTest();
+	//Scene Entities 
+	for (auto& e : m_SceneEntities)
+	{
+		DebugEntitiesPos(*e);
+	}
+	//debug model
+	DebugGizmos::DrawCross(shapesTrans[3], 20.5f);
+	auto last_node = m_SceneEntities.back();
+	//transverse first child
+	while (last_node->GetChildren().size() > 0)
+		last_node = last_node->GetChildren()[0];
+	DebugGizmos::DrawLine(last_node->GetWorldTransform()[3], shapesTrans[3], glm::vec3(0.0f, 0.0f, 1.0));
+	//RenderCommand::EnableDepthTest();
+
+
+	//debug use model from new model loader
+	DebugGizmos::DrawCross(modelWcNewLoaderTrans[3], 20.5f, false);
+	//last node already computed
+	DebugGizmos::DrawLine(last_node->GetWorldTransform()[3], modelWcNewLoaderTrans[3], glm::vec3(0.0f, 0.0f, 1.0));
+}
+
+void ExperimentScene::DebugEntitiesPos(Entity& entity)
+{
+	DebugGizmos::DrawCross(entity.GetWorldTransform()[3], 2.5f);
+	for (int i = 0; i < entity.GetChildren().size(); i++)
+	{
+		DebugEntitiesPos(*entity.GetChildren()[i]);
 	}
 }
 
@@ -586,7 +652,8 @@ void ExperimentScene::EntityDebugUI(Entity& entity)
 			glm::toMat4(glm::quat(glm::radians(euler))) *
 			glm::scale(glm::mat4(1.0f), scale));
 	}
-	ImGui::Text("Material Name: %s", entity.GetMaterial()->name);
+	if(entity.GetMaterial())
+		ImGui::Text("Material Name: %s", entity.GetMaterial()->name);
 
 
 

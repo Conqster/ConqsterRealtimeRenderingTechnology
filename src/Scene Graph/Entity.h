@@ -4,6 +4,8 @@
 #include <memory>
 #include <vector>
 
+#include <string>
+
 //forward declare
 class Mesh;
 struct Material;
@@ -12,7 +14,7 @@ class Entity : public std::enable_shared_from_this<Entity>
 {
 private:
 	int m_ID = 0;
-	const char* m_Name = "Default-Mesh";
+	std::string m_Name = "Default-Mesh";
 	glm::mat4 m_LocalTransform = glm::mat4(1.0f);
 	glm::mat4 m_WorldTransform = glm::mat4(1.0f);
 	bool m_DirtyTranform = false;
@@ -29,7 +31,7 @@ private:
 public:
 	Entity() = default; //need to randomly generate a uuid
 	//Entity() = delete;
-	Entity(int id, const char* name = "Default-Mesh", glm::mat4 trans = glm::mat4(1.0f), std::shared_ptr<Mesh> mesh = nullptr, std::shared_ptr<Material> mat = nullptr) :
+	Entity(int id, std::string name = "Default-Mesh", glm::mat4 trans = glm::mat4(1.0f), std::shared_ptr<Mesh> mesh = nullptr, std::shared_ptr<Material> mat = nullptr) :
 		m_ID(id), m_Name(name), m_LocalTransform(trans), m_WorldTransform(trans), m_Mesh(mesh), m_Material(mat) {
 		MarkTransformDirty();
 	};
@@ -38,7 +40,7 @@ public:
 
 	//retrive
 	inline const int GetID() const { return m_ID; }
-	inline const const char* GetName() const { return m_Name; }
+	inline const const char* GetName() const { return m_Name.c_str(); }
 	const glm::mat4& GetWorldTransform();
 	inline const glm::mat4& GetTransform() const { return m_LocalTransform; }
 	inline const std::shared_ptr<Mesh>& GetMesh() const { return m_Mesh; }
@@ -61,6 +63,11 @@ public:
 	void SetParent(const std::shared_ptr<Entity> p) { m_Parent = p; }
 	void Draw(class Shader& shader); //later pass in renderer/context, pass shader for now
 	void Destroy();
+
+	void SetMaterial(std::shared_ptr<Material>& mat) { m_Material = mat; }
+	void SetMesh(std::shared_ptr<Mesh>& mesh) { m_Mesh = mesh; }
+	void AddLocalChild(const std::shared_ptr<Entity>& entity);
+	void AddWorldChild(const std::shared_ptr<Entity>& entity);
 };
 
 

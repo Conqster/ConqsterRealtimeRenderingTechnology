@@ -205,6 +205,7 @@
     <ClInclude Include="src\Util\FilePaths.h" />
     <ClInclude Include="src\Util\GameTime.h" />
     <ClInclude Include="src\Util\MathsHelpers.h" />
+    <ClInclude Include="src\Util\ModelLoaderN.h" />
     <ClInclude Include="src\Util\Vector.h" />
     <ClInclude Include="src\Vendor\stb_image\stb_image.h" />
     <ClInclude Include="src\Renderer\ObjectBuffer\VertexArray.h" />
@@ -265,6 +266,7 @@
     <ClCompile Include="src\Renderer\ObjectBuffer\VertexArray.cpp" />
     <ClCompile Include="src\Renderer\ObjectBuffer\VertexBuffer.cpp" />
     <ClCompile Include="src\Renderer\TextureCube.cpp" />
+    <ClCompile Include="src\Util\ModelLoaderN.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -14,6 +14,7 @@
 #include "Renderer/Shader.h"
 
 #include "Renderer/Skybox.h"  //update when Skybox is update
+#include "Util/ModelLoaderN.h"   //new model loader 
 
 class Entity;
 struct Material;
@@ -61,6 +62,7 @@ private:
 
 	//After Render 
 	void SceneDebugger();
+	void DebugEntitiesPos(Entity& enitity);
 	//void AfterRender(); //<------------- For clean ups that is required after rendering 
 
 	//scene special data
@@ -73,14 +75,35 @@ private:
 	Shader shadowDepthShader;  //this is not scene deoth shader
 	std::vector<std::shared_ptr<Material>> m_SceneMaterials;
 	Skybox m_Skybox;
+	////Later have a structure for RenderData
+	//struct MeshRenderer
+	//{
+	//	std::shared_ptr<Mesh> mesh;
+	//	glm::mat4 world_pos; 
+	//	//std::shared_ptr<Material> mat;
+	//	////extra
+	//	//bool cast_shadow;
+	//	//bool receive_shadow;
+	//	////Or maybe a layer based
+	//};
+
 	//std::vector<std::shared_ptr<Framebuffer>> m_SceneFBOs; //Lateeeerrr
 
 	//Utilities
 	ModelLoader m_ModelLoader;
+	CRRT::ModelLoader m_NewModelLoader;
+
+	std::shared_ptr<Model> modelWcNewLoader;
+	glm::mat4 modelWcNewLoaderTrans = glm::mat4(1.0f);
 
 	//UniformBuffers
 	UniformBuffer m_CamMatUBO;
 	UniformBuffer m_LightDataUBO;
+
+
+	//Dealing with models
+	std::shared_ptr<Model> blenderShapes;
+	glm::mat4 shapesTrans = glm::mat4(1.0f);
 
 
 	////////////////////////////////

@@ -62,3 +62,4 @@ ISSUE ISSE >> FIXED
 
 
 NEED TO WORK ON (MESH THAT DOES NOT HAVE TANGENT & BITANGENT) algorithm to calculate them. 
+RETHINK ENTITY GET WORLD TRANSFORM - should the transform be updated if dirty upon retrieval or updated immediately when dirty/updated at the start/end of the frame? This would make it nice to have the function has const. 
