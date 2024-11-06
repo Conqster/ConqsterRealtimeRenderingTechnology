@@ -346,6 +346,9 @@ namespace CRRT
 				{vn.x, vn.y, vn.z},       //layout 3 => nor
 			};
 			vertices.push_back(vertex);
+
+
+
 		}
 
 
@@ -360,6 +363,16 @@ namespace CRRT
 				indices.push_back(face.mIndices[j]);
 			}
 		}
+
+		////Tagents
+		//unsigned int idx_offset = mesh
+		//if (mesh->mTextureCoords[0])
+		//{
+		//	glm::vec3 p0(-1.0f, 1.0f, 0.0f),
+		//		p1(-1.0f, -1.0f, 0.0f),
+		//		p2(1.0f, -1.0f, 0.0f),
+		//		p3(1.0f, 1.0f, 0.0f);
+		//}
 
 
 		////////////////////////////

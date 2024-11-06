@@ -49,7 +49,7 @@ public:
 	inline const std::shared_ptr<Entity>& GetParent() const { return m_Parent; }
 
 	//set
-	void SetTransform(const glm::mat4& transform) 
+	void SetLocalTransform(const glm::mat4& transform) 
 	{ 
 		m_LocalTransform = transform; 
 		MarkTransformDirty();

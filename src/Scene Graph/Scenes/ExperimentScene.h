@@ -132,4 +132,7 @@ private:
 	void EntityDebugUI(Entity& entity);
 	void MaterialsUI();
 	//void FrameBufferUI();
+
+
+	void EntityModelMaterial(const Entity& entity);
 };

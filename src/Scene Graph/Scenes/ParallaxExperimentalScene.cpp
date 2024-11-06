@@ -1017,7 +1017,7 @@ void ParallaxExperimentalScene::EntityDebugUI(Entity& entity)
 	update |= ImGui::DragFloat3("Scale", &scale[0], 0.2f);
 	if (update)
 	{
-		entity.SetTransform(glm::translate(glm::mat4(1.0f), translate) *
+		entity.SetLocalTransform(glm::translate(glm::mat4(1.0f), translate) *
 							glm::toMat4(glm::quat(glm::radians(euler))) *
 							glm::scale(glm::mat4(1.0f), scale));
 	}

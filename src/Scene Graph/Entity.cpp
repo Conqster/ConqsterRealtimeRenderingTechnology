@@ -67,6 +67,7 @@ void Entity::Draw(Shader& shader)
 			shader.SetUniform1i("u_Material.baseMap", tex_units++);
 		}
 		bool has_nor = (m_Material->normalMap) ? true : false;
+		has_nor = false;
 		if (has_nor)
 		{
 			m_Material->normalMap->Activate(tex_units);
@@ -89,6 +90,11 @@ void Entity::Draw(Shader& shader)
 	shader.SetUniformMat4f("u_Model", GetWorldTransform());//expensive but works for now
 
 	m_Mesh->Render();
+
+	//would have to do this as most model would have a default/
+	//mesh that has no material would be group has no shading but debug pink
+	//if (m_Material)
+		//m_Material->baseMap->DisActivate();
 }
 
 void Entity::Destroy()

@@ -160,8 +160,18 @@ void ExperimentScene::CreateEntities()
 	////////////////////////////////////////
 
 	//TEST TEST TEST TEST 
-	glm::mat4 temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(10.0f, 0.0f, 0.0f));
+	glm::mat4  temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(-14.0f, 13.0f, -20.0f)) * 
+							glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) *
+							glm::scale(glm::mat4(1.0f), glm::vec3(0.1f));
+	std::shared_ptr<Entity> newModel2 = m_NewModelLoader.LoadAsEntity(FilePaths::Instance().GetPath("electrical-charger"), true);
+	newModel2->SetLocalTransform(temp_trans);
+	m_SceneEntities.emplace_back(newModel2);
+
+	temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(-10.0f, 2.0f, 0.0f)) * 
+						   glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) *
+						   glm::scale(glm::mat4(1.0f), glm::vec3(0.5f));
 	std::shared_ptr<Entity> newModel = m_NewModelLoader.LoadAsEntity(FilePaths::Instance().GetPath("shapes"), true);
+	newModel->SetLocalTransform(temp_trans);
 	m_SceneEntities.emplace_back(newModel);
 
 	temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f)) *
@@ -202,6 +212,8 @@ void ExperimentScene::CreateEntities()
 	//Quick Hack
 	m_SceneEntities.back()->GetChildren()[0]->AddWorldChild(sphere_entity);
 
+
+	
 
 
 	//Dealing with models
@@ -347,8 +359,11 @@ void ExperimentScene::RenderEnitiyMesh(Shader& shader, const std::shared_ptr<Ent
 	{
 		//Render self
 		shader.SetUniformMat4f("u_Model", children[i]->GetWorldTransform());
-		children[i]->GetMesh()->Render();
+		//children[i]->GetMesh()->Render();
 		//Recursive transverse child
+		if(children[i]->GetMesh())
+			children[i]->GetMesh()->Render();
+
 		RenderEnitiyMesh(shader, children[i]);
 	}
 }
@@ -648,7 +663,7 @@ void ExperimentScene::EntityDebugUI(Entity& entity)
 	update |= ImGui::DragFloat3("Scale", &scale[0], 0.2f);
 	if (update)
 	{
-		entity.SetTransform(glm::translate(glm::mat4(1.0f), translate) *
+		entity.SetLocalTransform(glm::translate(glm::mat4(1.0f), translate) *
 			glm::toMat4(glm::quat(glm::radians(euler))) *
 			glm::scale(glm::mat4(1.0f), scale));
 	}
@@ -669,6 +684,39 @@ void ExperimentScene::EntityDebugUI(Entity& entity)
 	}
 
 	ImGui::PopID();
+}
+
+
+void ExperimentScene::EntityModelMaterial(const Entity& entity)
+{
+	auto& mat = entity.GetMaterial();
+	if (mat)
+	{
+		static int blank_tex_id = blank_tex->GetID();
+
+		int tex_id;
+		ImGui::PushID(entity.GetID());
+		ImGui::Text("1. %s, from mesh: %s", mat->name, entity.GetName());
+		ImGui::ColorEdit3("Colour", &mat->baseColour[0]);
+		tex_id = (mat->baseMap) ? mat->baseMap->GetID() : blank_tex_id;
+		ImGui::Image((ImTextureID)(intptr_t)tex_id, ImVec2(100, 100));
+		ImGui::SameLine(); ImGui::Text("Main Texture");
+		tex_id = (mat->normalMap) ? mat->normalMap->GetID() : blank_tex_id;
+		ImGui::Image((ImTextureID)(intptr_t)tex_id, ImVec2(100, 100));
+		ImGui::SameLine(); ImGui::Text("Normal Map");
+		tex_id = (mat->parallaxMap) ? mat->parallaxMap->GetID() : blank_tex_id;
+		ImGui::Image((ImTextureID)(intptr_t)tex_id, ImVec2(100, 100));
+		ImGui::SameLine(); ImGui::Text("Parallax/Height Map");
+		ImGui::Checkbox("Use Parallax", &mat->useParallax);
+		ImGui::SliderFloat("Parallax/Height Scale", &mat->heightScale, 0.0f, 0.08f);
+		ImGui::SliderInt("Shinness", &mat->shinness, 32, 256);
+		ImGui::PopID();
+	}
+
+	for (int i = 0; i < entity.GetChildren().size(); i++)
+	{
+		EntityModelMaterial(*entity.GetChildren()[i]);
+	}
 }
 
 void ExperimentScene::MaterialsUI()
@@ -701,6 +749,16 @@ void ExperimentScene::MaterialsUI()
 			ImGui::PopID();
 			//floorMat = temp_mat;
 		}
+
+
+
+		ImGui::Spacing();
+		ImGui::SeparatorText("Debuggig Model Material");
+
+		for(auto& e : m_SceneEntities)
+			EntityModelMaterial(*e);
 	}
+
+
 	ImGui::End();
 }

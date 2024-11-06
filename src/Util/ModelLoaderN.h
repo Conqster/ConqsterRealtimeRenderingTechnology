@@ -98,6 +98,7 @@ namespace CRRT
 		std::tuple<Mesh, Material> ProcessMesh2(aiMesh* mesh, const aiScene* scene);
 		glm::mat4 ConvertMatrix(const aiMatrix4x4& from);
 
+		std::tuple<glm::vec3, glm::vec3> CalculateTangents();
 	};
 
 
