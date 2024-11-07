@@ -43,6 +43,7 @@ struct Material
 	
 	sampler2D baseMap;
 	sampler2D normalMap;
+	bool useNormal;
 	
 	sampler2D parallaxMap;
 	bool useParallax;
@@ -65,7 +66,6 @@ const int MAX_POINT_LIGHTS = 4 + 3;
 //--------------uniform--------------/
 //Model specify 
 uniform Material u_Material;
-uniform bool u_UseNorMap;
 
 uniform vec3 u_ViewPos;
 
@@ -122,7 +122,7 @@ void main()
 		
 
 	vec3 N = normalize(fs_in.normal);
-	if(u_UseNorMap)
+	if(u_Material.useNormal)
 	{
 		N = texture(u_Material.normalMap, tex_coords).rgb;
 		N = N * 2.0 - 1.0; //[0,1] >> [-1, 1]

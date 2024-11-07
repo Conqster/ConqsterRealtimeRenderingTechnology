@@ -168,6 +168,10 @@ void Mesh::Generate(std::vector<Vertex> vertices, std::vector<unsigned int> indi
 	vbLayout.Push<float>(2);
 	//normals nx, ny, nz
 	vbLayout.Push<float>(3);
+	//tangent tx, ty, tz
+	vbLayout.Push<float>(3);
+	//tangent btx, bty, btz
+	vbLayout.Push<float>(3);
 	VAO.AddBufferLayout(VBO, vbLayout);
 }
 

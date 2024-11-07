@@ -173,6 +173,8 @@ namespace CRRT
 				{1.0f, 0.0f, 1.0f, 1.0f},	//layout 1 => col  //magenta for debugging
 				{st.x, st.y},			   //layout 2 => uv
 				{vn.x, vn.y, vn.z},       //layout 3 => nor
+				{0.0f, 0.0f, 0.0f},       //layout 4 => tan
+				{0.0f, 0.0f, 0.0f},       //layout 5 => bi tan
 			};
 			vertices.push_back(vertex);
 		}
@@ -308,8 +310,8 @@ namespace CRRT
 		aiVector2D st;     //texture coord
 
 		//Later
-		//glm::vec3 tn;   //tangent 
-		//glm::vec3 bt;	  //bitangent
+		aiVector3D tn;   //tangent 
+		aiVector3D bt;	  //bitangent
 
 		////////////////////////////
 		// VERTICES
@@ -330,6 +332,17 @@ namespace CRRT
 			else
 				st = aiVector2D();
 
+			//retrive tangent
+			if (mesh->mTangents)
+				tn = mesh->mTangents[i];
+			else
+				tn = aiVector3D();
+
+			if(mesh->mBitangents)
+				bt = mesh->mTangents[i];
+			else
+				bt = aiVector3D();
+
 
 			//{ SET UP
 			//	float position[4];
@@ -344,6 +357,8 @@ namespace CRRT
 				{1.0f, 0.0f, 1.0f, 1.0f},	//layout 1 => col  //magenta for debugging
 				{st.x, st.y},			   //layout 2 => uv
 				{vn.x, vn.y, vn.z},       //layout 3 => nor
+				{tn.x, tn.y, tn.z},       //layout 4 => tan
+				{bt.x, bt.y, bt.z},       //layout 5 => bi tan
 			};
 			vertices.push_back(vertex);
 
@@ -364,15 +379,12 @@ namespace CRRT
 			}
 		}
 
-		////Tagents
-		//unsigned int idx_offset = mesh
-		//if (mesh->mTextureCoords[0])
-		//{
-		//	glm::vec3 p0(-1.0f, 1.0f, 0.0f),
-		//		p1(-1.0f, -1.0f, 0.0f),
-		//		p2(1.0f, -1.0f, 0.0f),
-		//		p3(1.0f, 1.0f, 0.0f);
-		//}
+		//Tri
+		//condition has uv (Normal uv)
+		bool force_cal_tangents = !mesh->mTangents;
+		if (mesh->mTextureCoords[0] && force_cal_tangents)
+			ForceCalculateTangents(mesh, vertices);
+		
 
 
 		////////////////////////////
@@ -469,4 +481,62 @@ namespace CRRT
 		}
 	}
 
+
+
+
+
+	void ModelLoader::ForceCalculateTangents(aiMesh* mesh, std::vector<Vertex>& vertices)
+	{
+		for (unsigned int i = 0; i < mesh->mNumFaces; i++)
+		{
+			unsigned int idx0 = mesh->mFaces[i].mIndices[0];
+			unsigned int idx1 = mesh->mFaces[i].mIndices[1];
+			unsigned int idx2 = mesh->mFaces[i].mIndices[2];
+
+			//Later use me data type its already styore in order
+			aiVector3D p0 = mesh->mVertices[idx0];
+			aiVector3D p1 = mesh->mVertices[idx1];
+			aiVector3D p2 = mesh->mVertices[idx2];
+
+
+			aiVector3D uv0 = mesh->mTextureCoords[0][idx0];
+			aiVector3D uv1 = mesh->mTextureCoords[0][idx1];
+			aiVector3D uv2 = mesh->mTextureCoords[0][idx2];
+
+			aiVector3D edge1 = p1 - p0,
+				edge2 = p2 - p0;
+
+			aiVector3D deltaUV1 = uv1 - uv0;
+			aiVector3D deltaUV2 = uv2 - uv0;
+
+			float r = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
+
+			aiVector3D t = (edge1 * deltaUV2.y - edge2 * deltaUV1.y) * r;
+			aiVector3D b = (edge2 * deltaUV1.x - edge1 * deltaUV2.x) * r;
+
+			float tan[3] = { t.x, t.y, t.z };
+			float bitan[3] = { b.x, b.y, b.z };
+
+			vertices[idx0].tangent[0] += *tan;
+			vertices[idx1].tangent[0] += *tan;
+			vertices[idx2].tangent[0] += *tan;
+
+			vertices[idx0].bitangent[0] += *bitan;
+			vertices[idx1].bitangent[0] += *bitan;
+			vertices[idx2].bitangent[0] += *bitan;
+		}
+
+		for (auto& v : vertices)
+		{
+			const glm::vec3 t(v.tangent[0], v.tangent[1], v.tangent[2]);
+			const glm::vec3 b(v.bitangent[0], v.bitangent[1], v.bitangent[2]);
+			const glm::vec3 n(v.normals[0], v.normals[1], v.normals[2]);
+
+			//Gram-Schmidt ortho
+			glm::vec3 tan = glm::normalize(t - n * glm::dot(n, t));
+			v.tangent[0] = tan.x;
+			v.tangent[1] = tan.y;
+			v.tangent[2] = tan.z;
+		}
+	}
 }

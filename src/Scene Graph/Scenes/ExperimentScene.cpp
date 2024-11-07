@@ -75,7 +75,6 @@ void ExperimentScene::OnRender()
 
 
 	//After Rendering (Clean-up/Miscellenous)
-	return;
 	SceneDebugger();
 }
 
@@ -192,6 +191,7 @@ void ExperimentScene::CreateEntities()
 	id_idx = newModel->GetID() + 1;
 	Entity floor_plane_entity = Entity(id_idx++, "floor-plane-entity", temp_trans, std::make_shared<Mesh>(square_mesh), floorMat);
 	m_SceneEntities.emplace_back(std::make_shared<Entity>(floor_plane_entity));
+
 	//move up 
 	temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 1.6f, 0.0f));
 	Entity cube_entity = Entity(id_idx++, "cube-entity", temp_trans, std::make_shared<Mesh>(cube_mesh), plainMat);
@@ -289,7 +289,7 @@ void ExperimentScene::CreateLightDatas()
 
 
 	//shadow map
-	dirDepthMap.Generate(2048, 2048);
+	dirDepthMap.Generate(2048 * 2, 2048 * 2);
 	dirLightObject.dirLightShadow.config.cam_far = 70.0f;
 }
 
@@ -460,6 +460,7 @@ void ExperimentScene::DrawScene()
 	m_Skybox.Draw(*m_Camera, *window);
 
 
+
 	//Dealing with models
 	m_SceneShader.Bind();
 	auto& use_mat = (m_SceneMaterials.size() >= 1) ? m_SceneMaterials[1] : m_SceneMaterials[0];
@@ -539,8 +540,7 @@ void ExperimentScene::MaterialShaderBindHelper(Material& mat, Shader& shader)
 		mat.baseMap->Activate(tex_units);
 		shader.SetUniform1i("u_Material.baseMap", tex_units++);
 	}
-	bool has_nor = (mat.normalMap) ? true : false;
-	if (has_nor)
+	if (mat.normalMap)
 	{
 		mat.normalMap->Activate(tex_units);
 		shader.SetUniform1i("u_Material.normalMap", tex_units++);
@@ -550,7 +550,7 @@ void ExperimentScene::MaterialShaderBindHelper(Material& mat, Shader& shader)
 		mat.parallaxMap->Activate(tex_units);
 		shader.SetUniform1i("u_Material.parallaxMap", tex_units++);
 	}
-	shader.SetUniform1i("u_UseNorMap", has_nor);
+	shader.SetUniform1i("u_Material.useNormal", mat.useNormal && mat.normalMap);
 	shader.SetUniform1i("u_Material.shinness", mat.shinness);
 	shader.SetUniform1i("u_Material.useParallax", mat.useParallax);
 	shader.SetUniform1f("u_Material.parallax", mat.heightScale);
@@ -732,6 +732,7 @@ void ExperimentScene::EntityModelMaterial(const Entity& entity)
 		tex_id = (mat->normalMap) ? mat->normalMap->GetID() : blank_tex_id;
 		ImGui::Image((ImTextureID)(intptr_t)tex_id, ImVec2(100, 100));
 		ImGui::SameLine(); ImGui::Text("Normal Map");
+		ImGui::Checkbox("Use Normal", &mat->useNormal);
 		tex_id = (mat->parallaxMap) ? mat->parallaxMap->GetID() : blank_tex_id;
 		ImGui::Image((ImTextureID)(intptr_t)tex_id, ImVec2(100, 100));
 		ImGui::SameLine(); ImGui::Text("Parallax/Height Map");
@@ -765,6 +766,7 @@ void ExperimentScene::MaterialsUI()
 			tex_id = (mat->baseMap) ? mat->baseMap->GetID() : blank_tex_id;
 			ImGui::Image((ImTextureID)(intptr_t)tex_id, ImVec2(100, 100));
 			ImGui::SameLine(); ImGui::Text("Main Texture");
+			ImGui::Checkbox("Use Normal", &mat->useNormal);
 			tex_id = (mat->normalMap) ? mat->normalMap->GetID() : blank_tex_id;
 			ImGui::Image((ImTextureID)(intptr_t)tex_id, ImVec2(100, 100));
 			ImGui::SameLine(); ImGui::Text("Normal Map");

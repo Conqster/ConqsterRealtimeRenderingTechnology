@@ -15,6 +15,12 @@ struct Vertex
 	float colour[4];
 	float texCoord[2];
 	float normals[3];
+
+	//normal/bump mapping
+	//maybe have a flag so it does not have tangent 
+	//on create in gpu dont send full vertex size anf tan& bitan
+	float tangent[3];
+	float bitangent[3];
 };
 
 ///A Mesh does not know about materials

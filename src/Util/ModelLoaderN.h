@@ -98,7 +98,14 @@ namespace CRRT
 		std::tuple<Mesh, Material> ProcessMesh2(aiMesh* mesh, const aiScene* scene);
 		glm::mat4 ConvertMatrix(const aiMatrix4x4& from);
 
-		std::tuple<glm::vec3, glm::vec3> CalculateTangents();
+
+
+		/// <summary>
+		/// There are better ways of calculating this 
+		/// but for now it will do
+		/// from [Foundation of Game Engine Developmenent - Rendering Eric Lengyel]
+		/// </summary>
+		void ForceCalculateTangents(aiMesh* mesh, std::vector<Vertex>& vertices);
 	};
 
 

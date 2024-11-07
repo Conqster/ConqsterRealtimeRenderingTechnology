@@ -66,9 +66,7 @@ void Entity::Draw(Shader& shader)
 			m_Material->baseMap->Activate(tex_units);
 			shader.SetUniform1i("u_Material.baseMap", tex_units++);
 		}
-		bool has_nor = (m_Material->normalMap) ? true : false;
-		has_nor = false;
-		if (has_nor)
+		if (m_Material->normalMap)
 		{
 			m_Material->normalMap->Activate(tex_units);
 			shader.SetUniform1i("u_Material.normalMap", tex_units++);
@@ -78,7 +76,7 @@ void Entity::Draw(Shader& shader)
 			m_Material->parallaxMap->Activate(tex_units);
 			shader.SetUniform1i("u_Material.parallaxMap", tex_units++);
 		}
-		shader.SetUniform1i("u_UseNorMap", has_nor);
+		shader.SetUniform1i("u_Material.useNormal", m_Material->useNormal && m_Material->normalMap);
 		shader.SetUniform1i("u_Material.shinness", m_Material->shinness);
 		shader.SetUniform1i("u_Material.useParallax", m_Material->useParallax);
 		shader.SetUniform1f("u_Material.parallax", m_Material->heightScale);

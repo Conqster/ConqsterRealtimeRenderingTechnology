@@ -17,6 +17,7 @@ struct Material
 	glm::vec3 baseColour = glm::vec3(1.0f); //base coour contributes to base map (* multply as a mask)
 
 	std::shared_ptr<Texture> baseMap = nullptr;
+	bool useNormal = true;
 	std::shared_ptr<Texture> normalMap = nullptr;
 	bool useParallax = false;
 	std::shared_ptr<Texture> parallaxMap = nullptr;
