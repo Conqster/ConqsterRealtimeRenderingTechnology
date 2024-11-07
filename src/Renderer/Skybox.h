@@ -6,7 +6,10 @@
 
 
 
-
+/// <summary>
+/// For later remove mesh, shader, 
+/// it should just stand as a data point
+/// </summary>
 class Skybox
 {
 public:

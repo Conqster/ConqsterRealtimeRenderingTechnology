@@ -99,6 +99,7 @@ private:
 	//UniformBuffers
 	UniformBuffer m_CamMatUBO;
 	UniformBuffer m_LightDataUBO;
+	UniformBuffer m_EnviUBO;
 
 
 	//Dealing with models
@@ -119,6 +120,10 @@ private:
 		DirShadowCalculation dirLightShadow; //direction light shadow data
 	}dirLightObject;
 	ShadowMap dirDepthMap;
+	//Skybox enviromwent
+	bool m_UseSkybox = false;
+	float m_SkyboxInfluencity = 0.2f;
+	float m_SkyboxReflectivity = 0.8f;
 
 
 	//------------------------------Utility functions------------------------/

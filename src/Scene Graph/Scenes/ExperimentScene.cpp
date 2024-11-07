@@ -14,6 +14,8 @@
 #include "Util/MathsHelpers.h"
 #include <glm/gtx/quaternion.hpp>
 
+#include "Util/GPUStructure.h"
+
 /// <summary>
 /// Need to remove this later
 /// </summary>
@@ -73,6 +75,7 @@ void ExperimentScene::OnRender()
 
 
 	//After Rendering (Clean-up/Miscellenous)
+	return;
 	SceneDebugger();
 }
 
@@ -118,6 +121,7 @@ void ExperimentScene::CreateEntities()
 		"Assets/Textures/Skyboxes/default_skybox/back.jpg"
 	};
 	m_Skybox.Create(def_skybox_faces);
+	m_Skybox.ActivateMap(5);
 
 	//////////////////////////////////////
 	// GENERATE SHADERS
@@ -125,10 +129,12 @@ void ExperimentScene::CreateEntities()
 	//model shader
 	ShaderFilePath shader_file_path
 	{
-		"Assets/Shaders/Learning/ParallaxExperiment/ParallaxModelVertex.glsl", //vertex shader
-		"Assets/Shaders/Learning/ParallaxExperiment/ParallaxModelFrag.glsl", //fragment shader
+		"Assets/Shaders/StandardVertex.glsl", //vertex shader
+		"Assets/Shaders/StandardFrag.glsl", //fragment shader
 	};
 	m_SceneShader.Create("model_shader", shader_file_path);
+	m_SceneShader.Bind();
+	m_SceneShader.SetUniform1i("u_SkyboxMap", 5);
 	ShaderFilePath point_shadow_shader_file_path
 	{
 		"Assets/Shaders/ShadowMapping/ShadowDepthVertex.glsl", //vertex shader
@@ -251,10 +257,17 @@ void ExperimentScene::CreateGPUDatas()
 	m_LightDataUBO.BindBufferRndIdx(1, light_buffer_size, 0);
 
 
+	
+	//------------------Enviroment Data UBO-----------------------------/
+	long long int envi_buffer_size = CRRT::EnvironmentData::GetGPUSize();
+	m_EnviUBO.Generate(envi_buffer_size);
+	m_EnviUBO.BindBufferRndIdx(2, envi_buffer_size, 0);
+
 	//Assign UBO, if necessary 
 	m_SceneShader.Bind();
 	m_SceneShader.SetUniformBlockIdx("u_CameraMat", 0);
 	m_SceneShader.SetUniformBlockIdx("u_LightBuffer", 1);
+	m_SceneShader.SetUniformBlockIdx("u_EnvironmentBuffer", 2);
 
 
 }
@@ -401,6 +414,14 @@ void ExperimentScene::PostUpdateGPUUniformBuffers()
 
 	//Hack that there is no pt light the scene
 	m_SceneShader.SetUniform1i("u_PtLightCount", 0);
+	//environment
+	offset_pointer = 0;
+	m_EnviUBO.SetSubDataByID(&m_UseSkybox, sizeof(int), offset_pointer);
+	offset_pointer += sizeof(int);
+	m_EnviUBO.SetSubDataByID(&m_SkyboxInfluencity, sizeof(float), offset_pointer);
+	offset_pointer += sizeof(float);
+	m_EnviUBO.SetSubDataByID(&m_SkyboxReflectivity, sizeof(float), offset_pointer);
+	//m_SceneShader.SetUniform1i("u_SkyboxMap", 5);
 }
 
 void ExperimentScene::DrawScene()
@@ -596,8 +617,15 @@ void ExperimentScene::MainUI()
 	ImGui::Spacing();
 	if (ImGui::TreeNode("Lights"))
 	{
+		ImGui::SeparatorText("Environment");
+		ImGui::Checkbox("Use Skybox", &m_UseSkybox);
+		ImGui::SliderFloat("Skybox influencity", &m_SkyboxInfluencity, 0.0f, 1.0f);
+		ImGui::SliderFloat("Skybox reflectivity", &m_SkyboxReflectivity, 0.0f, 1.0f);
+
+		ImGui::Spacing();
 		ImGui::SeparatorText("Light Global Properties");
 		ImGui::Checkbox("Enable Scene Shadow", &enableSceneShadow);
+
 
 
 		//////////////////////////////////////

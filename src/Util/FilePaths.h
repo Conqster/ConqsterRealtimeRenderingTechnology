@@ -7,6 +7,7 @@
 class FilePaths
 {
 public:
+	FilePaths(const FilePaths&) = delete;
 
 	static inline FilePaths& Instance()
 	{
@@ -40,6 +41,7 @@ public:
 	}
 
 private:
+	FilePaths() = default;
 	std::unordered_map<std::string, std::string> mPaths;
 	std::string textureFolderDir = "Assets/Textures";     //use later, to store less string characters and concat on retrive 
 };
