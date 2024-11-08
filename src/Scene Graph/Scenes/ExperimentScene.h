@@ -16,6 +16,8 @@
 #include "Renderer/Skybox.h"  //update when Skybox is update
 #include "Util/ModelLoaderN.h"   //new model loader 
 
+#include "Renderer/ObjectBuffer/Framebuffer.h"
+
 
 class Entity;
 struct Material;
@@ -59,6 +61,7 @@ private:
 	void DrawScene();
 
 	//Scene Post Render
+	void PostProcess();
 	//No after Effect at the moment 
 
 	//After Render 
@@ -70,7 +73,16 @@ private:
 	bool enableSceneShadow = true;
 
 
+	//post process parameters
+	float gamma = 1.80f;
+	float hdrExposure = 1.0f;
+	bool m_DoHDR = false;
+
+
 	//Resource
+	Framebuffer m_SceneScreenFBO;
+	Shader m_PostImgShader;
+	std::shared_ptr<Mesh> m_QuadMesh;
 	std::vector<std::shared_ptr<Entity>> m_SceneEntities;
 	Shader m_SceneShader;//std::vector<std::shared_ptr<Shader>> m_SceneShaders;
 	Shader shadowDepthShader;  //this is not scene deoth shader
@@ -93,6 +105,7 @@ private:
 	//Utilities
 	ModelLoader m_ModelLoader;
 	CRRT::ModelLoader m_NewModelLoader;
+	unsigned int m_PrevViewWidth, m_PrevViewHeight;
 
 	std::shared_ptr<Model> modelWcNewLoader;
 	glm::mat4 modelWcNewLoaderTrans = glm::mat4(1.0f);
@@ -131,6 +144,8 @@ private:
 	//Quick Hack
 	void RenderEnitiyMesh(Shader& shader, const std::shared_ptr<Entity>& entity, bool use_mat = false);
 
+	//need to take this out later
+	void ResizeBuffers(unsigned int width, unsigned int height);
 
 	void MaterialShaderBindHelper(Material& mat, Shader& shader);
 	void MainUI();

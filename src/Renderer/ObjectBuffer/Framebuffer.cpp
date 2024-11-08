@@ -19,7 +19,7 @@ Framebuffer::Framebuffer() : m_Width(500), m_Height(500),
 {}
 
 Framebuffer::Framebuffer(unsigned int width, unsigned int height, FBO_Format i_format) : m_Width(width),
-			m_Height(height), m_ID(0), m_RenderbufferID(0), m_TextureID(0)
+			m_Height(height), m_ID(0), m_RenderbufferID(0), m_TextureID(0), m_InternalFormat(i_format)
 {
 	Generate(i_format);
 }
@@ -31,6 +31,8 @@ Framebuffer::~Framebuffer()
 
 bool Framebuffer::Generate(FBO_Format i_format)
 {
+	m_InternalFormat = i_format;
+
 	glGenFramebuffers(1, &m_ID);
 	glBindFramebuffer(GL_FRAMEBUFFER, m_ID);
 
@@ -75,6 +77,30 @@ bool Framebuffer::Generate(unsigned int width, unsigned int height, FBO_Format i
 	m_Width = width;
 	m_Height = height;
 	return Generate(i_format);
+}
+
+bool Framebuffer::ResizeBuffer(unsigned int width, unsigned int height)
+{
+	m_Width = width;
+	m_Height = height;
+	//resize texture 
+	glBindTexture(GL_TEXTURE_2D, m_TextureID);
+	glTexImage2D(GL_TEXTURE_2D, 0, OpenGLFormat(m_InternalFormat), m_Width, m_Height, 0, GL_RGB, GL_FLOAT, NULL);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	//resize render buffer
+	glBindRenderbuffer(GL_RENDERBUFFER, m_RenderbufferID);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, m_Width, m_Height);
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	{
+		std::cout << "[FRAMEBUFFER ERROR]: Framebuffer did not complete!!!!\n";
+		glBindRenderbuffer(GL_RENDERBUFFER, 0);
+		return false;
+	}
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+
+	return true;
 }
 
 

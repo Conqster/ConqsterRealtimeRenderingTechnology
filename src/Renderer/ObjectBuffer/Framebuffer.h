@@ -18,7 +18,7 @@ public:
 	bool Generate(FBO_Format i_format = FBO_Format::RGB);
 	bool Generate(unsigned int width, unsigned int height, FBO_Format i_format = FBO_Format::RGB);
 
-
+	bool ResizeBuffer(unsigned int width, unsigned int height);
 
 	void Bind();
 	void UnBind();
@@ -37,6 +37,8 @@ private:
 	unsigned int m_ID,
 				 m_RenderbufferID,
 				 m_TextureID;
+
+	FBO_Format m_InternalFormat;
 };
 
 

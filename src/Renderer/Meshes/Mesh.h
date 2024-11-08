@@ -28,6 +28,8 @@ struct Vertex
 ///TO-DO: Probaly later have something called a shared mesh 
 ///		   It might be similar to batch rendering i think
 ///		   so similar mesh wouldnt be duplicated in memory
+/// 
+///		  On creation the mesh should not be loaded on GPU
 /// </summary>
 class Mesh
 {
@@ -48,6 +50,10 @@ protected:
 public:
 	Mesh();
 	Mesh(const VertexArray vao, VertexBuffer vbo);
+	Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices) 
+		{ 
+			Generate(vertices, indices); 
+		}
 	void Generate(std::vector<Vertex> vertices, std::vector<unsigned int> indices);
 	~Mesh();
 

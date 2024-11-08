@@ -16,6 +16,8 @@
 
 #include "Util/GPUStructure.h"
 
+#include "Renderer/Meshes/PrimitiveMeshFactory.h"
+
 /// <summary>
 /// Need to remove this later
 /// </summary>
@@ -69,13 +71,25 @@ void ExperimentScene::OnRender()
 	RenderCommand::Clear();
 	//post is also used for all shader view & shadow data but move to appropiate ubo later
 	PostUpdateGPUUniformBuffers(); //<------- Not really necessary yet
+	/////////////////////////////
+	// First Render Pass
+	/////////////////////////////
+	m_SceneScreenFBO.Bind();
+	RenderCommand::Clear();
 	DrawScene();
+	m_SceneScreenFBO.UnBind();
 
 	//Post Rendering (post Process) 
-
+	PostProcess();
 
 	//After Rendering (Clean-up/Miscellenous)
 	SceneDebugger();
+
+
+	if (m_PrevViewWidth != window->GetWidth() || m_PrevViewHeight != window->GetHeight())
+	{
+		ResizeBuffers(window->GetWidth(), window->GetHeight());
+	}
 }
 
 void ExperimentScene::OnRenderUI()
@@ -103,6 +117,18 @@ void ExperimentScene::InitRenderer()
 	//Shadow config modification
 	//etc 
 
+	m_PrevViewWidth = window->GetWidth();
+	m_PrevViewHeight = window->GetHeight();
+
+	m_SceneScreenFBO.Generate(window->GetWidth(), window->GetHeight());
+	//Post Process shader
+	ShaderFilePath screen_shader_file_path
+	{
+		//"Assets/Shaders/Learning/MSAA/AA_PostProcess_Vertex.glsl",
+		"Assets/Shaders/Learning/Post Process/QuadScreenVertex.glsl",
+		"Assets/Shaders/Learning/Post Process/PostProcessHDRfrag.glsl"
+	};
+	m_PostImgShader.Create("post render shader", screen_shader_file_path);
 }
 
 void ExperimentScene::CreateEntities()
@@ -183,28 +209,27 @@ void ExperimentScene::CreateEntities()
 						   glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) *
 						   glm::scale(glm::mat4(1.0f), glm::vec3(15.0f));
 
-	SquareMesh square_mesh;
-	square_mesh.Create();
-	CubeMesh cube_mesh;
-	cube_mesh.Create();
+	m_QuadMesh = CRRT::PrimitiveMeshFactory::Instance().CreateQuad();
+	std::shared_ptr<Mesh> cube_mesh = CRRT::PrimitiveMeshFactory::Instance().CreateCube();
+	//cube_mesh.Create();
 	int id_idx = 0;
 	id_idx = newModel->GetID() + 1;
-	Entity floor_plane_entity = Entity(id_idx++, "floor-plane-entity", temp_trans, std::make_shared<Mesh>(square_mesh), floorMat);
+	Entity floor_plane_entity = Entity(id_idx++, "floor-plane-entity", temp_trans, m_QuadMesh, floorMat);
 	m_SceneEntities.emplace_back(std::make_shared<Entity>(floor_plane_entity));
 
 	//move up 
 	temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 1.6f, 0.0f));
-	Entity cube_entity = Entity(id_idx++, "cube-entity", temp_trans, std::make_shared<Mesh>(cube_mesh), plainMat);
+	Entity cube_entity = Entity(id_idx++, "cube-entity", temp_trans, cube_mesh, plainMat);
 	m_SceneEntities.emplace_back(std::make_shared<Entity>(cube_entity));
 	//move right
 	temp_trans = glm::translate(temp_trans, glm::vec3(5.0f, 0.0f, 0.0f)) * 
 				 glm::scale(temp_trans, glm::vec3(2.0f));
-	Entity cube1_entity = Entity(id_idx++, "cube1-entity", temp_trans, std::make_shared<Mesh>(cube_mesh), plainMat);
+	Entity cube1_entity = Entity(id_idx++, "cube1-entity", temp_trans, cube_mesh, plainMat);
 	m_SceneEntities.emplace_back(std::make_shared<Entity>(cube1_entity));
 	//move up & add to previous as world child & scale down
 	temp_trans = glm::translate(temp_trans, glm::vec3(0.0f, 2.0f, 0.0f)) *
 				 glm::scale(glm::mat4(1.0f), glm::vec3(0.5f));
-	Entity cube1child_entity = Entity(id_idx++, "cube1child-entity", temp_trans, std::make_shared<Mesh>(cube_mesh), plainMat);
+	Entity cube1child_entity = Entity(id_idx++, "cube1child-entity", temp_trans, cube_mesh, plainMat);
 	m_SceneEntities.back()->AddWorldChild(cube1child_entity);
 
 	//create  a sphere with world pos an center
@@ -213,7 +238,7 @@ void ExperimentScene::CreateEntities()
 	sphere_mesh.Create();
 	temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 3.5f, 0.0f));// *
 				// glm::scale(glm::mat4(1.0f), glm::vec3(0.5f));
-	Entity sphere_entity = Entity(id_idx++, "sphere-entity", temp_trans, std::make_shared<Mesh>(sphere_mesh), plainMat);
+	Entity sphere_entity = Entity(id_idx++, "sphere-entity", temp_trans, CRRT::PrimitiveMeshFactory::Instance().CreateSphere(), plainMat);
 	//cube1child_entity.AddWorldChild(sphere_entity);
 	//Quick Hack
 	m_SceneEntities.back()->GetChildren()[0]->AddWorldChild(sphere_entity);
@@ -500,6 +525,19 @@ void ExperimentScene::DrawScene()
 
 }
 
+void ExperimentScene::PostProcess()
+{
+	RenderCommand::Clear();
+	//render image to screen 
+	//need a shader to read image
+	m_PostImgShader.Bind();
+	m_PostImgShader.SetUniform1f("exposure", hdrExposure);
+	m_PostImgShader.SetUniform1f("u_Gamma", gamma);
+	m_PostImgShader.SetUniform1i("u_DoHDR", m_DoHDR);
+	m_SceneScreenFBO.BindTexture();
+	m_SceneRenderer.DrawMesh(m_QuadMesh);
+}
+
 void ExperimentScene::SceneDebugger()
 {
 	//test directional Shadow info 
@@ -550,6 +588,13 @@ void ExperimentScene::DebugEntitiesPos(Entity& entity)
 	}
 }
 
+
+void ExperimentScene::ResizeBuffers(unsigned int width, unsigned int height)
+{
+	m_PrevViewWidth = window->GetWidth();
+	m_PrevViewHeight = window->GetHeight();
+	m_SceneScreenFBO.ResizeBuffer(width, height);
+}
 
 /// <summary>
 /// shader needs to be binded before passing
@@ -634,6 +679,9 @@ void ExperimentScene::MainUI()
 	ImGui::Spacing();
 	ImGui::SeparatorText("Scene Properties");
 	ImGui::ColorEdit3("Debug colour", &m_ClearScreenColour[0]);
+	ImGui::Checkbox("Do HDR", &m_DoHDR);
+	ImGui::SliderFloat("Gamma", &gamma, 0.0f, 3.0f);
+	ImGui::SliderFloat("HDR Exposure", &hdrExposure, 0.0f, 1.5f);
 	ImGui::Spacing();
 
 	///////////////////////////////////////////
