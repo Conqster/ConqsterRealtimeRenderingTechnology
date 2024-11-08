@@ -185,35 +185,6 @@ void Mesh::Create()
 	DefaultMesh();
 }
 
-void Mesh::Render()
-{
-	VAO.Bind();
-	IBO.Bind();
-	GLCall(glDrawElements(GL_TRIANGLES, IBO.GetCount(), GL_UNSIGNED_INT, (void*)0));
-	VAO.Unbind();
-	IBO.Unbind();
-}
-
-void Mesh::RenderInstances(int count)
-{
-	VAO.Bind();
-	IBO.Bind();
-	GLCall(glDrawElementsInstanced(GL_TRIANGLES, IBO.GetCount(), GL_UNSIGNED_INT, (void*)0, count));
-}
-
-
-
-void Mesh::RenderDebugOutLine(float thickness)
-{
-	VAO.Bind();
-	IBO.Bind();
-	GLCall(glLineWidth(thickness));
-	GLCall(glDrawElements(GL_LINE_LOOP, IBO.GetCount(), GL_UNSIGNED_INT, (void*)0));
-	GLCall(glLineWidth(1.0f));
-	//VAO.Unbind();
-	IBO.Unbind();
-}
-
 
 void Mesh::Clear()
 {

@@ -65,7 +65,8 @@ void AntiAliasingScene::OnRender()
 	if (!m_DoMSAA)
 	{
 		cubeShader.Bind();
-		cube.Render();
+		//cube.Render();
+		m_SceneRenderer.DrawMesh(cube);
 		cubeShader.UnBind();
 		return;
 	}
@@ -88,7 +89,8 @@ void AntiAliasingScene::OnRender()
 
 		//use shader, set trans & draw
 		cubeShader.Bind();
-		cube.Render();
+		//cube.Render();
+		m_SceneRenderer.DrawMesh(cube);
 		cubeShader.UnBind();
 
 		///////////////////////////////////////////
@@ -135,7 +137,8 @@ void AntiAliasingScene::OnRender()
 
 	//use shader, set trans & draw
 	cubeShader.Bind();
-	cube.Render();
+	//cube.Render();
+	m_SceneRenderer.DrawMesh(cube);
 	cubeShader.UnBind();
 
 	///////////////////////////////////////////

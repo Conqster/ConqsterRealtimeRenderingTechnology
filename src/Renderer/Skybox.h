@@ -4,10 +4,10 @@
 #include "Meshes/CubeMesh.h"
 #include "Shader.h"
 
-
+#include "SceneRenderer.h"
 
 /// <summary>
-/// For later remove mesh, shader, 
+/// For later remove mesh, shader, & renderer
 /// it should just stand as a data point
 /// </summary>
 class Skybox
@@ -37,4 +37,6 @@ private:
 	TextureCube m_TextureMap;
 	CubeMesh m_Mesh;
 	Shader m_Shader;
+
+	CRRT::SceneRenderer m_SceneRenderer;
 };

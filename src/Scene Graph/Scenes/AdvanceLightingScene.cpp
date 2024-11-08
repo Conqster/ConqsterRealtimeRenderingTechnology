@@ -1124,7 +1124,8 @@ void AdvanceLightingScene::DrawObjects(Shader& shader, bool nor_map)
 		shader.SetUniform1i("u_HasNorMap", useNorMap);
 	}
 	//plainTex->Activate(0);
-	ground.Render();
+	//ground.Render();
+	m_SceneRenderer.DrawMesh(ground);
 	brickTex->DisActivate();
 	if(nor_map)
 		shader.SetUniform1i("u_HasNorMap", 0);
@@ -1166,7 +1167,8 @@ void AdvanceLightingScene::DrawObjects(Shader& shader, bool nor_map)
 		model = glm::translate(model, spheresPos[i]);
 		model = glm::scale(model, glm::vec3(1.0f) * spheresScale[i]);
 		shader.SetUniformMat4f("u_Model", model);
-		sphere.Render();
+		//sphere.Render();
+		m_SceneRenderer.DrawMesh(sphere);
 	}
 	plainTex->DisActivate();
 
@@ -1183,7 +1185,8 @@ void AdvanceLightingScene::DrawObjects(Shader& shader, bool nor_map)
 		if(i == 0)
 			model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 		shader.SetUniformMat4f("u_Model", model);
-		cube.Render();
+		//cube.Render();
+		m_SceneRenderer.DrawMesh(cube);
 	}
 	//plainTex->DisActivate();
 	manchesterTex->DisActivate();
@@ -1242,7 +1245,8 @@ void AdvanceLightingScene::InstanceObjectPass(Shader* debug_shader)
 		{
 			instancingShader.SetUniformVec3(("u_InstPosOffset[" + std::to_string(i) + "]").c_str(), sphereInstancePos[i]);
 		}
-		sphere.RenderInstances(usecount);
+		//sphere.RenderInstances(usecount);
+		m_SceneRenderer.DrawMeshInstance(sphere, usecount);
 		instancingShader.UnBind();
 
 		return;
@@ -1259,7 +1263,8 @@ void AdvanceLightingScene::InstanceObjectPass(Shader* debug_shader)
 		model = glm::mat4(1.0f);
 		model = glm::translate(model, sphereInstancePos[i]);
 		debug_shader->SetUniformMat4f("u_Model", model);
-		sphere.Render();
+		//sphere.Render();
+		m_SceneRenderer.DrawMesh(sphere);
 	}
 
 	debug_shader->UnBind();

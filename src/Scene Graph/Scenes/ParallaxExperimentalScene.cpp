@@ -104,7 +104,8 @@ void ParallaxExperimentalScene::OnRender()
 	}
 	DrawObjects(modelShader, true);
 	glowingCubeShader.Bind();
-	glowingCube.Render();
+	//glowingCube.Render();
+	m_SceneRenderer.DrawMesh(glowingCube);
 	glowingCubeShader.SetUniformMat4f("u_Model", glowingCubeTrans);
 	glowingCubeShader.UnBind();
 	hdrFBO.UnBind();
@@ -116,7 +117,8 @@ void ParallaxExperimentalScene::OnRender()
 	RenderCommand::Clear();
 	DrawObjects(depthShader, false);
 	glowingCubeShader.Bind();
-	glowingCube.Render(); //model pos already set 
+	//glowingCube.Render(); //model pos already set 
+	m_SceneRenderer.DrawMesh(glowingCube);
 	glowingCubeShader.UnBind();
 	depthFBO.UnBind();
 
@@ -151,7 +153,8 @@ void ParallaxExperimentalScene::OnRender()
 	glowingCubeShader.Bind();
 	glowingCubeShader.SetUniform1f("rate", bloomrate);
 	glowingCubeShader.SetUniformVec3("u_Colour", glowingCubeColour);
-	glowingCube.Render(); //model pos already set 
+	//glowingCube.Render(); //model pos already set 
+	m_SceneRenderer.DrawMesh(glowingCube);
 	glowingCubeShader.UnBind();
 	MRT_FBO.UnBind();
 
@@ -897,7 +900,7 @@ void ParallaxExperimentalScene::DrawObjects(Shader& shader, bool apply_tex)
 		MaterialShaderBindHelper(*floorMat, shader);
 	//ground 
 	shader.SetUniformMat4f("u_Model", groundWorldTrans);
-	ground.Render();
+	m_SceneRenderer.DrawMesh(ground);
 
 	floorMat->baseMap->DisActivate();
 
@@ -905,7 +908,8 @@ void ParallaxExperimentalScene::DrawObjects(Shader& shader, bool apply_tex)
 	if (apply_tex)
 		MaterialShaderBindHelper(*planeMat, shader);
 	shader.SetUniformMat4f("u_Model", planeWorldTran);
-	ground.Render();
+	//ground.Render();
+	m_SceneRenderer.DrawMesh(ground);
 
 
 	//draw blender shapes

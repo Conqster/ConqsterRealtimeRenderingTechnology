@@ -15,6 +15,7 @@
 //  entities
 //  resources (materials, shader, etc)
 //	light properites / management
+// MAYBE THE MESH NEED TO BE SUBMITTED FOR RENDERING : this way i would have to transver through rendering function fo a specific frame the mesh a flat i memory
 // 
 // entity sorting / scene building 
 //	by material

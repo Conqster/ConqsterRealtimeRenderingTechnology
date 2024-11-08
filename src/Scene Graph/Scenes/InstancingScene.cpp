@@ -95,10 +95,12 @@ void InstancingScene::OnRender()
 	m_Shader.SetUniform1i("u_Debug", debugColour);
 	//m_SquareMesh.Render();
 	//m_SquareMesh.RenderInstances(100);
-	m_SquareMesh.RenderInstances(idx);
+	//m_SquareMesh.RenderInstances(idx);
+	m_SceneRenderer.DrawMeshInstance(m_SquareMesh, idx);
 
 	//Render sphere with square shader
-	sphereMesh.RenderInstances(idx);
+	//sphereMesh.RenderInstances(idx);
+	m_SceneRenderer.DrawMeshInstance(sphereMesh, idx);
 
 	m_Shader.UnBind();
 

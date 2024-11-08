@@ -48,7 +48,8 @@ void Skybox::Draw(Camera& camera, Window& window)
 
 	m_TextureMap.Activate();
 
-	m_Mesh.Render();
+	//m_Mesh.Render();
+	m_SceneRenderer.DrawMesh(m_Mesh);
 	//m_Mesh.GetVAO()->Bind();
 	//glDrawArrays(GL_TRIANGLES, 0, 36);
 

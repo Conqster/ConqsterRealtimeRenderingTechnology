@@ -18,7 +18,8 @@ Model::Model(std::vector<ModelMesh> _meshes)
 void Model::Draw()
 {
 	for (auto& mesh : meshes)
-		mesh.Render();
+		m_SceneRenderer.DrawMesh(mesh);
+		//mesh.Render();
 }
 
 void Model::Draw(Shader& shader)
@@ -30,7 +31,8 @@ void Model::Draw(Shader& shader)
 void Model::DebugWireDraw()
 {
 	for (auto& mesh : meshes)
-		mesh.RenderDebugOutLine();
+		m_SceneRenderer.DrawMeshOutline(mesh);
+		//mesh.RenderDebugOutLine();
 }
 
 void Model::Destroy()

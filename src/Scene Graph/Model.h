@@ -6,6 +6,8 @@
 
 #include "Geometry/AABB.h"
 
+#include "Renderer/SceneRenderer.h"
+
 class Model
 {
 public:
@@ -24,6 +26,8 @@ public:
 private: 
 	std::vector<ModelMesh> meshes;
 	std::vector<Texture> textures;
+
+	CRRT::SceneRenderer m_SceneRenderer;
 
 	std::string dir = "";
 	AABB aabb;

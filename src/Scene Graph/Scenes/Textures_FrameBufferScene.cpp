@@ -605,7 +605,8 @@ void Texture_FrameBufferScene::DrawObjects(bool depth_test, bool use_rear)
 		sample_model = glm::translate(sample_model, m_SceneSphereTranforms[i].pos);
 		sample_model = glm::scale(sample_model, m_SceneSphereTranforms[i].scale);
 		m_ObjectSampleReflect.SetUniformMat4f("u_Model", sample_model);
-		m_Sphere.Render();
+		//m_Sphere.Render();
+		m_SceneRenderer.DrawMesh(m_Sphere);
 	}
 
 

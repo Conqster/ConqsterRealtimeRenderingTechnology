@@ -79,7 +79,8 @@ void GeometryScene::OnRender()
 	m_GroundShader.SetUniformMat4f("u_model", model);
 	m_GroundShader.SetUniform1i("u_DoDepthTest", 0.0f);
 	m_GroundShader.SetUniform1f("u_Intensity", 1.0f);
-	m_SquareMesh.Render();
+	//m_SquareMesh.Render();
+	m_SceneRenderer.DrawMesh(m_SquareMesh);
 	m_GroundTex->DisActivate();
 
 	//RENDER SPHERE MAKE USE OF GROUND SHADER
@@ -87,13 +88,15 @@ void GeometryScene::OnRender()
 	model = glm::translate(model, glm::vec3(0.0f, 1.0f, 0.0f));
 	m_GroundShader.SetUniformMat4f("u_model", model);
 	sphereTex->Activate();
-	sphere.Render();
+	//sphere.Render();
+	m_SceneRenderer.DrawMesh(sphere);
 
 	//TEST CUBE WITH SPHERE PROP
 	glm::mat4 test_cube_model = glm::mat4(1.0f);
 	test_cube_model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f));
 	m_GroundShader.SetUniformMat4f("u_model", test_cube_model);
-	testCube.Render();
+	//testCube.Render();
+	m_SceneRenderer.DrawMesh(testCube);
 
 
 	////////////////
@@ -104,11 +107,13 @@ void GeometryScene::OnRender()
 	sphereNormDebugShader.SetUniformVec3("u_DebugColour", normDebugColour);
 	sphereNormDebugShader.SetUniform1i("u_UseDebugColour", useDebugColour);
 	sphereNormDebugShader.SetUniformMat4f("u_Model", model);
-	sphere.Render();
+	//sphere.Render();
+	m_SceneRenderer.DrawMesh(sphere);
 
 	//TEST CUBE WITH SPHERE PROP
 	sphereNormDebugShader.SetUniformMat4f("u_Model", test_cube_model);
-	testCube.Render();
+	//testCube.Render();
+	m_SceneRenderer.DrawMesh(testCube);
 
 	m_GroundShader.UnBind();
 }

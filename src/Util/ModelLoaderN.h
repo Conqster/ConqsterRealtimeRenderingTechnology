@@ -12,64 +12,14 @@
 
 #include <tuple>
 
-//const char* name = "default";
-//int id = 0; //<-------- temp id
-////later add a shader ref
-//std::shared_ptr<Shader> shader = nullptr;
-//
-//glm::vec3 baseColour = glm::vec3(1.0f); //base coour contributes to base map (* multply as a mask)
-//
-//std::shared_ptr<Texture> baseMap = nullptr;
-//std::shared_ptr<Texture> normalMap = nullptr;
-//bool useParallax = false;
-//std::shared_ptr<Texture> parallaxMap = nullptr;
-//float heightScale = 0.0f; //parallax scale
-//int shinness = 64;
-
 //Later be able to store texture paths/mesh data 
 //without have to load to GPU memory
 //Later check documentation if its possible to check is all other mesh ref same material
 
 
 //I could still be using a model system but like a prefab. the my tech entity & renderer mesh would ref a model prefab
-
-
-
-
 namespace CRRT
 {
-	//struct Material;
-	//struct Vertex;
-	//class MeshDataObject
-	//{
-	//public:
-	//	MeshDataObject();
-	//	std::vector<Vertex> vertices;
-	//	std::vector<unsigned int> indices;
-	//	std::shared_ptr<Material> mat;
-
-	//	std::shared_ptr<MeshDataObject> m_Parent;
-	//	std::vector<std::shared_ptr<MeshDataObject>> m_Children;
-
-	//	glm::mat4 m_Trans;
-
-	//	void AddChild(std::shared_ptr<MeshDataObject> object)
-	//	{
-	//		m_Children.emplace_back(std::make_shared<MeshDataObject>(object));
-	//		m_Chil
-	//	}
-
-	//};
-
-	struct MeshVertex
-	{
-		std::vector<Vertex> vertices;
-		std::vector<unsigned int> indices;
-		//std::vector<Texture> textures;
-	};
-
-
-
 	class ModelLoader
 	{
 	public:

@@ -9,6 +9,8 @@
 
 #include <memory>
 
+#include "SceneRenderer.h"
+
 class DebugGizmos
 {
 public:
@@ -36,6 +38,8 @@ private:
 	static bool use;
 	static Shader m_Shader;
 	static SphereMesh sphere;
+
+	static CRRT::SceneRenderer m_Renderer;
 
 	static void Generate();
 	//make it a pointer for now to update it extrenally 

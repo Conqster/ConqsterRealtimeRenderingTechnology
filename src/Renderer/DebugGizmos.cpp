@@ -9,7 +9,7 @@ bool DebugGizmos::active = false;
 bool DebugGizmos::use = true;
 Shader DebugGizmos::m_Shader;
 SphereMesh DebugGizmos::sphere;
-
+CRRT::SceneRenderer DebugGizmos::m_Renderer;
 
 //UniformBuffer* DebugGizmos::m_CameraMatUBO = nullptr;
 
@@ -73,7 +73,8 @@ void DebugGizmos::DrawWireSphere(glm::vec3 p, float radius, glm::vec3 colour, fl
 	model = glm::scale(model, glm::vec3(radius));
 	m_Shader.SetUniformMat4f("u_Model", model);
 	m_Shader.SetUniformVec3("u_Colour", colour);
-	sphere.RenderDebugOutLine(thickness);
+	//sphere.RenderDebugOutLine(thickness);
+	m_Renderer.DrawMeshOutline(sphere);
 	m_Shader.UnBind();
 }
 
@@ -91,7 +92,8 @@ void DebugGizmos::DrawSphere(glm::vec3 p, float radius, glm::vec3 colour)
 	model = glm::scale(model, glm::vec3(radius));
 	m_Shader.SetUniformMat4f("u_Model", model);
 	m_Shader.SetUniformVec3("u_Colour", colour);
-	sphere.Render();
+	//sphere.Render();
+	m_Renderer.DrawMesh(sphere);
 	m_Shader.UnBind();
 }
 

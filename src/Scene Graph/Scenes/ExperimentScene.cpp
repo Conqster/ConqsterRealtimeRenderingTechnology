@@ -351,8 +351,10 @@ void ExperimentScene::ShadowPass(Shader& depth_shader)
 	{
 		depth_shader.SetUniformMat4f("u_Model", e->GetWorldTransform());
 		//material's not needed
-		if(e->GetMesh())
-			e->GetMesh()->Render(); //Later move render out of Mesh >> Renderer in use (as its should just be a data container)
+		//if(e->GetMesh())
+		//	e->GetMesh()->Render(); //Later move render out of Mesh >> Renderer in use (as its should just be a data container)
+		if (e->GetMesh())
+			m_SceneRenderer.DrawMesh(e->GetMesh());
 		//check/traverse children
 		//QuickHack 
 		RenderEnitiyMesh(depth_shader, e);
@@ -365,19 +367,24 @@ void ExperimentScene::ShadowPass(Shader& depth_shader)
 	RenderCommand::Viewport(0, 0, window->GetWidth(), window->GetHeight());
 }
 
-void ExperimentScene::RenderEnitiyMesh(Shader& shader, const std::shared_ptr<Entity>& entity)
+void ExperimentScene::RenderEnitiyMesh(Shader& shader, const std::shared_ptr<Entity>& entity, bool use_mat)
 {
 	auto& children = entity->GetChildren();
 	for (int i = 0; i < children.size(); i++)
 	{
 		//Render self
+		if(use_mat && children[i]->GetMaterial())
+			MaterialShaderBindHelper(*children[i]->GetMaterial(), m_SceneShader);
+
 		shader.SetUniformMat4f("u_Model", children[i]->GetWorldTransform());
 		//children[i]->GetMesh()->Render();
 		//Recursive transverse child
-		if(children[i]->GetMesh())
-			children[i]->GetMesh()->Render();
+		if (children[i]->GetMesh())
+			m_SceneRenderer.DrawMesh(children[i]->GetMesh());
+		//if(children[i]->GetMesh())
+		//	children[i]->GetMesh()->Render();
 
-		RenderEnitiyMesh(shader, children[i]);
+		RenderEnitiyMesh(shader, children[i], use_mat);
 	}
 }
 
@@ -452,8 +459,26 @@ void ExperimentScene::DrawScene()
 
 	//for now 
 	//this bind & unbind shader & material data every frame
-	for (auto& e : m_SceneEntities)
-		e->Draw(m_SceneShader);
+	//for (auto& e : m_SceneEntities)
+	//	e->Draw(m_SceneShader);
+
+	for (const auto& e : m_SceneEntities)
+	{
+		auto& mesh = e->GetMesh();
+		auto& mat = e->GetMaterial();
+		if (mat)
+		{
+			MaterialShaderBindHelper(*mat, m_SceneShader);
+		}
+		if (mesh)
+		{
+			m_SceneShader.SetUniformMat4f("u_Model", e->GetWorldTransform());//expensive but works for now
+			m_SceneRenderer.DrawMesh(mesh);
+		}
+		
+		//need to recursively draw children
+		RenderEnitiyMesh(m_SceneShader, e, true);
+	}
 
 
 	//Render Sky box

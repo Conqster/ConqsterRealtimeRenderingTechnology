@@ -87,7 +87,8 @@ void Entity::Draw(Shader& shader)
 	//use GetWorldTransform as it might have a parent
 	shader.SetUniformMat4f("u_Model", GetWorldTransform());//expensive but works for now
 
-	m_Mesh->Render();
+	//m_Mesh->Render();
+	//m_SceneRenderer.DrawMesh(*m_Mesh);
 
 	//would have to do this as most model would have a default/
 	//mesh that has no material would be group has no shading but debug pink

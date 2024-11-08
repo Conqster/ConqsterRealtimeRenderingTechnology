@@ -52,10 +52,6 @@ public:
 	~Mesh();
 
 	virtual void Create();
-	void Render();
-	void RenderInstances(int count);
-	void RenderDebugOutLine(float thickness = 1.5f);
-
 	void Clear();
 
 	void RegisterUse();

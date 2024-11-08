@@ -36,14 +36,16 @@ void GameObject::Draw()
 	//if (m_Material)
 	//	m_Material->Use();
 
-	m_Mesh->Render();
+	//m_Mesh->Render();
+	m_SceneRenderer.DrawMesh(*m_Mesh);
 	//m_Texture->DisActivate();
 	//m_Mesh.Render();
 }
 
 void GameObject::DebugDraw()
 {
-	m_Mesh->RenderDebugOutLine();
+	//m_Mesh->RenderDebugOutLine();
+	m_SceneRenderer.DrawMeshOutline(*m_Mesh);
 	//m_Mesh.RenderDebugOutLine();
 }
 

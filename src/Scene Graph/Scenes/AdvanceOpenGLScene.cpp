@@ -128,8 +128,8 @@ void AdvanceOpenGLScene::OnRender()
 	model_g = glm::translate(model_g, grassPos);
 	model_g = glm::rotate(model_g, glm::radians(grassRot), grassRotAxis);
 	grassShader.SetUniformMat4f("u_Model", model_g);
-	grassMesh->Render();
-	
+	//grassMesh->Render();
+	m_SceneRenderer.DrawMesh(*grassMesh);
 }
 
 void AdvanceOpenGLScene::OnRenderUI()

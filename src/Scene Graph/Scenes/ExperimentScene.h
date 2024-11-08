@@ -16,6 +16,7 @@
 #include "Renderer/Skybox.h"  //update when Skybox is update
 #include "Util/ModelLoaderN.h"   //new model loader 
 
+
 class Entity;
 struct Material;
 class Shader;
@@ -128,7 +129,7 @@ private:
 
 	//------------------------------Utility functions------------------------/
 	//Quick Hack
-	void RenderEnitiyMesh(Shader& shader, const std::shared_ptr<Entity>& entity);
+	void RenderEnitiyMesh(Shader& shader, const std::shared_ptr<Entity>& entity, bool use_mat = false);
 
 
 	void MaterialShaderBindHelper(Material& mat, Shader& shader);

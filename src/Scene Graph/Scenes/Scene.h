@@ -4,6 +4,9 @@
 #include "Window.h"
 
 
+#include "Renderer/SceneRenderer.h"
+
+
 struct LearnVertex
 {
 	unsigned int VAO;
@@ -29,6 +32,9 @@ struct LearnVertex
 	protected:
 		Camera* m_Camera = nullptr;
 		Window* window = nullptr;
+
+
+		CRRT::SceneRenderer m_SceneRenderer;
 
 		glm::vec3 m_ClearScreenColour = glm::vec3(0.1f, 0.1f, 0.1f);
 		class Texture* blank_tex = nullptr;
