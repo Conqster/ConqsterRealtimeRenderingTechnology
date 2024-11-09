@@ -52,8 +52,12 @@ private:
 	//Scene Begin Render
 	void BeginRenderScene();
 	void PreUpdateGPUUniformBuffers(); //camera ubo
+
+	//Pre-Rendering
 	void BuildSceneEntities();
-	void BuildEnitityOpacityTransparency(const std::shared_ptr<Entity>& parent_entity);
+	void BuildEntitiesWithRenderMesh(const std::shared_ptr<Entity>& parent_entity);
+	void BuildOpacityTransparencyFromRenderMesh(const std::vector<std::weak_ptr<Entity>>& renderable_list);
+	void BuildSceneEntitiesViaOpacityTransparency(const std::shared_ptr<Entity>& parent_entity);
 	void SortByViewDistance(std::vector<std::weak_ptr<Entity>>& sorting_list);
 	void ShadowPass(Shader& depth_shader);
 
@@ -86,6 +90,7 @@ private:
 	std::shared_ptr<Mesh> m_QuadMesh;
 	//Later store entities as enitity but sorted list should be a rendering data list (Mesh,Material,World Transform)
 	std::vector<std::shared_ptr<Entity>> m_SceneEntities;
+	std::vector<std::weak_ptr<Entity>> m_SceneEntitiesWcRenderableMesh;
 	std::vector<std::weak_ptr<Entity>> m_OpaqueEntites;
 	std::vector<std::weak_ptr<Entity>> m_TransparentEntites;
 
@@ -138,9 +143,6 @@ private:
 
 
 	//------------------------------Utility functions------------------------/
-	//Quick Hack
-	void RenderEnitiyMesh(Shader& shader, const std::shared_ptr<Entity>& entity, bool use_mat = false);
-
 	//need to take this out later
 	void ResizeBuffers(unsigned int width, unsigned int height);
 

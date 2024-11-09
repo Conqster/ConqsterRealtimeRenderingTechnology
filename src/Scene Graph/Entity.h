@@ -27,6 +27,7 @@ private:
 	std::vector<std::shared_ptr<Entity>> m_Children;
 
 	float m_SqrViewDist = 0.0f;
+	bool m_CanCastShadow = true;
 
 	void UpdateWorldTransform();
 	void MarkTransformDirty();
@@ -54,6 +55,8 @@ public:
 	inline const std::shared_ptr<Material>& GetMaterial() const { return m_Material; }
 	inline const std::vector<std::shared_ptr<Entity>>& GetChildren() const { return m_Children; }
 	inline const std::shared_ptr<Entity>& GetParent() const { return m_Parent; }
+	inline const bool CanCastShadow() { return m_CanCastShadow; }
+	inline bool* CanCastShadowPtr() { return &m_CanCastShadow; }
 
 	//set
 	void SetLocalTransform(const glm::mat4& transform) 

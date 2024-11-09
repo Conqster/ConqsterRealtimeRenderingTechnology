@@ -77,19 +77,18 @@ void ExperimentScene::OnRender()
 	m_SceneScreenFBO.Bind();
 	RenderCommand::Clear();
 	DrawScene();
+	SceneDebugger();
 	m_SceneScreenFBO.UnBind();
 
 	//Post Rendering (post Process) 
 	PostProcess();
 
 	//After Rendering (Clean-up/Miscellenous)
-	SceneDebugger();
 
 
 	if (m_PrevViewWidth != window->GetWidth() || m_PrevViewHeight != window->GetHeight())
-	{
 		ResizeBuffers(window->GetWidth(), window->GetHeight());
-	}
+
 }
 
 void ExperimentScene::OnRenderUI()
@@ -214,13 +213,17 @@ void ExperimentScene::CreateEntities()
 
 	Entity transparent_1 = Entity(id_idx++, "transparent_1_entity", temp_trans, cube_mesh, glassMat);
 	m_SceneEntities.emplace_back(std::make_shared<Entity>(transparent_1));
-	temp_trans = glm::translate(temp_trans, glm::vec3(0.0f, 0.0f, 2.0f));
+	temp_trans = glm::translate(temp_trans, glm::vec3(0.0f, 0.0f, 10.0f));
 	Entity transparent_2 = Entity(id_idx++, "transparent_2_entity", temp_trans, cube_mesh, glass2Mat);
 	m_SceneEntities.emplace_back(std::make_shared<Entity>(transparent_2));
+	temp_trans = glm::translate(temp_trans, glm::vec3(0.0f, 0.5f, -5.0f)) * 
+				 glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 0.1f, 10.0f));
+	Entity transparent_3 = Entity(id_idx++, "transparent_3_entity", temp_trans, cube_mesh, glassMat);
+	m_SceneEntities.emplace_back(std::make_shared<Entity>(transparent_3));
 	
 	temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f)) *
 				 glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) *
-				 glm::scale(glm::mat4(1.0f), glm::vec3(15.0f)); 
+				 glm::scale(glm::mat4(1.0f), glm::vec3(25.0f)); 
 
 	//floor 
 	Entity floor_plane_entity = Entity(id_idx++, "floor-plane-entity", temp_trans, m_QuadMesh, floorMat);
@@ -325,7 +328,7 @@ void ExperimentScene::CreateLightDatas()
 
 
 	//shadow map
-	dirDepthMap.Generate(2048 * 2, 2048 * 2);
+	dirDepthMap.Generate(2048, 2048);
 	dirLightObject.dirLightShadow.config.cam_far = 70.0f;
 }
 
@@ -358,6 +361,7 @@ void ExperimentScene::PreUpdateGPUUniformBuffers()
 void ExperimentScene::BuildSceneEntities()
 {
 	//before build clean previous list 
+	m_SceneEntitiesWcRenderableMesh.clear();
 	m_TransparentEntites.clear();
 	m_OpaqueEntites.clear();
 
@@ -365,12 +369,19 @@ void ExperimentScene::BuildSceneEntities()
 
 
 	// entity sorting / scene building 
+	// 
+	//	by mesh data
+	// 
+	for (auto& e : m_SceneEntities)
+		BuildEntitiesWithRenderMesh(e);
+
 	//	by material
 	//	by transparency / opacity
 	//only enitities with material would be rendered
-	for (auto& e : m_SceneEntities)
-		BuildEnitityOpacityTransparency(e);
-	//	by mesh data
+	BuildOpacityTransparencyFromRenderMesh(m_SceneEntitiesWcRenderableMesh);
+	//for (auto& e : m_SceneEntities)
+	//	BuildSceneEntitiesViaOpacityTransparency(e);
+	
 	// 
 	//  by distance 
 	//sort transparent entities by distance
@@ -380,7 +391,52 @@ void ExperimentScene::BuildSceneEntities()
 	//	by shadowcast
 }
 
-void ExperimentScene::BuildEnitityOpacityTransparency(const std::shared_ptr<Entity>& parent_entity)
+/// <summary>
+/// Recursively build scene with renderable mesh as only enitities with mesh could be rendered.
+/// </summary>
+/// <param name="parent_entity"></param>
+void ExperimentScene::BuildEntitiesWithRenderMesh(const std::shared_ptr<Entity>& parent_entity)
+{
+	auto& render_mesh = parent_entity->GetMaterial();
+
+	if (render_mesh)
+		m_SceneEntitiesWcRenderableMesh.emplace_back(parent_entity);
+
+	auto& children = parent_entity->GetChildren();
+	for (auto c = children.begin(); c != children.end(); ++c)
+		BuildEntitiesWithRenderMesh(*c);
+}
+
+void ExperimentScene::BuildOpacityTransparencyFromRenderMesh(const std::vector<std::weak_ptr<Entity>>& renderable_list)
+{
+	for (const auto& e : renderable_list)
+	{
+		if (!e.expired())
+		{
+			auto& mat = e.lock()->GetMaterial();
+			switch (mat->renderMode)
+			{
+				case CRRT_Mat::RenderingMode::Transparent:
+					m_TransparentEntites.emplace_back(e);
+					break;
+				case CRRT_Mat::RenderingMode::Opaque:
+					m_OpaqueEntites.emplace_back(e);
+					break;
+				default:
+					m_OpaqueEntites.emplace_back(e);
+					break;
+			}
+		}
+	}
+}
+
+
+/// <summary>
+/// NOT IDEAL TO BUILD SCENE WITH
+/// Issue with this is that the material is sorted not enititymesh
+/// </summary>
+/// <param name="parent_entity"></param>
+void ExperimentScene::BuildSceneEntitiesViaOpacityTransparency(const std::shared_ptr<Entity>& parent_entity)
 {
 	auto& mat = parent_entity->GetMaterial();
 	if (mat)
@@ -401,8 +457,8 @@ void ExperimentScene::BuildEnitityOpacityTransparency(const std::shared_ptr<Enti
 
 	auto& children = parent_entity->GetChildren();
 
-	for (auto i = children.begin(); i != children.end(); ++i)
-		BuildEnitityOpacityTransparency(*i);
+	for (auto c = children.begin(); c != children.end(); ++c)
+		BuildSceneEntitiesViaOpacityTransparency(*c);
 }
 
 void ExperimentScene::SortByViewDistance(std::vector<std::weak_ptr<Entity>>& sorting_list)
@@ -435,45 +491,27 @@ void ExperimentScene::ShadowPass(Shader& depth_shader)
 	//Renderer::DrawMesh(Mesh)
 
 
-	for (auto& e : m_SceneEntities)
+	//instead of recursive render entities with children for shadowing use sorted opaque & transparent list
+	//now using m_SceneEntitiiesWcRenderableMesh with already laid out mesh (_inc.ing children mesh)
+	for (const auto& e : m_SceneEntitiesWcRenderableMesh)
 	{
-		depth_shader.SetUniformMat4f("u_Model", e->GetWorldTransform());
-		//material's not needed
-		//if(e->GetMesh())
-		//	e->GetMesh()->Render(); //Later move render out of Mesh >> Renderer in use (as its should just be a data container)
-		if (e->GetMesh())
-			m_SceneRenderer.DrawMesh(e->GetMesh());
-		//check/traverse children
-		//QuickHack 
-		RenderEnitiyMesh(depth_shader, e);
+		if (!e.expired())
+		{
+			auto entity = e.lock();
+			if (entity->CanCastShadow())
+			{
+				depth_shader.SetUniformMat4f("u_Model", entity->GetWorldTransform());
+				m_SceneRenderer.DrawMesh(entity->GetMesh());
+			}
+		}
 	}
+
 	dirDepthMap.UnBind(); 
 
 	//point light shadows
 	depth_shader.UnBind();
 	RenderCommand::CullBack();
 	RenderCommand::Viewport(0, 0, window->GetWidth(), window->GetHeight());
-}
-
-void ExperimentScene::RenderEnitiyMesh(Shader& shader, const std::shared_ptr<Entity>& entity, bool use_mat)
-{
-	auto& children = entity->GetChildren();
-	for (int i = 0; i < children.size(); i++)
-	{
-		//Render self
-		if(use_mat && children[i]->GetMaterial())
-			MaterialShaderBindHelper(*children[i]->GetMaterial(), m_SceneShader);
-
-		shader.SetUniformMat4f("u_Model", children[i]->GetWorldTransform());
-		//children[i]->GetMesh()->Render();
-		//Recursive transverse child
-		if (children[i]->GetMesh())
-			m_SceneRenderer.DrawMesh(children[i]->GetMesh());
-		//if(children[i]->GetMesh())
-		//	children[i]->GetMesh()->Render();
-
-		RenderEnitiyMesh(shader, children[i], use_mat);
-	}
 }
 
 /// <summary>
@@ -654,18 +692,14 @@ void ExperimentScene::SceneDebugger()
 	//RenderCommand::DisableDepthTest();
 	//Scene Entities 
 	for (auto& e : m_SceneEntities)
-	{
 		DebugEntitiesPos(*e);
-	}
 }
 
 void ExperimentScene::DebugEntitiesPos(Entity& entity)
 {
 	DebugGizmos::DrawCross(entity.GetWorldTransform()[3], 2.5f);
 	for (int i = 0; i < entity.GetChildren().size(); i++)
-	{
 		DebugEntitiesPos(*entity.GetChildren()[i]);
-	}
 }
 
 
@@ -855,9 +889,11 @@ void ExperimentScene::EntityDebugUI(Entity& entity)
 	ImGui::Spacing();
 	ImGui::Spacing();
 	ImGui::PushID(entity.GetID());
-	ImGui::Text("Name: %s, ID: %d", entity.GetName(), entity.GetID());
-	ImGui::Text("Number of Children: %d", entity.GetChildren().size());
-	ImGui::SeparatorText("Transform");
+	std::string label_name = entity.GetName();
+	label_name += "ID: ";
+	label_name += entity.GetID();
+	ImGui::SeparatorText(label_name.c_str());
+	ImGui::Checkbox("Can cast shadow", entity.CanCastShadowPtr());
 	glm::vec3 translate, euler, scale;
 	MathsHelper::DecomposeTransform(entity.GetTransform(), translate, euler, scale);
 	bool update = ImGui::DragFloat3("Translate", &translate[0], 0.2f);
@@ -871,6 +907,7 @@ void ExperimentScene::EntityDebugUI(Entity& entity)
 	}
 	if(entity.GetMaterial())
 		ImGui::Text("Material Name: %s", entity.GetMaterial()->name);
+	ImGui::Text("Number of Children: %d", entity.GetChildren().size());
 
 
 
