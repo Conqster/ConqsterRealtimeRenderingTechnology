@@ -59,7 +59,7 @@ The primary aim of this project is to deepen my understanding of:
 |<p align = "center"> *Directional Shadow, Directional Light Shadows.* </p>|
 
 #### Scene Renderer (Parent-children relation)
-|<img src = "Docs/Scene Rendering Entities with Parent-Child Relationship.gif style="display: block; margin-left: auto; margin-right: auto;"/>|
+|<img src = "Docs/Scene Rendering Entities with Parent-Child Relationship.gif"/>|
 |:-|
 |<p align = "center"> *Model's rendered with material data instance, Material Based Modeling & Parent - children relation.* </p>|
 
