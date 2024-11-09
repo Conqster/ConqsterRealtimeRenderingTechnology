@@ -39,7 +39,8 @@ struct DirectionalLight
 //--------------------Material-----------------------------------------
 struct Material
 {
-	vec3 baseColour;
+	bool isTransparent;
+	vec4 baseColour;
 	
 	sampler2D baseMap;
 	sampler2D normalMap;
@@ -129,8 +130,8 @@ void main()
 		N = normalize(fs_in.TBN * N);  //transform nor from tangent to world space
 	}
 
-	
-	vec3 base_colour = texture(u_Material.baseMap, tex_coords).rgb * u_Material.baseColour;
+	//later retrieve a from both the tex & colour later to support transparency.
+	vec3 base_colour = texture(u_Material.baseMap, tex_coords).rgb * u_Material.baseColour.rgb;
 	float ambient = 0.5f;
 	base_colour *= ambient;
 
@@ -139,6 +140,7 @@ void main()
 	//directional light influence
 	vec3 final_colour = CalDirLight(N, V, base_colour);
 	final_colour += CalPointLight(N, V, base_colour);
+
 	
 	//with sky box reflection 
 	if(useSkybox)
@@ -146,12 +148,14 @@ void main()
 		vec3 v_dir = (u_Material.useParallax) ? (V * fs_in.TBN) : (V);
 		//final_colour *= ReflectedSkybox(v_dir, N);
 		final_colour += mix(vec3(0.0f), ReflectedSkybox(v_dir, N), skyboxInfluencity);
-		
-		
 	}
 		
 	
-	FragColour = vec4(final_colour, 1.0f);
+	//FragColour = vec4(final_colour, 1.0f);
+	
+	//for now use the base coloura as the alpha/transparent rate
+	float alpha = (u_Material.isTransparent) ? u_Material.baseColour.a : 1.0f;
+	FragColour = vec4(final_colour, alpha);
 }
 
 

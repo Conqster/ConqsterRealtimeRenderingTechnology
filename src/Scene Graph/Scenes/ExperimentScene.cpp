@@ -182,6 +182,15 @@ void ExperimentScene::CreateEntities()
 	floorMat->normalMap = std::make_shared<Texture>(FilePaths::Instance().GetPath("cobblestone-nor"));
 	floorMat->parallaxMap = std::make_shared<Texture>(FilePaths::Instance().GetPath("cobblestone-disp"));
 
+	auto glassMat = std::make_shared<Material>();
+	glassMat->name = "Glass Material";
+	glassMat->baseMap = std::make_shared<Texture>(FilePaths::Instance().GetPath("glass"));
+
+	auto glass2Mat = std::make_shared<Material>();
+	glass2Mat->name = "Glass Material";
+	glass2Mat->baseMap = std::make_shared<Texture>(FilePaths::Instance().GetPath("glass"));
+
+
 	m_SceneMaterials.emplace_back(floorMat);
 	m_SceneMaterials.emplace_back(plainMat);
 
@@ -191,29 +200,29 @@ void ExperimentScene::CreateEntities()
 	////////////////////////////////////////
 
 	//TEST TEST TEST TEST 
-	glm::mat4  temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(-14.0f, 13.0f, -20.0f)) * 
-							glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) *
-							glm::scale(glm::mat4(1.0f), glm::vec3(0.1f));
-	std::shared_ptr<Entity> newModel2 = m_NewModelLoader.LoadAsEntity(FilePaths::Instance().GetPath("electrical-charger"), true);
-	newModel2->SetLocalTransform(temp_trans);
-	m_SceneEntities.emplace_back(newModel2);
 
-	temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(-10.0f, 2.0f, 0.0f)) * 
-						   glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) *
-						   glm::scale(glm::mat4(1.0f), glm::vec3(0.5f));
-	std::shared_ptr<Entity> newModel = m_NewModelLoader.LoadAsEntity(FilePaths::Instance().GetPath("shapes"), true);
-	newModel->SetLocalTransform(temp_trans);
-	m_SceneEntities.emplace_back(newModel);
 
-	temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f)) *
-						   glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) *
-						   glm::scale(glm::mat4(1.0f), glm::vec3(15.0f));
+	glm::mat4 temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 5.0f, 10.0f)) *
+						   glm::scale(glm::mat4(1.0f), glm::vec3(10.0f, 10.0f, 1.0f));
 
+	//primitive construction
 	m_QuadMesh = CRRT::PrimitiveMeshFactory::Instance().CreateQuad();
 	std::shared_ptr<Mesh> cube_mesh = CRRT::PrimitiveMeshFactory::Instance().CreateCube();
 	//cube_mesh.Create();
 	int id_idx = 0;
-	id_idx = newModel->GetID() + 1;
+	//id_idx = newModel->GetID() + 1;
+
+	Entity transparent_1 = Entity(id_idx++, "transparent_1_entity", temp_trans, cube_mesh, glassMat);
+	m_SceneEntities.emplace_back(std::make_shared<Entity>(transparent_1));
+	temp_trans = glm::translate(temp_trans, glm::vec3(0.0f, 0.0f, 2.0f));
+	Entity transparent_2 = Entity(id_idx++, "transparent_2_entity", temp_trans, cube_mesh, glass2Mat);
+	m_SceneEntities.emplace_back(std::make_shared<Entity>(transparent_2));
+	
+	temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f)) *
+				 glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+				 glm::scale(glm::mat4(1.0f), glm::vec3(15.0f)); 
+
+	//floor 
 	Entity floor_plane_entity = Entity(id_idx++, "floor-plane-entity", temp_trans, m_QuadMesh, floorMat);
 	m_SceneEntities.emplace_back(std::make_shared<Entity>(floor_plane_entity));
 
@@ -244,19 +253,21 @@ void ExperimentScene::CreateEntities()
 	m_SceneEntities.back()->GetChildren()[0]->AddWorldChild(sphere_entity);
 
 
-	
+	temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(-14.0f, 13.0f, -20.0f)) * 
+							glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) *
+							glm::scale(glm::mat4(1.0f), glm::vec3(0.1f));
+	//model 1
+	std::shared_ptr<Entity> newModel2 = m_NewModelLoader.LoadAsEntity(FilePaths::Instance().GetPath("electrical-charger"), true);
+	newModel2->SetLocalTransform(temp_trans);
+	m_SceneEntities.emplace_back(newModel2);
 
-
-	//Dealing with models
-	blenderShapes = m_ModelLoader.Load(FilePaths::Instance().GetPath("shapes"), true);
-	shapesTrans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 5.0f, 25.0f)) *
-					 glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) *
-					 glm::scale(glm::mat4(1.0f), glm::vec3(0.5f));
-
-	modelWcNewLoader = m_NewModelLoader.Load(FilePaths::Instance().GetPath("shapes"), true);
-	modelWcNewLoaderTrans = glm::translate(shapesTrans, glm::vec3(0.0f, 0.0f, 50.0f));
-
-	
+	temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(-10.0f, 2.0f, 0.0f)) * 
+						   glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) *
+						   glm::scale(glm::mat4(1.0f), glm::vec3(0.5f));
+	//model 2 
+	std::shared_ptr<Entity> newModel = m_NewModelLoader.LoadAsEntity(FilePaths::Instance().GetPath("shapes"), true);
+	newModel->SetLocalTransform(temp_trans);
+	m_SceneEntities.emplace_back(newModel);
 }
 
 /// <summary>
@@ -346,14 +357,66 @@ void ExperimentScene::PreUpdateGPUUniformBuffers()
 /// </summary>
 void ExperimentScene::BuildSceneEntities()
 {
-	//
+	//before build clean previous list 
+	m_TransparentEntites.clear();
+	m_OpaqueEntites.clear();
+
+	//later build by frstrum view
+
+
 	// entity sorting / scene building 
 	//	by material
-	//	by mesh data
-	//  by distance 
 	//	by transparency / opacity
+	//only enitities with material would be rendered
+	for (auto& e : m_SceneEntities)
+		BuildEnitityOpacityTransparency(e);
+	//	by mesh data
+	// 
+	//  by distance 
+	//sort transparent entities by distance
+	SortByViewDistance(m_TransparentEntites);
+
 	//  by frustrum occulsion 
 	//	by shadowcast
+}
+
+void ExperimentScene::BuildEnitityOpacityTransparency(const std::shared_ptr<Entity>& parent_entity)
+{
+	auto& mat = parent_entity->GetMaterial();
+	if (mat)
+	{
+		switch (mat->renderMode)
+		{
+			case CRRT_Mat::RenderingMode::Transparent:
+				m_TransparentEntites.emplace_back(parent_entity);
+				break;
+			case CRRT_Mat::RenderingMode::Opaque:
+				m_OpaqueEntites.emplace_back(parent_entity);
+				break;
+			default:
+				m_OpaqueEntites.emplace_back(parent_entity);
+				break;
+		}
+	}
+
+	auto& children = parent_entity->GetChildren();
+
+	for (auto i = children.begin(); i != children.end(); ++i)
+		BuildEnitityOpacityTransparency(*i);
+}
+
+void ExperimentScene::SortByViewDistance(std::vector<std::weak_ptr<Entity>>& sorting_list)
+{
+	//probably move later
+	for (const auto& e : sorting_list)
+		e.lock()->UpdateViewSqrDist(m_Camera->GetPosition());
+
+
+	if (sorting_list.size() < 2)
+		return; 
+
+	std::sort(sorting_list.begin(), sorting_list.end(), Entity::CompareDistanceToView);
+
 }
 
 
@@ -487,41 +550,72 @@ void ExperimentScene::DrawScene()
 	//for (auto& e : m_SceneEntities)
 	//	e->Draw(m_SceneShader);
 
-	for (const auto& e : m_SceneEntities)
-	{
-		auto& mesh = e->GetMesh();
-		auto& mat = e->GetMaterial();
-		if (mat)
-		{
-			MaterialShaderBindHelper(*mat, m_SceneShader);
-		}
-		if (mesh)
-		{
-			m_SceneShader.SetUniformMat4f("u_Model", e->GetWorldTransform());//expensive but works for now
-			m_SceneRenderer.DrawMesh(mesh);
-		}
-		
-		//need to recursively draw children
-		RenderEnitiyMesh(m_SceneShader, e, true);
-	}
 
-
-	//Render Sky box
+	//Move this up here has to render transparent object last 
+		//Render Sky box
 	m_Skybox.Draw(*m_Camera, *window);
 
 
-
-	//Dealing with models
 	m_SceneShader.Bind();
-	auto& use_mat = (m_SceneMaterials.size() >= 1) ? m_SceneMaterials[1] : m_SceneMaterials[0];
-	if (use_mat)
-		MaterialShaderBindHelper(*use_mat, m_SceneShader);
-	m_SceneShader.SetUniformMat4f("u_Model", shapesTrans);
-	blenderShapes->Draw();
+	/////////////////////////////////////
+	// DRAW OPAQUE ENTITIES FIRST
+	///////////////////////////////////
+	for (const auto& e : m_OpaqueEntites)
+	{
+		if (!e.expired())
+		{
+			auto& mesh = e.lock()->GetMesh();
+			auto& mat = e.lock()->GetMaterial();
 
-	m_SceneShader.Bind();
-	m_SceneShader.SetUniformMat4f("u_Model", modelWcNewLoaderTrans);
-	modelWcNewLoader->Draw();
+
+			if (mesh)
+			{
+				if (mat)
+					MaterialShaderBindHelper(*mat, m_SceneShader);
+
+
+				m_SceneShader.SetUniformMat4f("u_Model", e.lock()->GetWorldTransform());
+				m_SceneRenderer.DrawMesh(mesh);
+			}
+
+			//Dont need recursive childrens are already lay flat in the list during soring 
+		}
+	}
+
+	/////////////////////////////////////
+	// DRAW TRANSPARENT ENTITIES NEXT
+	/////////////////////////////////////
+	
+	if (m_TransparentEntites.size() > 0)
+	{
+		RenderCommand::EnableBlend();
+		RenderCommand::EnableDepthTest();
+		RenderCommand::BlendFactor(BlendFactors::SRC_ALPHA, BlendFactors::ONE_MINUS_SCR_A);
+
+		for (const auto& e : m_TransparentEntites)
+		{
+			if (!e.expired())
+			{
+				auto& mesh = e.lock()->GetMesh();
+				auto& mat = e.lock()->GetMaterial();
+
+
+				if (mesh)
+				{
+					if (mat)
+						MaterialShaderBindHelper(*mat, m_SceneShader);
+
+
+					m_SceneShader.SetUniformMat4f("u_Model", e.lock()->GetWorldTransform());
+					m_SceneRenderer.DrawMesh(mesh);
+				}
+
+				//Dont need recursive childrens are already lay flat in the list during soring 
+			}
+		}
+
+		RenderCommand::DisableBlend();
+	}
 
 }
 
@@ -563,20 +657,6 @@ void ExperimentScene::SceneDebugger()
 	{
 		DebugEntitiesPos(*e);
 	}
-	//debug model
-	DebugGizmos::DrawCross(shapesTrans[3], 20.5f);
-	auto last_node = m_SceneEntities.back();
-	//transverse first child
-	while (last_node->GetChildren().size() > 0)
-		last_node = last_node->GetChildren()[0];
-	DebugGizmos::DrawLine(last_node->GetWorldTransform()[3], shapesTrans[3], glm::vec3(0.0f, 0.0f, 1.0));
-	//RenderCommand::EnableDepthTest();
-
-
-	//debug use model from new model loader
-	DebugGizmos::DrawCross(modelWcNewLoaderTrans[3], 20.5f, false);
-	//last node already computed
-	DebugGizmos::DrawLine(last_node->GetWorldTransform()[3], modelWcNewLoaderTrans[3], glm::vec3(0.0f, 0.0f, 1.0));
 }
 
 void ExperimentScene::DebugEntitiesPos(Entity& entity)
@@ -604,7 +684,7 @@ void ExperimentScene::ResizeBuffers(unsigned int width, unsigned int height)
 void ExperimentScene::MaterialShaderBindHelper(Material& mat, Shader& shader)
 {
 	unsigned int tex_units = 0;
-	shader.SetUniformVec3("u_Material.baseColour", mat.baseColour);
+	shader.SetUniformVec4("u_Material.baseColour", mat.baseColour);
 	if (mat.baseMap)
 	{
 		mat.baseMap->Activate(tex_units);
@@ -620,6 +700,7 @@ void ExperimentScene::MaterialShaderBindHelper(Material& mat, Shader& shader)
 		mat.parallaxMap->Activate(tex_units);
 		shader.SetUniform1i("u_Material.parallaxMap", tex_units++);
 	}
+	shader.SetUniform1i("u_Material.isTransparent", (mat.renderMode == CRRT_Mat::RenderingMode::Transparent));
 	shader.SetUniform1i("u_Material.useNormal", mat.useNormal && mat.normalMap);
 	shader.SetUniform1i("u_Material.shinness", mat.shinness);
 	shader.SetUniform1i("u_Material.useParallax", mat.useParallax);
@@ -679,9 +760,29 @@ void ExperimentScene::MainUI()
 	ImGui::Spacing();
 	ImGui::SeparatorText("Scene Properties");
 	ImGui::ColorEdit3("Debug colour", &m_ClearScreenColour[0]);
-	ImGui::Checkbox("Do HDR", &m_DoHDR);
-	ImGui::SliderFloat("Gamma", &gamma, 0.0f, 3.0f);
-	ImGui::SliderFloat("HDR Exposure", &hdrExposure, 0.0f, 1.5f);
+	ImGui::Text("Number of Opaque Entities: %d", m_OpaqueEntites.size());
+	ImGui::Text("Number of Transparent Entities: %d", m_TransparentEntites.size());
+	if (m_TransparentEntites.size() > 0)
+	{
+		ImGui::Text("Transparent Render Order:");
+		for (const auto& e : m_TransparentEntites)
+		{
+			if (!e.expired())
+			{
+				ImGui::SameLine();
+				ImGui::Text(" %d,", e.lock()->GetID());
+			}
+		}
+	}
+	ImGui::Spacing();
+	if (ImGui::TreeNode("Post Scene Properties"))
+	{
+		ImGui::Checkbox("Do HDR", &m_DoHDR);
+		ImGui::SliderFloat("Gamma", &gamma, 0.0f, 3.0f);
+		ImGui::SliderFloat("HDR Exposure", &hdrExposure, 0.0f, 1.5f);
+		ImGui::TreePop();
+	}
+
 	ImGui::Spacing();
 
 	///////////////////////////////////////////
@@ -794,11 +895,13 @@ void ExperimentScene::EntityModelMaterial(const Entity& entity)
 	if (mat)
 	{
 		static int blank_tex_id = blank_tex->GetID();
-
 		int tex_id;
 		ImGui::PushID(entity.GetID());
 		ImGui::Text("1. %s, from mesh: %s", mat->name, entity.GetName());
-		ImGui::ColorEdit3("Colour", &mat->baseColour[0]);
+		int curr_sel = (int)mat->renderMode;
+		if (ImGui::Combo("Rendering Mode", &curr_sel, CRRT_Mat::GetAllRenderingModesAsName(), (int)CRRT_Mat::RenderingMode::Count))
+			mat->renderMode = (CRRT_Mat::RenderingMode)curr_sel;
+		ImGui::ColorEdit4("Colour", &mat->baseColour[0]);
 		tex_id = (mat->baseMap) ? mat->baseMap->GetID() : blank_tex_id;
 		ImGui::Image((ImTextureID)(intptr_t)tex_id, ImVec2(100, 100));
 		ImGui::SameLine(); ImGui::Text("Main Texture");
@@ -835,7 +938,11 @@ void ExperimentScene::MaterialsUI()
 			//temp_mat
 			ImGui::PushID(mat->name);
 			ImGui::Text("1. %s", mat->name);
-			ImGui::ColorEdit3("Colour", &mat->baseColour[0]);
+			int curr_sel = (int)mat->renderMode;
+			if(ImGui::Combo("Rendering Mode", &curr_sel, CRRT_Mat::GetAllRenderingModesAsName(), (int)CRRT_Mat::RenderingMode::Count))
+				mat->renderMode = (CRRT_Mat::RenderingMode)curr_sel;
+
+			ImGui::ColorEdit4("Colour", &mat->baseColour[0]);
 			tex_id = (mat->baseMap) ? mat->baseMap->GetID() : blank_tex_id;
 			ImGui::Image((ImTextureID)(intptr_t)tex_id, ImVec2(100, 100));
 			ImGui::SameLine(); ImGui::Text("Main Texture");

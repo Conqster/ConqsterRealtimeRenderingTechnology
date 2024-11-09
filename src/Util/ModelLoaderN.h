@@ -38,7 +38,7 @@ namespace CRRT
 		std::string dir = "";
 		std::vector<Texture> cacheLoadedTextures;
 
-		unsigned int idx = 0;
+		unsigned int idx = 50;
 
 
 		//Based on Assimp node-hierarchy

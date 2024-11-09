@@ -3,18 +3,41 @@
 #include "glm/glm.hpp"
 #include <memory>
 
+
+namespace CRRT_Mat
+{
+
+	//Following unity material setup 
+	enum class RenderingMode
+	{
+		Opaque,
+		Transparent,
+		Count,
+	};
+
+	inline const char** GetAllRenderingModesAsName()
+	{
+		static const char* rendering_mode[] = { "Opaque", "Transparent" };
+		return rendering_mode;
+	}
+}
+
+
+
 ///A Mesh does not know about materials & Vices versa
 class Shader;
 struct Material
 {
 	Material() = default;
 
+	CRRT_Mat::RenderingMode renderMode = CRRT_Mat::RenderingMode::Opaque;
+
 	const char* name = "default";
 	int id = 0; //<-------- temp id
 	//later add a shader ref
 	std::shared_ptr<Shader> shader = nullptr;
 
-	glm::vec3 baseColour = glm::vec3(1.0f); //base coour contributes to base map (* multply as a mask)
+	glm::vec4 baseColour = glm::vec4(1.0f); //base coour contributes to base map (* multply as a mask)
 
 	std::shared_ptr<Texture> baseMap = nullptr;
 	bool useNormal = true;
@@ -24,3 +47,7 @@ struct Material
 	float heightScale = 0.0f; //parallax scale
 	int shinness = 64;
 };
+
+
+
+

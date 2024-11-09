@@ -70,6 +70,7 @@ void Game::OnStart()
 		FilePaths::Instance().RegisterPath("cobblestone-disp", "Assets/Textures/cobblestone/patterned_cobblestone_02_disp_4k.jpg");
 		
 		FilePaths::Instance().RegisterPath("old_plank", "Assets/Textures/old_planks_diff.jpg");
+		FilePaths::Instance().RegisterPath("glass", "Assets/Textures/glass-background-with-frosted-pattern.jpg");
 
 
 

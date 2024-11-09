@@ -4,7 +4,6 @@
 #include <vector>
 #include <memory>
 
-#include "Util/ModelLoader.h"
 #include "Renderer/ObjectBuffer/UniformBuffer.h"
 
 #include "Renderer/RendererConfig.h" //update when DirLightObject is update
@@ -54,6 +53,8 @@ private:
 	void BeginRenderScene();
 	void PreUpdateGPUUniformBuffers(); //camera ubo
 	void BuildSceneEntities();
+	void BuildEnitityOpacityTransparency(const std::shared_ptr<Entity>& parent_entity);
+	void SortByViewDistance(std::vector<std::weak_ptr<Entity>>& sorting_list);
 	void ShadowPass(Shader& depth_shader);
 
 	//Scene Render
@@ -83,7 +84,11 @@ private:
 	Framebuffer m_SceneScreenFBO;
 	Shader m_PostImgShader;
 	std::shared_ptr<Mesh> m_QuadMesh;
+	//Later store entities as enitity but sorted list should be a rendering data list (Mesh,Material,World Transform)
 	std::vector<std::shared_ptr<Entity>> m_SceneEntities;
+	std::vector<std::weak_ptr<Entity>> m_OpaqueEntites;
+	std::vector<std::weak_ptr<Entity>> m_TransparentEntites;
+
 	Shader m_SceneShader;//std::vector<std::shared_ptr<Shader>> m_SceneShaders;
 	Shader shadowDepthShader;  //this is not scene deoth shader
 	std::vector<std::shared_ptr<Material>> m_SceneMaterials;
@@ -103,22 +108,14 @@ private:
 	//std::vector<std::shared_ptr<Framebuffer>> m_SceneFBOs; //Lateeeerrr
 
 	//Utilities
-	ModelLoader m_ModelLoader;
 	CRRT::ModelLoader m_NewModelLoader;
 	unsigned int m_PrevViewWidth, m_PrevViewHeight;
 
-	std::shared_ptr<Model> modelWcNewLoader;
-	glm::mat4 modelWcNewLoaderTrans = glm::mat4(1.0f);
 
 	//UniformBuffers
 	UniformBuffer m_CamMatUBO;
 	UniformBuffer m_LightDataUBO;
 	UniformBuffer m_EnviUBO;
-
-
-	//Dealing with models
-	std::shared_ptr<Model> blenderShapes;
-	glm::mat4 shapesTrans = glm::mat4(1.0f);
 
 
 	////////////////////////////////

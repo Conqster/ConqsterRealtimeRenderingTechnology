@@ -8,6 +8,12 @@ enum class DepthMode
 	LEEQUAL = GL_LEQUAL,
 };
 
+enum class BlendFactors
+{
+	SRC_ALPHA = GL_SRC_ALPHA,
+	ONE_MINUS_SCR_A = GL_ONE_MINUS_SRC_ALPHA,
+};
+
 
 class RenderCommand
 {
@@ -30,6 +36,10 @@ public:
 	static void DisableDepthTest();
 	static void EnableFaceCull();
 	static void DisableFaceCull();
+	
+	static void EnableBlend();
+	static void DisableBlend();
+	static void BlendFactor(BlendFactors src_factor, BlendFactors des_factor);
 
 	//FUNC
 	static void DepthTestMode(DepthMode mode);

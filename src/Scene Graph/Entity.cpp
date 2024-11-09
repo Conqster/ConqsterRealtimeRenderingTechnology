@@ -120,3 +120,10 @@ void Entity::AddWorldChild(const std::shared_ptr<Entity>& entity)
 	m_Children.back()->m_LocalTransform = glm::inverse(m_WorldTransform) * m_Children.back()->m_WorldTransform;
 	m_Children.back()->MarkTransformDirty();
 }
+
+void Entity::UpdateViewSqrDist(const glm::vec3& view_pos)
+{
+	//m_SqrViewDist = glm::distance2(view_pos, GetWorldTransform()[3]);
+	glm::vec3 pos = GetWorldTransform()[3];
+	m_SqrViewDist = glm::distance(view_pos, pos);
+}

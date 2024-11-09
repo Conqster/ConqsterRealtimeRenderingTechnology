@@ -60,6 +60,21 @@ void RenderCommand::DisableFaceCull()
 	glDisable(GL_CULL_FACE);
 }
 
+void RenderCommand::EnableBlend()
+{
+	glEnable(GL_BLEND);
+}
+
+void RenderCommand::DisableBlend()
+{
+	glDisable(GL_BLEND);
+}
+
+void RenderCommand::BlendFactor(BlendFactors src_factor, BlendFactors des_factor)
+{
+	glBlendFunc((GLenum)src_factor, (GLenum)des_factor);
+}
+
 void RenderCommand::DepthTestMode(DepthMode mode)
 {
 	glDepthFunc((GLenum)mode);

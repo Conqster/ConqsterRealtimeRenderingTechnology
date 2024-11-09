@@ -26,6 +26,8 @@ private:
 	std::shared_ptr<Entity> m_Parent = nullptr;
 	std::vector<std::shared_ptr<Entity>> m_Children;
 
+	float m_SqrViewDist = 0.0f;
+
 	void UpdateWorldTransform();
 	void MarkTransformDirty();
 public:
@@ -37,6 +39,11 @@ public:
 	};
 
 	std::shared_ptr<Entity> GetRef() { return shared_from_this(); }
+	static inline bool CompareDistanceToView(const std::weak_ptr<Entity>& a, const std::weak_ptr<Entity>& b)
+	{
+		return a.lock()->m_SqrViewDist > b.lock()->m_SqrViewDist;
+	}
+
 
 	//retrive
 	inline const int GetID() const { return m_ID; }
@@ -68,6 +75,8 @@ public:
 	void SetMesh(std::shared_ptr<Mesh>& mesh) { m_Mesh = mesh; }
 	void AddLocalChild(const std::shared_ptr<Entity>& entity);
 	void AddWorldChild(const std::shared_ptr<Entity>& entity);
+
+	void UpdateViewSqrDist(const glm::vec3& view_pos);
 };
 
 

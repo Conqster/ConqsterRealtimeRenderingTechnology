@@ -17,6 +17,7 @@ The primary aim of this project is to deepen my understanding of:
 ## Current Features
 ### Rendering Techniques
 - Environment Mapping (Skybox)
+- Scene Rendering Entities Sorting (Spatial Ordering for Transparency)
 - Debug Gizmos Primitive
 - Light Source (Directional, Point & Spot)
 - Omnidirectional Shadow mapping for Point Lights
@@ -44,7 +45,13 @@ The primary aim of this project is to deepen my understanding of:
 #### Light highlight on Normal mapped models
 |<img src = "Docs/Normal mapping with light higlight.png"/>|
 |:-|
-|<p align = "center"> * Light highlight on Normal mapped model.* </p>|
+|<p align = "center"> *Light highlight on Normal mapped model.* </p>|
+
+#### Blending (Transparency)
+|<img src = "Docs/Transparency Ordering.gif"/>|
+|:-|
+|<p align = "center"> *Scene Entities Order by view distance (Transparency).* </p>|
+
 
 #### Directional Shadow (Directional Light)
 |<img src = "Docs/Dynamic_directional_shadow.gif"/>|
@@ -52,12 +59,7 @@ The primary aim of this project is to deepen my understanding of:
 |<p align = "center"> *Directional Shadow, Directional Light Shadows.* </p>|
 
 #### Scene Renderer (Parent-children relation)
-|<img src = "Docs/Scene Renderer Material Based-Parent-children relation.mp4"/>|
-|:-|
-|<p align = "center"> *Model's rendered with material data instance, Material Based Modeling & Parent - children relation.* </p>|
-
-#### Scene Renderer (Parent-children relation)
-|<img src = "Docs/Scene Rendering Entities with Parent-Child Relationship.gif"/>|
+|<img src = "Docs/Scene Rendering Entities with Parent-Child Relationship.gif style="display: block; margin-left: auto; margin-right: auto;"/>|
 |:-|
 |<p align = "center"> *Model's rendered with material data instance, Material Based Modeling & Parent - children relation.* </p>|
 
