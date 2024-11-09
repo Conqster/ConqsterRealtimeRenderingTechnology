@@ -6,9 +6,13 @@
 
 #include <string>
 
+#include "Geometry/AABB.h"
+#include "Util/MathsHelpers.h"
+
 //forward declare
 class Mesh;
 struct Material;
+
 
 class Entity : public std::enable_shared_from_this<Entity>
 {
@@ -29,14 +33,20 @@ private:
 	float m_SqrViewDist = 0.0f;
 	bool m_CanCastShadow = true;
 
+	AABB m_AABB;
+
 	void UpdateWorldTransform();
 	void MarkTransformDirty();
+
+	void ConstructAABB();
+	//void MarkAABBDirty();
 public:
 	Entity() = default; //need to randomly generate a uuid
 	//Entity() = delete;
 	Entity(int id, std::string name = "Default-Mesh", glm::mat4 trans = glm::mat4(1.0f), std::shared_ptr<Mesh> mesh = nullptr, std::shared_ptr<Material> mat = nullptr) :
 		m_ID(id), m_Name(name), m_LocalTransform(trans), m_WorldTransform(trans), m_Mesh(mesh), m_Material(mat) {
 		MarkTransformDirty();
+		ConstructAABB();
 	};
 
 	std::shared_ptr<Entity> GetRef() { return shared_from_this(); }
@@ -57,6 +67,31 @@ public:
 	inline const std::shared_ptr<Entity>& GetParent() const { return m_Parent; }
 	inline const bool CanCastShadow() { return m_CanCastShadow; }
 	inline bool* CanCastShadowPtr() { return &m_CanCastShadow; }
+	inline const AABB GetAABB() const { return m_AABB; }
+
+	inline const AABB GetEncapsulatedChildrenAABB()
+	{
+
+		AABB temp = m_AABB;
+		glm::vec3 translate, euler, scale;
+		MathsHelper::DecomposeTransform(GetWorldTransform(), translate, euler, scale);
+		temp.Translate(translate);
+		temp.Scale((scale - glm::vec3(1.0f)) * glm::vec3(0.5f));
+
+		std::vector<glm::vec3> pt_world_space;
+		for (const auto& v : MathsHelper::CubeLocalVertices())
+		{
+			glm::vec4 local4D = glm::vec4(v, 1.0f);
+			glm::vec4 trans_v = GetWorldTransform() * local4D;
+			pt_world_space.emplace_back(glm::vec3(trans_v));
+		}
+		for (const auto& p : pt_world_space)
+			temp.Encapsulate(p);
+		
+		for (const auto& c : m_Children)
+			temp.Encapsulate(c->GetEncapsulatedChildrenAABB());
+		return temp;
+	}
 
 	//set
 	void SetLocalTransform(const glm::mat4& transform) 

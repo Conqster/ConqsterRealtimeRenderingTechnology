@@ -29,6 +29,15 @@ public:
 		m_Max += inTranslation;
 	}
 
+
+	/// <summary>
+	/// To work with meshes use as 
+	/// temp.Scale((scale - glm::vec3(1.0f)) * glm::vec3(0.5f));
+	/// as normal scale would be glm::vec3(1.0f) and using scale 
+	/// as raw would scale AABB by 1 unnessary unit & the half glm::vec3(0.5f) 
+	/// is to compensate that AABB is scaled in both min and max
+	/// </summary>
+	/// <param name="inScale"></param>
 	void Scale(glm::vec3 inScale)
 	{
 		m_Min -= inScale;

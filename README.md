@@ -63,6 +63,11 @@ The primary aim of this project is to deepen my understanding of:
 |:-|
 |<p align = "center"> *Model's rendered with material data instance, Material Based Modeling & Parent - children relation.* </p>|
 
+#### Bounding Volume - AABB (Parent-children relation, Rendering optimisation)
+|<img src = "Docs/AABB_test.gif"/>|
+|:-|
+|<p align = "center"> *Only root (parent is tracked) Bounding Volume to determine is any child is visible during sorting.* </p>|
+
 
 #### Skybox, Framebuffer
 |<img src = "Docs/Skybox, Framebuffer, Depthtest.png"/>|

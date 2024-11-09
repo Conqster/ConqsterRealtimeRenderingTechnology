@@ -223,7 +223,7 @@ void ExperimentScene::CreateEntities()
 	
 	temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f)) *
 				 glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) *
-				 glm::scale(glm::mat4(1.0f), glm::vec3(25.0f)); 
+				 glm::scale(glm::mat4(1.0f), glm::vec3(25.0f, 25.0f, 5.0f)); 
 
 	//floor 
 	Entity floor_plane_entity = Entity(id_idx++, "floor-plane-entity", temp_trans, m_QuadMesh, floorMat);
@@ -688,11 +688,67 @@ void ExperimentScene::SceneDebugger()
 		DebugGizmos::DrawCross(dirLightObject.sampleWorldPos);
 	}
 
+	AABB temp;
+	glm::vec3 translate, euler, scale;
+	bool debug_scene_entities = true;
+	if (debug_scene_entities)
+	{
+		for (const auto& e : m_SceneEntities)
+		{
+			std::vector<glm::vec3> pt_world_space;
+			for (const auto& v : MathsHelper::CubeLocalVertices())
+			{
+				glm::vec4 local4D = glm::vec4(v, 1.0f);
+				glm::vec4 trans_v = e->GetWorldTransform() * local4D;
+				pt_world_space.emplace_back(glm::vec3(trans_v));
+			}
+			temp = e->GetAABB();
+			MathsHelper::DecomposeTransform(e->GetWorldTransform(), translate, euler, scale);
+			temp.Translate(translate);
+			temp.Scale((scale - glm::vec3(1.0f)) * glm::vec3(0.5f));
+			
+			for (const auto& p : pt_world_space)
+				temp.Encapsulate(p);
 
-	//RenderCommand::DisableDepthTest();
-	//Scene Entities 
-	for (auto& e : m_SceneEntities)
-		DebugEntitiesPos(*e);
+			DebugGizmos::DrawBox(temp);
+			
+			//draw AABB with children encapsulated
+			if (e->GetChildren().size() > 0)
+			{
+				//Already be translated & scale 
+				temp = e->GetEncapsulatedChildrenAABB();
+				DebugGizmos::DrawBox(temp, glm::vec3(0.0f, 0.0f, 1.0f), 2.0f);
+			}
+		}
+	}
+
+	bool debug_all_renderable_mesh_aabb = false;
+	if (debug_all_renderable_mesh_aabb)
+	{
+		for (const auto& e : m_SceneEntitiesWcRenderableMesh)
+		{
+			if (!e.expired())
+			{
+				//Debug AABB volume
+				temp = e.lock()->GetAABB();
+				MathsHelper::DecomposeTransform(e.lock()->GetWorldTransform(), translate, euler, scale);
+				temp.Translate(translate);
+				temp.Scale((scale - glm::vec3(1.0f)) * glm::vec3(0.5f));
+				DebugGizmos::DrawBox(temp);
+
+				//if (e.lock()->GetChildren().size() > 0)
+				//{
+				//	//Already be translated & scale 
+				//	temp = e.lock()->GetEncapsulatedChildrenAABB();
+				//	DebugGizmos::DrawBox(temp, glm::vec3(0.0f, 0.0f, 1.0f), 2.0f);
+				//}
+			}
+		}
+	}
+
+
+
+
 }
 
 void ExperimentScene::DebugEntitiesPos(Entity& entity)

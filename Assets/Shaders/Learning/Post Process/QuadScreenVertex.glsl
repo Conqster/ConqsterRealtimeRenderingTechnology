@@ -10,7 +10,9 @@ out vec4 v_Colour;
 
 void main()
 {
-	gl_Position = vec4(pos.x, pos.y, 0.0, 1.0); 
+	//scale up by 2.0f as the quad constructed is 1 unit, 
+	//as in 0.5f to both side to make it ideal for a unit plane
+	gl_Position = vec4(pos.x * 2.0f, pos.y * 2.0f, 0.0, 1.0); 
 	v_Colour = col; 
 	v_UVCoord = uv;
 }

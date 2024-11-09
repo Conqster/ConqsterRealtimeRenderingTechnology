@@ -11,10 +11,10 @@ namespace CRRT
 	{
 		
 		////For cal Tangent & Bitagent
-		glm::vec3 p0(-1.0f, 1.0f, 0.0f),
-				p1(-1.0f, -1.0f, 0.0f),
-				p2(1.0f, -1.0f, 0.0f), 
-				p3(1.0f, 1.0f, 0.0f);
+		glm::vec3 p0(-0.5f, 0.5f, 0.0f),
+				p1(-0.5f, -0.5f, 0.0f),
+				p2(0.5f, -0.5f, 0.0f), 
+				p3(0.5f, 0.5f, 0.0f);
 
 		glm::vec2 uv0(0.0f, 1.0f),
 			uv1(0.0f, 0.0f),
@@ -113,7 +113,8 @@ namespace CRRT
 		float sector_step = (float)(2 * MathsHelper::PI / sector_count);  // 0 - 360(2pi)/count =>  angle btw each steps
 		float span_step = (float)(MathsHelper::PI / span_count);		  // 0 - 180(pi)/count => angle btw each step
 
-		float radius = 1.0f;
+		//float radius = 1.0f;
+		float radius = 0.5f;
 
 		//compute & store vertices
 		for (unsigned int i = 0; i <= span_count; i++)

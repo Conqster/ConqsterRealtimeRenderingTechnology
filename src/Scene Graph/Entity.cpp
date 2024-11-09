@@ -21,6 +21,12 @@ void Entity::MarkTransformDirty()
 		c->MarkTransformDirty();
 }
 
+void Entity::ConstructAABB()
+{
+	if(m_Mesh)
+		m_AABB = m_Mesh->GetAABB();
+}
+
 const glm::mat4& Entity::GetWorldTransform()
 {
 	if (m_DirtyTranform)

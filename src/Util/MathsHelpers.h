@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 struct MathsHelper
 {
 
@@ -60,4 +62,16 @@ struct MathsHelper
 
 		euler = glm::degrees(euler);
 	}
+
+
+
+	static inline std::vector<glm::vec3> CubeLocalVertices()
+	{
+		return	
+		{
+			{-0.5f, -0.5f, -0.5f}, {0.5f, -0.5f, -0.5f}, {0.5f, 0.5f, -0.5f}, {-0.5f, 0.5f, -0.5f},
+			{-0.5f, -0.5f, 0.5f}, {0.5f, -0.5f, 0.5f}, {-0.5f, -0.5f, -0.5f}, {-0.5f, 0.5f, 0.5f},
+		};
+	} 
+
 };
