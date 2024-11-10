@@ -156,6 +156,7 @@
     <ClInclude Include="External Libs\imgui\imstb_truetype.h" />
     <ClInclude Include="External Libs\stb_image\stb_image.h" />
     <ClInclude Include="src\Geometry\AABB.h" />
+    <ClInclude Include="src\Geometry\Plane.h" />
     <ClInclude Include="src\Renderer\Material.h" />
     <ClInclude Include="src\Renderer\Meshes\Meshes.h" />
     <ClInclude Include="src\Renderer\Meshes\PrimitiveMeshFactory.h" />

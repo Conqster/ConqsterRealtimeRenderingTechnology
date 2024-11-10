@@ -19,6 +19,7 @@
 #include "Renderer/Meshes/PrimitiveMeshFactory.h"
 
 #include "Util/GameTime.h"
+#include <iostream>
 
 /// <summary>
 /// Need to remove this later
@@ -707,8 +708,23 @@ void ExperimentScene::SceneDebugger()
 											  window->GetAspectRatio(), *cam->Ptr_Near(), *cam->Ptr_Far(), 
 											  glm::vec3(0.0f, 0.0f, 1.0f), 2.0f);
 
-	//return;
 
+
+	//return;
+	//TEST PLANE CODE
+	//RenderCommand::DisableDepthTest();
+	DebugGizmos::DrawPlane(testPlane1, testPlaneSize, glm::vec3(1.0f, 0.0f, 0.0f));
+	DebugGizmos::DrawPlane(testPlane2, testPlaneSize, glm::vec3(0.0f, 1.0f, 0.0f));
+	DebugGizmos::DrawPlane(testPlane3, testPlaneSize, glm::vec3(0.0f, 0.0f, 1.0f));
+
+
+	glm::vec3 pt = glm::vec3(0.0f);
+	DebugGizmos::DrawWireSphere(pt, 0.5f, glm::vec3(1.0f, 0.0f, 0.0f));
+	bool intersection = Plane::IntersectThreePlanes(testPlane1, testPlane2, testPlane3, pt);
+	DebugGizmos::DrawSphere(pt, 0.5f);
+	//RenderCommand::EnableDepthTest();
+
+	return;
 
 	//test directional Shadow info 
 	if (dirLightObject.dirLightShadow.debugPara)
@@ -891,6 +907,28 @@ void ExperimentScene::MainUI()
 
 		ImGui::TreePop();
 	}
+
+	ImGui::Spacing();
+	ImGui::SeparatorText("Test Properties");
+	ImGui::SliderFloat3("Experimental Normals", &experimentingNormals[0], -1.0f, 1.0f);
+	glm::vec4 a = testPlane1.GetNormalAndConstant(), b = testPlane2.GetNormalAndConstant(), c = testPlane3.GetNormalAndConstant();
+	if (ImGui::DragFloat4("Test Plane 1", &a[0], 0.1))
+	{
+		//testPlane1 = Plane(a, glm::length(a));
+		testPlane1 = Plane(a);
+	}
+	if (ImGui::DragFloat4("Test Plane 2", &b[0], 0.1))
+	{
+		//testPlane2 = Plane(b, glm::length(b));
+		testPlane2 = Plane(b);
+	}
+	if (ImGui::DragFloat4("Test Plane 3", &c[0], 0.1))
+	{
+		//testPlane3 = Plane(c, glm::length(c));
+		testPlane3 = Plane(c);
+	}
+;
+	ImGui::DragFloat2("Test Plane Size", &testPlaneSize[0], 0.1);
 
 	ImGui::Spacing();
 	ImGui::SeparatorText("Scene Properties");

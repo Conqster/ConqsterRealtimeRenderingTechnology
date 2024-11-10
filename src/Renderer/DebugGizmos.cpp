@@ -547,6 +547,89 @@ void DebugGizmos::DrawPerspectiveCameraFrustum(glm::vec3 pos, glm::vec3 forward,
 	m_Shader.UnBind();
 }
 
+void DebugGizmos::DrawPlane(const Plane& f, glm::vec2 size, glm::vec3 col, float thickness)
+{
+	
+	float d = f.GetConstant();
+	glm::vec3 N = f.GetNormal();
+	N = glm::normalize(N);
+	glm::vec3 center = -d * N;
+
+	glm::vec3 arbitrary_vec;
+	if (std::fabs(N.x) > std::fabs(N.z))
+		arbitrary_vec = glm::vec3(-N.y, N.x, 0.0f);
+	else
+		arbitrary_vec = glm::vec3(0.0f, -N.z, N.y);
+
+	glm::vec3 u = glm::cross(N, arbitrary_vec);
+	glm::vec3 v = glm::cross(N, u);
+
+	u *= size.x;
+	v *= size.y;
+
+	glm::vec3 p1 = center + ((u + v));
+	glm::vec3 p2 = center + ((u - v));
+	glm::vec3 p3 = center - ((u + v));
+	glm::vec3 p4 = center - ((u - v));
+
+	m_Shader.Bind();
+	m_Shader.SetUniformMat4f("u_Model", glm::mat4(1.0f));
+	m_Shader.SetUniformVec3("u_Colour", col);
+	glDisable(GL_CULL_FACE);
+	glBegin(GL_TRIANGLES);
+		glVertex3f(p1.x, p1.y, p1.z);
+		glVertex3f(p2.x, p2.y, p2.z);
+		glVertex3f(p3.x, p3.y, p3.z);
+
+		glVertex3f(p3.x, p3.y, p3.z);
+		glVertex3f(p4.x, p4.y, p4.z);
+		glVertex3f(p1.x, p1.y, p1.z);
+	glEnd();
+	m_Shader.UnBind();
+	glEnable(GL_CULL_FACE);
+	m_Shader.UnBind();
+}
+
+void DebugGizmos::DrawWirePlane(const Plane& f, glm::vec2 size, glm::vec3 col, float thickness)
+{
+	float d = f.GetConstant();
+	glm::vec3 N = f.GetNormal();
+	N = glm::normalize(N);
+	glm::vec3 center = -d * N;
+
+	glm::vec3 arbitrary_vec;
+	if (std::fabs(N.x) > std::fabs(N.z))
+		arbitrary_vec = glm::vec3(-N.y, N.x, 0.0f);
+	else
+		arbitrary_vec = glm::vec3(0.0f, -N.z, N.y);
+
+	glm::vec3 u = glm::cross(N, arbitrary_vec);
+	glm::vec3 v = glm::cross(N, u);
+
+
+	u *= size.x;
+	v *= size.y;
+
+	glm::vec3 p1 = center + ((u + v));
+	glm::vec3 p2 = center + ((u - v));
+	glm::vec3 p3 = center - ((u + v));
+	glm::vec3 p4 = center - ((u - v));
+
+	m_Shader.Bind();
+	m_Shader.SetUniformMat4f("u_Model", glm::mat4(1.0f));
+	m_Shader.SetUniformVec3("u_Colour", col);
+	glBegin(GL_LINE_LOOP);
+		glVertex3f(p1.x, p1.y, p1.z);
+		glVertex3f(p2.x, p2.y, p2.z);
+		glVertex3f(p3.x, p3.y, p3.z);
+		glVertex3f(p4.x, p4.y, p4.z);
+		//extra for visuals
+		glVertex3f(p1.x, p1.y, p1.z);
+		glVertex3f(p3.x, p3.y, p3.z);
+	glEnd();
+	m_Shader.UnBind();
+}
+
 void DebugGizmos::Cleanup()
 {
 	//m_CameraMatUBO->Delete();

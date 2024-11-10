@@ -17,6 +17,7 @@
 
 #include "Renderer/ObjectBuffer/Framebuffer.h"
 
+#include "Geometry/Plane.h"
 
 class Entity;
 struct Material;
@@ -101,6 +102,12 @@ private:
 
 	Camera m_TopDownCamera;
 	Framebuffer m_TopDownFBO;
+
+	Plane testPlane1 = Plane(glm::vec3(0.0f, 1.0f, 0.0f), 0.0f);
+	Plane testPlane2 = Plane(glm::vec3(0.0f, 0.0f, 1.0f), 0.0f);
+	Plane testPlane3 = Plane(glm::vec3(1.0f, 0.0f, 0.0f), 0.0f);
+	glm::vec2 testPlaneSize = glm::vec2(5.0f, 5.0f);
+	glm::vec3 experimentingNormals = glm::vec3(0.0f, 1.0f, 0.0f);
 	////Later have a structure for RenderData
 	//struct MeshRenderer
 	//{
