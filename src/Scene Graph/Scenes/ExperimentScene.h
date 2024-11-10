@@ -51,7 +51,7 @@ private:
 
 	//Scene Begin Render
 	void BeginRenderScene();
-	void PreUpdateGPUUniformBuffers(); //camera ubo
+	void PreUpdateGPUUniformBuffers(Camera& cam); //camera ubo
 
 	//Pre-Rendering
 	void BuildSceneEntities();
@@ -98,6 +98,9 @@ private:
 	Shader shadowDepthShader;  //this is not scene deoth shader
 	std::vector<std::shared_ptr<Material>> m_SceneMaterials;
 	Skybox m_Skybox;
+
+	Camera m_TopDownCamera;
+	Framebuffer m_TopDownFBO;
 	////Later have a structure for RenderData
 	//struct MeshRenderer
 	//{
@@ -147,10 +150,13 @@ private:
 	void ResizeBuffers(unsigned int width, unsigned int height);
 
 	void MaterialShaderBindHelper(Material& mat, Shader& shader);
+
+	//UIs
 	void MainUI();
 	void EnititiesUI();
 	void EntityDebugUI(Entity& entity);
 	void MaterialsUI();
+	void EditTopViewUI();
 	//void FrameBufferUI();
 
 

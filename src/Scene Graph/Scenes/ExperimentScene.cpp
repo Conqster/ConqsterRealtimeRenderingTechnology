@@ -18,6 +18,8 @@
 
 #include "Renderer/Meshes/PrimitiveMeshFactory.h"
 
+#include "Util/GameTime.h"
+
 /// <summary>
 /// Need to remove this later
 /// </summary>
@@ -63,7 +65,7 @@ void ExperimentScene::OnRender()
 {
 	//Pre Rendering
 	BeginRenderScene();
-	PreUpdateGPUUniformBuffers();
+	PreUpdateGPUUniformBuffers(*m_Camera);
 	BuildSceneEntities(); //<------Not implemented yet
 	ShadowPass(shadowDepthShader); //<----- important for storing shadow data in texture 2D & texture cube map probab;y move to renderer and data is sent back 
 
@@ -80,11 +82,23 @@ void ExperimentScene::OnRender()
 	SceneDebugger();
 	m_SceneScreenFBO.UnBind();
 
+	//////////////////////////////
+	// Render To Top View Buffer
+	//////////////////////////////
+
+
 	//Post Rendering (post Process) 
 	PostProcess();
 
 	//After Rendering (Clean-up/Miscellenous)
-
+	//Change the camera buffer with top down cam
+	PreUpdateGPUUniformBuffers(m_TopDownCamera);
+	m_TopDownFBO.Bind();						//bind fbo
+	RenderCommand::Clear();						
+	//draw scene in buffer
+	DrawScene();
+	SceneDebugger();
+	m_TopDownFBO.UnBind();
 
 	if (m_PrevViewWidth != window->GetWidth() || m_PrevViewHeight != window->GetHeight())
 		ResizeBuffers(window->GetWidth(), window->GetHeight());
@@ -96,6 +110,7 @@ void ExperimentScene::OnRenderUI()
 	MainUI();
 	EnititiesUI();
 	MaterialsUI();
+	EditTopViewUI();
 }
 
 void ExperimentScene::OnDestroy()
@@ -120,6 +135,10 @@ void ExperimentScene::InitRenderer()
 	m_PrevViewHeight = window->GetHeight();
 
 	m_SceneScreenFBO.Generate(window->GetWidth(), window->GetHeight());
+
+	m_TopDownFBO.Generate(window->GetWidth(), window->GetHeight());
+	m_TopDownCamera = Camera(glm::vec3(0.0f, 80.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), 0.0f, -90.0f, 0.0f, 0.0f);
+
 	//Post Process shader
 	ShaderFilePath screen_shader_file_path
 	{
@@ -223,7 +242,7 @@ void ExperimentScene::CreateEntities()
 	
 	temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f)) *
 				 glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) *
-				 glm::scale(glm::mat4(1.0f), glm::vec3(25.0f, 25.0f, 5.0f)); 
+				 glm::scale(glm::mat4(1.0f), glm::vec3(50)); 
 
 	//floor 
 	Entity floor_plane_entity = Entity(id_idx++, "floor-plane-entity", temp_trans, m_QuadMesh, floorMat);
@@ -254,6 +273,17 @@ void ExperimentScene::CreateEntities()
 	//cube1child_entity.AddWorldChild(sphere_entity);
 	//Quick Hack
 	m_SceneEntities.back()->GetChildren()[0]->AddWorldChild(sphere_entity);
+
+	unsigned int hierarchy_count = 0; // 500;
+	std::string name = "child_cube";
+	temp_trans = glm::translate(glm::mat4(1.0), glm::vec3(0.0, 5.0f, 5.0f));
+	std::shared_ptr<Entity> prev = m_SceneEntities.back()->GetChildren()[0];
+	for (unsigned int i = 0; i < hierarchy_count; i++)
+	{
+		std::shared_ptr<Entity> child_cube = std::make_shared<Entity>(id_idx++, (name + std::to_string(i)), temp_trans, cube_mesh, plainMat);
+		prev->AddLocalChild(child_cube);
+		prev = child_cube;
+	}
 
 
 	temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(-14.0f, 13.0f, -20.0f)) * 
@@ -345,11 +375,11 @@ void ExperimentScene::BeginRenderScene()
 	RenderCommand::Clear();
 }
 
-void ExperimentScene::PreUpdateGPUUniformBuffers()
+void ExperimentScene::PreUpdateGPUUniformBuffers(Camera& cam)
 {
 	//------------------Camera Matrix Data UBO-----------------------------/
-	m_CamMatUBO.SetSubDataByID(&(m_Camera->CalculateProjMatrix(window->GetAspectRatio())[0][0]), sizeof(glm::mat4), 0);
-	m_CamMatUBO.SetSubDataByID(&(m_Camera->CalViewMat()[0][0]), sizeof(glm::mat4), sizeof(glm::mat4));
+	m_CamMatUBO.SetSubDataByID(&(cam.CalculateProjMatrix(window->GetAspectRatio())[0][0]), sizeof(glm::mat4), 0);
+	m_CamMatUBO.SetSubDataByID(&(cam.CalViewMat()[0][0]), sizeof(glm::mat4), sizeof(glm::mat4));
 
 }
 
@@ -672,6 +702,14 @@ void ExperimentScene::PostProcess()
 
 void ExperimentScene::SceneDebugger()
 {
+	const auto& cam = m_Camera;
+	DebugGizmos::DrawPerspectiveCameraFrustum(cam->GetPosition(), -cam->GetForward(), *cam->Ptr_FOV(),
+											  window->GetAspectRatio(), *cam->Ptr_Near(), *cam->Ptr_Far(), 
+											  glm::vec3(0.0f, 0.0f, 1.0f), 2.0f);
+
+	//return;
+
+
 	//test directional Shadow info 
 	if (dirLightObject.dirLightShadow.debugPara)
 	{
@@ -693,8 +731,12 @@ void ExperimentScene::SceneDebugger()
 	bool debug_scene_entities = true;
 	if (debug_scene_entities)
 	{
+		TimeTaken("All Root AABB Enities Construction");
 		for (const auto& e : m_SceneEntities)
 		{
+			std::string func_label = "Generating AABB for entity id: ";
+			func_label += std::to_string(e->GetID());
+			TimeTaken(func_label.c_str());
 			std::vector<glm::vec3> pt_world_space;
 			for (const auto& v : MathsHelper::CubeLocalVertices())
 			{
@@ -702,15 +744,18 @@ void ExperimentScene::SceneDebugger()
 				glm::vec4 trans_v = e->GetWorldTransform() * local4D;
 				pt_world_space.emplace_back(glm::vec3(trans_v));
 			}
-			temp = e->GetAABB();
-			MathsHelper::DecomposeTransform(e->GetWorldTransform(), translate, euler, scale);
-			temp.Translate(translate);
-			temp.Scale((scale - glm::vec3(1.0f)) * glm::vec3(0.5f));
-			
-			for (const auto& p : pt_world_space)
-				temp.Encapsulate(p);
 
+			//generate an AABB for first vertex pt
+			temp = AABB(pt_world_space[0]);
+			//encapsulated the rest pts 
+			for (const auto& p : pt_world_space)
+			{
+				DebugGizmos::DrawSphere(p, 0.2f);
+				temp.Encapsulate(p);
+			}
 			DebugGizmos::DrawBox(temp);
+
+
 			
 			//draw AABB with children encapsulated
 			if (e->GetChildren().size() > 0)
@@ -1061,6 +1106,42 @@ void ExperimentScene::MaterialsUI()
 		for(auto& e : m_SceneEntities)
 			EntityModelMaterial(*e);
 	}
+
+
+	ImGui::End();
+}
+
+void ExperimentScene::EditTopViewUI()
+{
+	ImGui::Begin("Top Down View");
+
+	ImGui::SeparatorText("Camera info");
+
+	glm::vec3 temp = m_TopDownCamera.GetPosition();
+	if (ImGui::DragFloat3("Cam pos", &temp[0], 0.1f))
+		m_TopDownCamera.SetPosition(temp);
+
+	ImGui::DragFloat("Cam Yaw", m_TopDownCamera.New_Yaw());
+	ImGui::DragFloat("Cam Pitch", m_TopDownCamera.New_Pitch());
+
+
+	if (ImGui::TreeNode("Extra Camera Properties"))
+	{
+		ImGui::SliderFloat("Cam FOV", m_TopDownCamera.Ptr_FOV(), 0.0f, 179.0f, "%.1f");
+		ImGui::DragFloat("Cam Near", m_TopDownCamera.Ptr_Near(), 0.1f, 0.1f, 50.0f, "%.1f");
+		ImGui::DragFloat("Cam Far", m_TopDownCamera.Ptr_Far(), 0.1f, 0.0f, 500.0f, "%.1f");
+
+		ImGui::TreePop();
+	}
+
+
+
+	ImGui::SeparatorText("Frame Buffers");
+	static int scale = 1;
+	ImGui::SliderInt("Scale", &scale, 1, 5);
+	ImVec2 img_size(500.0f * scale, 500.0f * scale);
+	img_size.y *= (m_TopDownFBO.GetSize().y / m_TopDownFBO.GetSize().x); //invert
+	ImGui::Image((ImTextureID)(intptr_t)m_TopDownFBO.GetColourAttachment(), img_size, ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f));
 
 
 	ImGui::End();

@@ -36,7 +36,7 @@ The primary aim of this project is to deepen my understanding of:
 - Editing UI via ImGui
 
 
-## Quick Render Samples
+## Quick Tech Samples
 #### Omnidirectional Shadow (Point Lights)
 |<img src = "Docs/Dynamic_omnidirectional_shadow.gif"/>|
 |:-|
@@ -66,7 +66,7 @@ The primary aim of this project is to deepen my understanding of:
 #### Bounding Volume - AABB (Parent-children relation, Rendering optimisation)
 |<img src = "Docs/AABB_test.gif"/>|
 |:-|
-|<p align = "center"> *Only root (parent is tracked) Bounding Volume to determine is any child is visible during sorting.* </p>|
+|<p align = "center"> *Only root (parent is tracked) Bounding Volume to determine is any child is visible during sorting. Construction of individual parent (root node) AABB takes ~(0.0001ms - 0.0006ms).* </p>|
 
 
 #### Skybox, Framebuffer

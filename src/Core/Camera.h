@@ -33,11 +33,12 @@ public:
 
 	inline float* const Ptr_MoveSpeed() { return &m_MoveSpeed; }
 	inline float* const Ptr_RotSpeed() { return &m_RotSpeed; } 
+	//This is wrong but fix later 
 	inline float const Ptr_Pitch() const { return m_Pitch; }
 	inline float const Ptr_Yaw() const { return m_Yaw; }
 
 	inline float* New_Yaw() { return &m_Yaw; }
-
+	inline float* New_Pitch() { return &m_Pitch; }
 
 private:
 

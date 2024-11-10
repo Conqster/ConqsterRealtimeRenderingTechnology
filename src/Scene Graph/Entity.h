@@ -71,25 +71,26 @@ public:
 
 	inline const AABB GetEncapsulatedChildrenAABB()
 	{
-
-		AABB temp = m_AABB;
-		glm::vec3 translate, euler, scale;
-		MathsHelper::DecomposeTransform(GetWorldTransform(), translate, euler, scale);
-		temp.Translate(translate);
-		temp.Scale((scale - glm::vec3(1.0f)) * glm::vec3(0.5f));
-
-		std::vector<glm::vec3> pt_world_space;
+		//cache AABB vertex world pos
+		std::vector<glm::vec3> v_world;
 		for (const auto& v : MathsHelper::CubeLocalVertices())
 		{
-			glm::vec4 local4D = glm::vec4(v, 1.0f);
-			glm::vec4 trans_v = GetWorldTransform() * local4D;
-			pt_world_space.emplace_back(glm::vec3(trans_v));
+			//vertex pos in local space
+			glm::vec4 v_local = glm::vec4(v, 1.0f);
+			//transform v_local to object world space
+			glm::vec4 trans_v = GetWorldTransform() * v_local;
+			v_world.emplace_back(trans_v);
 		}
-		for (const auto& p : pt_world_space)
+		//construct temp AABB at first pos
+		AABB temp = AABB(v_world[0]);
+		//encapsulated the rest pts 
+		for (const auto& p : v_world)
 			temp.Encapsulate(p);
-		
+
+		//Recursive encapsulate children AABB
 		for (const auto& c : m_Children)
 			temp.Encapsulate(c->GetEncapsulatedChildrenAABB());
+
 		return temp;
 	}
 
