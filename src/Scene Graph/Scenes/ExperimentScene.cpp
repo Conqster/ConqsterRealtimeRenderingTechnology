@@ -721,9 +721,63 @@ void ExperimentScene::SceneDebugger()
 	//DebugGizmos::DrawPlane(leftPlane, testPlaneSize, glm::vec3(0.0f, 0.0f, 1.0f));
 
 
-	glm::vec3 pt = m_Camera->GetPosition() +  (*m_Camera->Ptr_Near() + 1.5f)* m_Camera->GetForward();
+	glm::vec3 pt = m_Camera->GetPosition() +  (*m_Camera->Ptr_Near() + 1.5f) * m_Camera->GetForward();
 	Plane f = Plane::CreateFromPointAndNormal(pt, m_Camera->GetForward());
-	DebugGizmos::DrawPlane(f,testPlaneSize);
+	//DebugGizmos::DrawPlane(f,testPlaneSize);
+	//debug near plane normal
+	//DebugGizmos::DrawWireCone(pt + m_Camera->GetForward() * 2.0f, f.GetNormal(), m_Camera->GetRight());
+
+	float half_fov_y = glm::radians(*m_Camera->Ptr_FOV()) * 0.5f;
+	float half_fov_x = glm::atan(glm::tan(half_fov_y) * window->GetAspectRatio());
+
+	glm::vec3 right = m_Camera->GetRight();
+	glm::vec3 up = m_Camera->GetUp();
+
+	right = glm::cross(m_Camera->GetForward(), m_Camera->GetUp());
+	right = glm::normalize(right);
+	up = glm::cross(right, m_Camera->GetForward());
+	up = glm::normalize(up);
+
+	glm::vec3 left_plane_nor = glm::rotate(glm::mat4(1.0f), -half_fov_x, up) * glm::vec4(-right, 0.0f);
+	glm::vec3 right_plane_nor = glm::rotate(glm::mat4(1.0f), half_fov_x, up) * glm::vec4(right, 0.0f);
+	Plane left_f = Plane::CreateFromPointAndNormal(m_Camera->GetPosition(), left_plane_nor);
+	Plane right_f = Plane::CreateFromPointAndNormal(m_Camera->GetPosition(), right_plane_nor);
+	//DebugGizmos::DrawPlane(left_f, testPlaneSize, glm::vec3(0.0f, 0.0f, 1.0f));
+	//DebugGizmos::DrawPlane(right_f, testPlaneSize, glm::vec3(1.0f, 0.0f, 0.0f));
+	//debug right plane normal
+	glm::vec3 N = right_f.GetNormal();
+	N = glm::normalize(N);
+
+	glm::vec3 arbitrary_vec;
+	if (std::fabs(N.x) > std::fabs(N.z))
+		arbitrary_vec = glm::vec3(-N.y, N.x, 0.0f);
+	else
+		arbitrary_vec = glm::vec3(0.0f, -N.z, N.y);
+	glm::vec3 u = glm::cross(N, arbitrary_vec);
+	glm::vec3 v = glm::cross(N, u);
+	//DebugGizmos::DrawWireCone(pt + m_Camera->GetForward() * 15.0f, N, u, 1.0f, 2.0f, glm::vec3(0.0f, 0.0f, 1.0f));
+
+
+	//top and bottom
+	glm::vec3 top_plane_nor = glm::rotate(glm::mat4(1.0f), half_fov_y, right) * glm::vec4(-up, 0.0f);
+	glm::vec3 bottom_plane_nor = glm::rotate(glm::mat4(1.0f), -half_fov_y, right) * glm::vec4(up, 0.0f);
+	Plane top_f = Plane::CreateFromPointAndNormal(m_Camera->GetPosition(), top_plane_nor);
+	Plane bottom_f = Plane::CreateFromPointAndNormal(m_Camera->GetPosition(), bottom_plane_nor);
+	//DebugGizmos::DrawPlane(top_f, testPlaneSize, glm::vec3(0.0f, 1.0f, 0.0f));
+	DebugGizmos::DrawPlane(bottom_f, testPlaneSize, glm::vec3(1.0f, 1.0f, 0.0f));
+	//debug top plane normal
+	N = bottom_f.GetNormal();
+	N = glm::normalize(N);
+
+	
+	if (std::fabs(N.x) > std::fabs(N.z))
+		arbitrary_vec = glm::vec3(-N.y, N.x, 0.0f);
+	else
+		arbitrary_vec = glm::vec3(0.0f, -N.z, N.y);
+	u = glm::cross(N, arbitrary_vec);
+	DebugGizmos::DrawWireCone(pt + m_Camera->GetForward() * 15.0f, N, u, 1.0f, 2.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+
+
 
 	//glm::vec3 pt = glm::vec3(0.0f);
 	//DebugGizmos::DrawWireSphere(pt, 0.5f, glm::vec3(1.0f, 0.0f, 0.0f));
