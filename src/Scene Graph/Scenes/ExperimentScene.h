@@ -109,7 +109,6 @@ private:
 	Plane leftPlane = Plane(glm::vec3(1.0f, 0.0f, 0.0f), 5.0f);
 	Plane bottomPlane = Plane(glm::vec3(0.0f, 1.0f, 0.0f), 2.5f);
 	glm::vec2 testPlaneSize = glm::vec2(5.0f, 5.0f);
-	glm::vec3 experimentingNormals = glm::vec3(0.0f, 1.0f, 0.0f);
 	////Later have a structure for RenderData
 	//struct MeshRenderer
 	//{

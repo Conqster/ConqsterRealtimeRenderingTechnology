@@ -138,7 +138,7 @@ void ExperimentScene::InitRenderer()
 	m_SceneScreenFBO.Generate(window->GetWidth(), window->GetHeight());
 
 	m_TopDownFBO.Generate(window->GetWidth(), window->GetHeight());
-	m_TopDownCamera = Camera(glm::vec3(0.0f, 80.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), 0.0f, -90.0f, 0.0f, 0.0f);
+	m_TopDownCamera = Camera(glm::vec3(0.0f, 62.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), 0.0f, -90.0f, 0.0f, 0.0f);
 
 	//Post Process shader
 	ShaderFilePath screen_shader_file_path
@@ -713,13 +713,17 @@ void ExperimentScene::SceneDebugger()
 	//return;
 	//TEST PLANE CODE
 	//RenderCommand::DisableDepthTest();
-	DebugGizmos::DrawPlane(nearPlane, testPlaneSize, glm::vec3(1.0f, 0.0f, 0.0f));
-	DebugGizmos::DrawPlane(rightPlane, testPlaneSize, glm::vec3(0.0f, 1.0f, 0.0f));
-	DebugGizmos::DrawPlane(topPlane, testPlaneSize, glm::vec3(0.0f, 0.0f, 1.0f));
+	//DebugGizmos::DrawPlane(nearPlane, testPlaneSize, glm::vec3(1.0f, 0.0f, 0.0f));
+	//DebugGizmos::DrawPlane(rightPlane, testPlaneSize, glm::vec3(0.0f, 1.0f, 0.0f));
+	//DebugGizmos::DrawPlane(topPlane, testPlaneSize, glm::vec3(0.0f, 0.0f, 1.0f));
 
-	DebugGizmos::DrawPlane(bottomPlane, testPlaneSize, glm::vec3(0.0f, 0.0f, 1.0f));
-	DebugGizmos::DrawPlane(leftPlane, testPlaneSize, glm::vec3(0.0f, 0.0f, 1.0f));
+	//DebugGizmos::DrawPlane(bottomPlane, testPlaneSize, glm::vec3(0.0f, 0.0f, 1.0f));
+	//DebugGizmos::DrawPlane(leftPlane, testPlaneSize, glm::vec3(0.0f, 0.0f, 1.0f));
 
+
+	glm::vec3 pt = m_Camera->GetPosition() +  (*m_Camera->Ptr_Near() + 1.5f)* m_Camera->GetForward();
+	Plane f = Plane::CreateFromPointAndNormal(pt, m_Camera->GetForward());
+	DebugGizmos::DrawPlane(f,testPlaneSize);
 
 	//glm::vec3 pt = glm::vec3(0.0f);
 	//DebugGizmos::DrawWireSphere(pt, 0.5f, glm::vec3(1.0f, 0.0f, 0.0f));
@@ -930,7 +934,6 @@ void ExperimentScene::MainUI()
 
 	ImGui::Spacing();
 	ImGui::SeparatorText("Test Properties");
-	ImGui::SliderFloat3("Experimental Normals", &experimentingNormals[0], -1.0f, 1.0f);
 	glm::vec4 a = nearPlane.GetNormalAndConstant(), b = rightPlane.GetNormalAndConstant(), c = topPlane.GetNormalAndConstant(),
 			 d = leftPlane.GetNormalAndConstant(), e = bottomPlane.GetNormalAndConstant();
 	if (ImGui::DragFloat4("Near Plane", &a[0], 0.1))
@@ -1206,7 +1209,7 @@ void ExperimentScene::EditTopViewUI()
 
 
 	ImGui::SeparatorText("Frame Buffers");
-	static int scale = 1;
+	static int scale = 3;
 	ImGui::SliderInt("Scale", &scale, 1, 5);
 	ImVec2 img_size(500.0f * scale, 500.0f * scale);
 	img_size.y *= (m_TopDownFBO.GetSize().y / m_TopDownFBO.GetSize().x); //invert

@@ -597,6 +597,8 @@ void DebugGizmos::DrawPlane(const Plane& f, glm::vec2 size, glm::vec3 col, float
 	m_Shader.UnBind();
 }
 
+
+
 void DebugGizmos::DrawWirePlane(const Plane& f, glm::vec2 size, glm::vec3 col, float thickness)
 {
 	float d = f.GetConstant();
