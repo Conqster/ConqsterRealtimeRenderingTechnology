@@ -29,15 +29,16 @@ public:
 		glm::vec3 n2 = in_f2.GetNormal();
 		glm::vec3 n3 = in_f3.GetNormal();
 
+		n1 = glm::normalize(n1);
+		n2 = glm::normalize(n2);
+		n3 = glm::normalize(n3);
+
 		float c1 = in_f1.GetConstant();
 		float c2 = in_f2.GetConstant();
 		float c3 = in_f3.GetConstant();
 
 		glm::vec3 n1n2 = glm::cross(n1, n2);
 		float den = glm::dot(n1n2, n3);
-		//float den = glm::dot(glm::cross(n1, n2), n3);
-		//if (den == 0.0f)
-		//	return false;
 
 		if (std::fabs(den) > FLT_MIN)
 		{
@@ -49,6 +50,5 @@ public:
 		}
 
 		return false;
-		//return true;
 	}
 };

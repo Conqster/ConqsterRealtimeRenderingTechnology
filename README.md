@@ -31,6 +31,8 @@ The primary aim of this project is to deepen my understanding of:
 
 ### Utilities
 - Multiscene management
+- AABB Construction 
+- Dyanmic AABB - Parent-children generation (~600ums for 500 hierarchy level).
 - Model Loading via Assimp
 - Image Loading via stb_image
 - Editing UI via ImGui
@@ -90,10 +92,10 @@ The primary aim of this project is to deepen my understanding of:
 |:-|
 |<p align = "center"> *Debugging, Normals (Model Space, World Space).* </p>|
 
-#### Model Normals (Geometry Shaders)
-|<img src = "Docs/sphere_normals.png"/>|
+#### Geometry Planes
+|<img src = "Docs/Planes (Frustum Plane).gif"/>|
 |:-|
-|<p align = "center"> *Debugging, Model Normals (Geometry Shaders).* </p>|
+|<p align = "center"> *Experimenting with Planes for frustrum culling.* </p>|
 
 
 ## Documentation 

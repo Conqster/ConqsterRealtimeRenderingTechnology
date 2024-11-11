@@ -41,7 +41,7 @@ void DebugGizmos::DrawLine(glm::vec3 v1, glm::vec3 v2, glm::vec3 colour, float t
 	m_Shader.Bind();
 	glm::mat4 model = glm::mat4(1.0f);
 	m_Shader.SetUniformMat4f("u_Model", model);
-	m_Shader.SetUniformVec3("u_Colour", colour);
+	m_Shader.SetUniformVec4("u_Colour", glm::vec4(colour, 1.0f));
 	GLCall(glLineWidth(thickness));
 	glBegin(GL_LINES);
 	glVertex3fv(&v1[0]); 
@@ -72,7 +72,7 @@ void DebugGizmos::DrawWireSphere(glm::vec3 p, float radius, glm::vec3 colour, fl
 	model = glm::translate(model, p);
 	model = glm::scale(model, glm::vec3(radius));
 	m_Shader.SetUniformMat4f("u_Model", model);
-	m_Shader.SetUniformVec3("u_Colour", colour);
+	m_Shader.SetUniformVec4("u_Colour", glm::vec4(colour, 1.0f));
 	//sphere.RenderDebugOutLine(thickness);
 	m_Renderer.DrawMeshOutline(sphere);
 	m_Shader.UnBind();
@@ -91,7 +91,7 @@ void DebugGizmos::DrawSphere(glm::vec3 p, float radius, glm::vec3 colour)
 	model = glm::translate(model, p);
 	model = glm::scale(model, glm::vec3(radius));
 	m_Shader.SetUniformMat4f("u_Model", model);
-	m_Shader.SetUniformVec3("u_Colour", colour);
+	m_Shader.SetUniformVec4("u_Colour", glm::vec4(colour, 1.0f));
 	//sphere.Render();
 	m_Renderer.DrawMesh(sphere);
 	m_Shader.UnBind();
@@ -107,7 +107,7 @@ void DebugGizmos::DrawSquare(glm::vec3 center, glm::vec3 forward, float left, fl
 
 	m_Shader.Bind();
 	m_Shader.SetUniformMat4f("u_Model", glm::mat4(1.0f));
-	m_Shader.SetUniformVec3("u_Colour", colour);
+	m_Shader.SetUniformVec4("u_Colour", glm::vec4(colour, 1.0f));
 
 	//v1/////////v2//
 	//############///
@@ -150,7 +150,7 @@ void DebugGizmos::DrawBox(AABB aabb, glm::vec3 colour, float thickness)
 	
 	m_Shader.Bind();
 	m_Shader.SetUniformMat4f("u_Model", glm::mat4(1.0f));
-	m_Shader.SetUniformVec3("u_Colour", colour);
+	m_Shader.SetUniformVec4("u_Colour", glm::vec4(colour, 1.0f));
 
 	GLCall(glLineWidth(thickness));
 	glBegin(GL_LINE_LOOP);
@@ -326,7 +326,7 @@ void DebugGizmos::DrawOrthoCameraFrustrm(glm::vec3 pos, glm::vec3 forward, float
 
 	m_Shader.Bind();
 	m_Shader.SetUniformMat4f("u_Model", glm::mat4(1.0f));
-	m_Shader.SetUniformVec3("u_Colour", colour);
+	m_Shader.SetUniformVec4("u_Colour", glm::vec4(colour, 1.0f));
 
 	GLCall(glLineWidth(thickness));
 	glBegin(GL_LINE_LOOP);
@@ -417,7 +417,7 @@ void DebugGizmos::DrawPerspectiveCameraFrustum(glm::vec3 pos, glm::vec3 forward,
 
 	m_Shader.Bind();
 	m_Shader.SetUniformMat4f("u_Model", glm::mat4(1.0f));
-	m_Shader.SetUniformVec3("u_Colour", colour);
+	m_Shader.SetUniformVec4("u_Colour", glm::vec4(colour, 1.0f));
 
 	GLCall(glLineWidth(thickness));
 	glBegin(GL_LINE_LOOP);
@@ -508,7 +508,7 @@ void DebugGizmos::DrawPerspectiveCameraFrustum(glm::vec3 pos, glm::vec3 forward,
 
 	m_Shader.Bind();
 	m_Shader.SetUniformMat4f("u_Model", glm::mat4(1.0f));
-	m_Shader.SetUniformVec3("u_Colour", colour);
+	m_Shader.SetUniformVec4("u_Colour", glm::vec4(colour, 1.0f));
 
 	GLCall(glLineWidth(thickness));
 	glBegin(GL_LINE_LOOP);
@@ -574,7 +574,12 @@ void DebugGizmos::DrawPlane(const Plane& f, glm::vec2 size, glm::vec3 col, float
 
 	m_Shader.Bind();
 	m_Shader.SetUniformMat4f("u_Model", glm::mat4(1.0f));
-	m_Shader.SetUniformVec3("u_Colour", col);
+	//m_Shader.SetUniformVec3("u_Colour", col);
+	m_Shader.SetUniformVec4("u_Colour", glm::vec4(col, 0.5f));
+
+	//for transparency 
+	glEnable(GL_BLEND);
+
 	glDisable(GL_CULL_FACE);
 	glBegin(GL_TRIANGLES);
 		glVertex3f(p1.x, p1.y, p1.z);
@@ -587,6 +592,8 @@ void DebugGizmos::DrawPlane(const Plane& f, glm::vec2 size, glm::vec3 col, float
 	glEnd();
 	m_Shader.UnBind();
 	glEnable(GL_CULL_FACE);
+
+	glDisable(GL_BLEND);
 	m_Shader.UnBind();
 }
 
@@ -617,7 +624,7 @@ void DebugGizmos::DrawWirePlane(const Plane& f, glm::vec2 size, glm::vec3 col, f
 
 	m_Shader.Bind();
 	m_Shader.SetUniformMat4f("u_Model", glm::mat4(1.0f));
-	m_Shader.SetUniformVec3("u_Colour", col);
+	m_Shader.SetUniformVec4("u_Colour", glm::vec4(col, 1.0f));
 	glBegin(GL_LINE_LOOP);
 		glVertex3f(p1.x, p1.y, p1.z);
 		glVertex3f(p2.x, p2.y, p2.z);

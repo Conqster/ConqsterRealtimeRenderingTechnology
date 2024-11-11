@@ -713,16 +713,36 @@ void ExperimentScene::SceneDebugger()
 	//return;
 	//TEST PLANE CODE
 	//RenderCommand::DisableDepthTest();
-	DebugGizmos::DrawPlane(testPlane1, testPlaneSize, glm::vec3(1.0f, 0.0f, 0.0f));
-	DebugGizmos::DrawPlane(testPlane2, testPlaneSize, glm::vec3(0.0f, 1.0f, 0.0f));
-	DebugGizmos::DrawPlane(testPlane3, testPlaneSize, glm::vec3(0.0f, 0.0f, 1.0f));
+	DebugGizmos::DrawPlane(nearPlane, testPlaneSize, glm::vec3(1.0f, 0.0f, 0.0f));
+	DebugGizmos::DrawPlane(rightPlane, testPlaneSize, glm::vec3(0.0f, 1.0f, 0.0f));
+	DebugGizmos::DrawPlane(topPlane, testPlaneSize, glm::vec3(0.0f, 0.0f, 1.0f));
+
+	DebugGizmos::DrawPlane(bottomPlane, testPlaneSize, glm::vec3(0.0f, 0.0f, 1.0f));
+	DebugGizmos::DrawPlane(leftPlane, testPlaneSize, glm::vec3(0.0f, 0.0f, 1.0f));
 
 
-	glm::vec3 pt = glm::vec3(0.0f);
-	DebugGizmos::DrawWireSphere(pt, 0.5f, glm::vec3(1.0f, 0.0f, 0.0f));
-	bool intersection = Plane::IntersectThreePlanes(testPlane1, testPlane2, testPlane3, pt);
-	DebugGizmos::DrawSphere(pt, 0.5f);
+	//glm::vec3 pt = glm::vec3(0.0f);
+	//DebugGizmos::DrawWireSphere(pt, 0.5f, glm::vec3(1.0f, 0.0f, 0.0f));
+	//bool intersection = Plane::IntersectThreePlanes(nearPlane, rightPlane, topPlane, pt);
+	//DebugGizmos::DrawSphere(pt, 0.5f);
 	//RenderCommand::EnableDepthTest();
+
+
+	glm::vec3 pt_top_left = glm::vec3(0.0f), pt_top_right = glm::vec3(0.0f), 
+			  pt_bottom_left = glm::vec3(0.0f), pt_bottom_right = glm::vec3(0.0f);
+
+	Plane::IntersectThreePlanes(leftPlane, nearPlane, topPlane, pt_top_left);
+	Plane::IntersectThreePlanes(leftPlane, nearPlane, bottomPlane, pt_bottom_left);
+
+	Plane::IntersectThreePlanes(rightPlane, nearPlane, topPlane, pt_top_right);
+	Plane::IntersectThreePlanes(rightPlane, nearPlane, bottomPlane, pt_bottom_right);
+
+	DebugGizmos::DrawSphere(pt_top_left, 0.5f, glm::vec3(1.0f, 1.0f, 0.0f));
+	DebugGizmos::DrawSphere(pt_bottom_left, 0.5f, glm::vec3(0.0f, 1.0f, 1.0f));
+
+	DebugGizmos::DrawSphere(pt_top_right, 0.5f, glm::vec3(1.0f, 0.0f, 0.0f));
+	DebugGizmos::DrawSphere(pt_bottom_right, 0.5f, glm::vec3(0.0f, 0.0f, 1.0f));
+
 
 	return;
 
@@ -911,21 +931,32 @@ void ExperimentScene::MainUI()
 	ImGui::Spacing();
 	ImGui::SeparatorText("Test Properties");
 	ImGui::SliderFloat3("Experimental Normals", &experimentingNormals[0], -1.0f, 1.0f);
-	glm::vec4 a = testPlane1.GetNormalAndConstant(), b = testPlane2.GetNormalAndConstant(), c = testPlane3.GetNormalAndConstant();
-	if (ImGui::DragFloat4("Test Plane 1", &a[0], 0.1))
+	glm::vec4 a = nearPlane.GetNormalAndConstant(), b = rightPlane.GetNormalAndConstant(), c = topPlane.GetNormalAndConstant(),
+			 d = leftPlane.GetNormalAndConstant(), e = bottomPlane.GetNormalAndConstant();
+	if (ImGui::DragFloat4("Near Plane", &a[0], 0.1))
 	{
 		//testPlane1 = Plane(a, glm::length(a));
-		testPlane1 = Plane(a);
+		nearPlane = Plane(a);
 	}
-	if (ImGui::DragFloat4("Test Plane 2", &b[0], 0.1))
+	if (ImGui::DragFloat4("Right Plane", &b[0], 0.1))
 	{
 		//testPlane2 = Plane(b, glm::length(b));
-		testPlane2 = Plane(b);
+		rightPlane = Plane(b);
 	}
-	if (ImGui::DragFloat4("Test Plane 3", &c[0], 0.1))
+	if (ImGui::DragFloat4("Top plane", &c[0], 0.1))
 	{
 		//testPlane3 = Plane(c, glm::length(c));
-		testPlane3 = Plane(c);
+		topPlane = Plane(c);
+	}
+	if (ImGui::DragFloat4("Left plane", &d[0], 0.1))
+	{
+		//testPlane3 = Plane(c, glm::length(c));
+		leftPlane = Plane(d);
+	}
+	if (ImGui::DragFloat4("Bottom plane", &e[0], 0.1))
+	{
+		//testPlane3 = Plane(c, glm::length(c));
+		bottomPlane = Plane(e);
 	}
 ;
 	ImGui::DragFloat2("Test Plane Size", &testPlaneSize[0], 0.1);
