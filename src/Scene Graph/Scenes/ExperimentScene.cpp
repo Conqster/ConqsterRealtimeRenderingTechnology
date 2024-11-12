@@ -21,6 +21,8 @@
 #include "Util/GameTime.h"
 #include <iostream>
 
+#include "Geometry/Frustum.h"
+
 /// <summary>
 /// Need to remove this later
 /// </summary>
@@ -703,14 +705,67 @@ void ExperimentScene::PostProcess()
 
 void ExperimentScene::SceneDebugger()
 {
-	const auto& cam = m_Camera;
-	DebugGizmos::DrawPerspectiveCameraFrustum(cam->GetPosition(), -cam->GetForward(), *cam->Ptr_FOV(),
-											  window->GetAspectRatio(), *cam->Ptr_Near(), *cam->Ptr_Far(), 
-											  glm::vec3(0.0f, 0.0f, 1.0f), 2.0f);
+	//const auto& cam = m_Camera;
+	//DebugGizmos::DrawPerspectiveCameraFrustum(cam->GetPosition(), -cam->GetForward(), *cam->Ptr_FOV(),
+	//										  window->GetAspectRatio(), *cam->Ptr_Near(), *cam->Ptr_Far(), 
+	//										  glm::vec3(0.0f, 0.0f, 1.0f), 2.0f);
 
 
+	Frustum frustum = Frustum(m_Camera->GetPosition(), m_Camera->GetForward(),
+		m_Camera->GetUp(), *m_Camera->Ptr_Near(), *m_Camera->Ptr_Far(), *m_Camera->Ptr_FOV(), window->GetAspectRatio());
 
-	//return;
+	DebugGizmos::DrawFrustum(frustum, glm::vec3(1.0f, 0.0f, 0.0f));
+
+	return;
+	//draw a unit AABB at pos 
+	glm::vec3 pos(0.0f, 20.0f, 0.0f);
+	AABB aabb = AABB(pos);
+	aabb.Scale(glm::vec3(0.5f));
+	glm::vec3 blue_col(0.0f, 0.0f, 1.0f);
+	glm::vec3 red_col(1.0f, 0.0f, 0.0f);
+
+	//Draw a solid right plane 
+	float s = glm::radians(*m_Camera->Ptr_FOV()) * 0.5f;
+	float g = glm::atan(glm::tan(s) * window->GetAspectRatio());
+	glm::vec3 rt = glm::cross(m_Camera->GetForward(), m_Camera->GetUp());
+	rt = glm::normalize(rt);
+	glm::vec3 _up = glm::cross(rt, m_Camera->GetForward());
+	_up = glm::normalize(_up);
+	glm::vec3 rt_nor = glm::rotate(glm::mat4(1.0f), g, _up) * glm::vec4(rt, 0.0f);
+	Plane rt_f = Plane::CreateFromPointAndNormal(m_Camera->GetPosition(), rt_nor);
+	DebugGizmos::DrawPlane(rt_f, testPlaneSize);
+
+	//get object/aabb relative pos to camera
+	glm::vec3 relative_pos = aabb.GetCenter() - m_Camera->GetPosition();
+	//glm::vec3 aabb_dir = glm::normalize(relative_pos);
+	glm::vec3 Nf = glm::normalize(rt_nor);
+	//float _dot = glm::dot(Nf, aabb_dir);
+	//glm::vec3 use_col = (_dot < 0) ? red_col : blue_col;
+	//DebugGizmos::DrawBox(aabb, use_col);
+	//DebugGizmos::DrawSphere(pos, 0.2f, use_col);
+
+
+	//debug plane direction 
+	glm::vec3 vec;
+	if (std::fabs(Nf.x) > std::fabs(Nf.z))
+		vec = glm::vec3(-Nf.y, Nf.x, 0.0f);
+	else
+		vec = glm::vec3(0.0f, -Nf.z, Nf.y);
+	glm::vec3 _u = glm::cross(Nf, vec);
+	DebugGizmos::DrawWireCone(m_Camera->GetPosition() + *m_Camera->Ptr_Near() * m_Camera->GetForward() * 25.0f + _u * 50.0f, Nf, _u, 1.0f, 2.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+
+	glm::vec3 aabb_w_dir = glm::normalize(aabb.GetCenter());
+	aabb_w_dir = glm::normalize(aabb_w_dir);
+	glm::vec3 N_f = rt_f.GetNormal();
+	//N_f = glm::normalize(N_f);
+	float d = rt_f.GetConstant();
+	glm::vec3 offset = d * N_f;
+	float dot_p = glm::dot(offset, aabb_w_dir);
+	glm::vec3 use_col = (dot_p < 0.0f) ? red_col : blue_col;
+	DebugGizmos::DrawBox(aabb, use_col);
+	DebugGizmos::DrawSphere(aabb.GetCenter(), 0.2f, use_col);
+
+	return;
 	//TEST PLANE CODE
 	//RenderCommand::DisableDepthTest();
 	//DebugGizmos::DrawPlane(nearPlane, testPlaneSize, glm::vec3(1.0f, 0.0f, 0.0f));

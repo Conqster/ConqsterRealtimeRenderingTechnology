@@ -549,7 +549,12 @@ void DebugGizmos::DrawPerspectiveCameraFrustum(glm::vec3 pos, glm::vec3 forward,
 
 void DebugGizmos::DrawPlane(const Plane& f, glm::vec2 size, glm::vec3 col, float thickness)
 {
-	
+	if (!use)
+		return;
+
+	if (!active)
+		Generate();
+
 	float d = f.GetConstant();
 	glm::vec3 N = f.GetNormal();
 	N = glm::normalize(N);
@@ -601,6 +606,12 @@ void DebugGizmos::DrawPlane(const Plane& f, glm::vec2 size, glm::vec3 col, float
 
 void DebugGizmos::DrawWirePlane(const Plane& f, glm::vec2 size, glm::vec3 col, float thickness)
 {
+	if (!use)
+		return;
+
+	if (!active)
+		Generate();
+
 	float d = f.GetConstant();
 	glm::vec3 N = f.GetNormal();
 	N = glm::normalize(N);
@@ -635,6 +646,123 @@ void DebugGizmos::DrawWirePlane(const Plane& f, glm::vec2 size, glm::vec3 col, f
 		//extra for visuals
 		glVertex3f(p1.x, p1.y, p1.z);
 		glVertex3f(p3.x, p3.y, p3.z);
+	glEnd();
+	m_Shader.UnBind();
+}
+
+void DebugGizmos::DrawFrustum(const Frustum& f, glm::vec3 col, float thickness)
+{
+	if (!use)
+		return;
+
+	if (!active)
+		Generate();
+
+
+	Plane lt_plane = f.GetPlane(Frustum::Planes_side::Left);
+	Plane rt_plane = f.GetPlane(Frustum::Planes_side::Right);
+	Plane nr_plane = f.GetPlane(Frustum::Planes_side::Near);
+	Plane tp_plane = f.GetPlane(Frustum::Planes_side::Top);
+	Plane bm_plane = f.GetPlane(Frustum::Planes_side::Bottom);
+	Plane fr_plane = f.GetPlane(Frustum::Planes_side::Far);
+
+	//near pts top_lt >> bottom_lt >> bottom_rt >> top_rt
+	glm::vec3 p1 = glm::vec3(0.0f); 
+	glm::vec3 p2 = glm::vec3(0.0f);
+	glm::vec3 p3 = glm::vec3(0.0f);
+	glm::vec3 p4 = glm::vec3(0.0f);
+	Plane::IntersectThreePlanes(tp_plane, nr_plane, lt_plane, p1);
+	Plane::IntersectThreePlanes(bm_plane, nr_plane, lt_plane, p2);
+	Plane::IntersectThreePlanes(bm_plane, nr_plane, rt_plane, p3);
+	Plane::IntersectThreePlanes(tp_plane, nr_plane, rt_plane, p4);
+
+	//debug sphere 
+	DrawSphere(p1, 0.5f, col);
+	DrawSphere(p2, 0.5f, col);
+	DrawSphere(p3, 0.5f, col);
+	DrawSphere(p4, 0.5f, col);
+
+
+	//far pts top_lt >> bottom_lt >> bottom_rt >> top_rt
+	glm::vec3 p5 = glm::vec3(0.0f);
+	glm::vec3 p6 = glm::vec3(0.0f);
+	glm::vec3 p7 = glm::vec3(0.0f);
+	glm::vec3 p8 = glm::vec3(0.0f);
+	Plane::IntersectThreePlanes(tp_plane, fr_plane, lt_plane, p5);
+	Plane::IntersectThreePlanes(bm_plane, fr_plane, lt_plane, p6);
+	Plane::IntersectThreePlanes(bm_plane, fr_plane, rt_plane, p7);
+	Plane::IntersectThreePlanes(tp_plane, fr_plane, rt_plane, p8);
+
+
+	//debug sphere 
+	DrawSphere(p5, 0.5f, col);
+	DrawSphere(p6, 0.5f, col);
+	DrawSphere(p7, 0.5f, col);
+	DrawSphere(p8, 0.5f, col);
+
+
+	DrawLine(p1, p5, col);
+	DrawLine(p2, p6, col);
+	DrawLine(p3, p7, col);
+	DrawLine(p4, p8, col);
+
+	//return;
+	//Draw solid colours
+	m_Shader.Bind();
+	m_Shader.SetUniformMat4f("u_Model", glm::mat4(1.0f));
+	m_Shader.SetUniformVec4("u_Colour", glm::vec4(col, 0.5f));
+	glBegin(GL_LINE_LOOP);
+		glVertex3fv(&p1[0]);
+		glVertex3fv(&p2[0]);
+		glVertex3fv(&p3[0]);
+		glVertex3fv(&p4[0]);
+	glEnd();
+	glBegin(GL_TRIANGLES);
+	//left plane 
+		glVertex3fv(&p7[0]);
+		glVertex3fv(&p3[0]);
+		glVertex3fv(&p4[0]);
+
+		glVertex3fv(&p8[0]);
+		glVertex3fv(&p7[0]);
+		glVertex3fv(&p4[0]);
+
+	//top plane
+		glVertex3fv(&p8[0]);//glVertex3fv(&p1[0]);
+		glVertex3fv(&p4[0]);//glVertex3fv(&p4[0]);
+		glVertex3fv(&p1[0]);//glVertex3fv(&p8[0]);
+
+		glVertex3fv(&p5[0]);//glVertex3fv(&p1[0]);
+		glVertex3fv(&p8[0]);//glVertex3fv(&p8[0]);
+		glVertex3fv(&p1[0]);//glVertex3fv(&p5[0]);
+
+	//right plane 
+		glVertex3fv(&p6[0]);
+		glVertex3fv(&p5[0]);
+		glVertex3fv(&p1[0]);
+
+		glVertex3fv(&p6[0]);
+		glVertex3fv(&p1[0]);
+		glVertex3fv(&p2[0]);
+
+	//bottom plane 
+		glVertex3fv(&p6[0]);
+		glVertex3fv(&p7[0]);
+		glVertex3fv(&p2[0]);
+
+		glVertex3fv(&p2[0]);
+		glVertex3fv(&p7[0]);
+		glVertex3fv(&p3[0]);
+
+	//near plane 
+		glVertex3fv(&p1[0]);
+		glVertex3fv(&p2[0]);
+		glVertex3fv(&p4[0]);
+
+		glVertex3fv(&p4[0]);
+		glVertex3fv(&p2[0]);
+		glVertex3fv(&p3[0]);
+
 	glEnd();
 	m_Shader.UnBind();
 }
