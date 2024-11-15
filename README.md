@@ -2,10 +2,11 @@
 
 CRRT is personal learning project focused on real-time 3D rendering using OpenGL. Designed to explore, implement various rendering techniques and features. 
 
-|<a href="https://www.youtube.com/watch?v=9skO5a-XUGg"><img src = "Docs/Attempted Geometry Algebra - Topdown view.png"/>|
+|<a href="https://youtu.be/BJatTR7e0eU"><img src = "Docs/Attempted Geometry Algebra - Topdown view.png"/>|
 |:-|
 |<p align = "center"> *A Youtube video of current Milestone with light rendering simulation.* </p>|
 
+For more development [demos.](https://youtu.be/BJatTR7e0eU)
 
 ## Goals
 The primary aim of this project is to deepen my understanding of: 

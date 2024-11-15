@@ -58,6 +58,39 @@ public:
 	const Plane& GetPlane(int side) const { return m_Planes[side]; }
 
 
+	inline bool InFrustum(const AABB& aabb) const
+	{
+
+	}
+
+	inline bool InFrustum(const glm::vec3& point) const
+	{
+		//far is bad more like near 
+		//Plane f = m_Planes[(int)Planes_side::Top];
+		//glm::vec3 _nor = f.GetNormal();
+		//float d = f.GetConstant();
+		//return ((glm::dot(_nor, point)) > 0);
+
+		for (unsigned int i = 0; i < 6; i++)
+		{
+			glm::vec3 nor = m_Planes[i].GetNormal();
+			float d = m_Planes[i].GetConstant();
+
+			if (i == (int)Planes_side::Far)
+			{
+				if ((glm::dot(nor, point) + d) < 0)
+					return false;
+
+				//if((glm::dot(nor, point) + d) < 0)
+				//	return false;
+			}
+			else if ((glm::dot(nor, point)) < 0)
+				return false;
+		}
+
+		return true;
+	}
+
 
 private:
 	Plane m_Planes[6];

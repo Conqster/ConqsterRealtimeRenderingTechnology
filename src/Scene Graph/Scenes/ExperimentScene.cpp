@@ -714,8 +714,19 @@ void ExperimentScene::SceneDebugger()
 	Frustum frustum = Frustum(m_Camera->GetPosition(), m_Camera->GetForward(),
 		m_Camera->GetUp(), *m_Camera->Ptr_Near(), *m_Camera->Ptr_Far(), *m_Camera->Ptr_FOV(), window->GetAspectRatio());
 
-	DebugGizmos::DrawFrustum(frustum, glm::vec3(1.0f, 0.0f, 0.0f));
 
+	glm::vec3 a_pos(0.0f, 20.0f, 0.0f);
+	AABB a_aabb = AABB(a_pos);
+	a_aabb.Scale(glm::vec3(1.0f));
+	glm::vec3 a_blue_col(0.0f, 0.0f, 1.0f);
+	glm::vec3 a_red_col(1.0f, 0.0f, 0.0f);
+	glm::vec3 rel_pos = a_aabb.GetCenter() - m_Camera->GetPosition();
+	rel_pos = glm::normalize(rel_pos);
+	bool isInView = frustum.InFrustum(rel_pos);
+	glm::vec3 a_use_col = (isInView) ? a_blue_col : a_red_col;
+	DebugGizmos::DrawBox(a_aabb, a_use_col);
+	DebugGizmos::DrawSphere(a_pos, 0.2f, a_use_col);
+	DebugGizmos::DrawFrustum(frustum, glm::vec3(1.0f, 0.0f, 0.0f));
 	return;
 	//draw a unit AABB at pos 
 	glm::vec3 pos(0.0f, 20.0f, 0.0f);
@@ -737,14 +748,14 @@ void ExperimentScene::SceneDebugger()
 
 	//get object/aabb relative pos to camera
 	glm::vec3 relative_pos = aabb.GetCenter() - m_Camera->GetPosition();
-	//glm::vec3 aabb_dir = glm::normalize(relative_pos);
+	glm::vec3 aabb_dir = glm::normalize(relative_pos);
 	glm::vec3 Nf = glm::normalize(rt_nor);
-	//float _dot = glm::dot(Nf, aabb_dir);
-	//glm::vec3 use_col = (_dot < 0) ? red_col : blue_col;
-	//DebugGizmos::DrawBox(aabb, use_col);
-	//DebugGizmos::DrawSphere(pos, 0.2f, use_col);
+	float _dot = glm::dot(Nf, aabb_dir);
+	glm::vec3 use_col = (_dot < 0) ? red_col : blue_col;
+	DebugGizmos::DrawBox(aabb, use_col);
+	DebugGizmos::DrawSphere(pos, 0.2f, use_col);
 
-
+	return;
 	//debug plane direction 
 	glm::vec3 vec;
 	if (std::fabs(Nf.x) > std::fabs(Nf.z))
@@ -761,7 +772,7 @@ void ExperimentScene::SceneDebugger()
 	float d = rt_f.GetConstant();
 	glm::vec3 offset = d * N_f;
 	float dot_p = glm::dot(offset, aabb_w_dir);
-	glm::vec3 use_col = (dot_p < 0.0f) ? red_col : blue_col;
+	//glm::vec3 use_col = (dot_p < 0.0f) ? red_col : blue_col;
 	DebugGizmos::DrawBox(aabb, use_col);
 	DebugGizmos::DrawSphere(aabb.GetCenter(), 0.2f, use_col);
 
