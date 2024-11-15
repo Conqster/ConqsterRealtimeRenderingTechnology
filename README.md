@@ -116,3 +116,9 @@ Current libaries in use: GLM, GLEW, GLFW, stb-image, Assimp.
 - Foundations of Game Engine Development (Volume 2 - Rendering) Eric Lengyel.
 - [Forward and Deferred Rendering - Cambridge Computer Science Talks.](https://youtu.be/n5OiqJP2f7w?si=QQGg5Mj2bPoBzMiu)
 - Core Techniques and Algorithms in Game Programming.
+
+## Models & Textures Acknowledgements 
+- [Sci-fi-Electrical-Charger](https://sketchfab.com/3d-models/sci-fi-electrical-charger-free-download-f09b75dca41b40f6b1c3c64eca138094): by [JonParrish](https://sketchfab.com/JonParrish)
+- [Patterned-Cobblestone-Texture](https://polyhaven.com/a/patterned_cobblestone_02): from [Poly-Haven](https://polyhaven.com/)
+- [Patterned-Brick-Floor-Texture](https://polyhaven.com/a/patterned_brick_floor_02): from [Poly-Haven](https://polyhaven.com/)
+- [Glass-background-Frosted-Pattern](https://www.freepik.com/free-photo/glass-background-with-frosted-pattern_18092852.htm#fromView=keyword&page=1&position=0&uuid=b22ead14-eeca-4b1a-af1c-f9b5c390cf0f): from [FreePik](https://www.freepik.com/)
