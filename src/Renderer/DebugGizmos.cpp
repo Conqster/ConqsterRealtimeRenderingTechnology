@@ -711,6 +711,7 @@ void DebugGizmos::DrawFrustum(const Frustum& f, glm::vec3 col, float thickness)
 	m_Shader.Bind();
 	m_Shader.SetUniformMat4f("u_Model", glm::mat4(1.0f));
 	m_Shader.SetUniformVec4("u_Colour", glm::vec4(col, 0.5f));
+	glDisable(GL_CULL_FACE);
 	glBegin(GL_LINE_LOOP);
 		glVertex3fv(&p1[0]);
 		glVertex3fv(&p2[0]);
@@ -753,8 +754,11 @@ void DebugGizmos::DrawFrustum(const Frustum& f, glm::vec3 col, float thickness)
 		glVertex3fv(&p2[0]);
 		glVertex3fv(&p7[0]);
 		glVertex3fv(&p3[0]);
+	glEnd();
 
 	//near plane 
+	glEnable(GL_CULL_FACE);
+	glBegin(GL_TRIANGLES);
 		glVertex3fv(&p1[0]);
 		glVertex3fv(&p2[0]);
 		glVertex3fv(&p4[0]);

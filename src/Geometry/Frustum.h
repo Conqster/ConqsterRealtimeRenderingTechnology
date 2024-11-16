@@ -58,36 +58,48 @@ public:
 	const Plane& GetPlane(int side) const { return m_Planes[side]; }
 
 
-	inline bool InFrustum(const AABB& aabb) const
+	inline bool IntersectFrustum(const AABB& aabb) const
 	{
-
+		//check if center is in frustum 
+		if (!InFrustum(aabb.GetCenter()))
+		{
+			//if center is not,
+			//check for other possible aabb points 
+			//return the first successful 
+			glm::vec3 min = aabb.m_Min;
+			glm::vec3 max = aabb.m_Max;
+			bool in_frustum = InFrustum(min);
+			if (in_frustum) return true;
+			in_frustum = InFrustum(max);
+			if (in_frustum) return true;
+			in_frustum = InFrustum(glm::vec3(max.x, min.y, min.z));
+			if (in_frustum) return true;
+			in_frustum = InFrustum(glm::vec3(max.x, max.y, min.z));
+			if (in_frustum) return true;
+			in_frustum = InFrustum(glm::vec3(min.x, max.y, min.z));
+			if (in_frustum) return true;
+			in_frustum = InFrustum(glm::vec3(min.x, max.y, max.z));
+			if (in_frustum) return true;
+			in_frustum = InFrustum(glm::vec3(max.x, min.y, max.z));
+			if (in_frustum) return true;
+			
+			//return last if failed/passed 
+			return InFrustum(glm::vec3(min.x, min.y, max.z));
+		}
+		return true;
 	}
 
 	inline bool InFrustum(const glm::vec3& point) const
 	{
-		//far is bad more like near 
-		//Plane f = m_Planes[(int)Planes_side::Top];
-		//glm::vec3 _nor = f.GetNormal();
-		//float d = f.GetConstant();
-		//return ((glm::dot(_nor, point)) > 0);
-
 		for (unsigned int i = 0; i < 6; i++)
 		{
 			glm::vec3 nor = m_Planes[i].GetNormal();
+			nor = glm::normalize(nor);
 			float d = m_Planes[i].GetConstant();
 
-			if (i == (int)Planes_side::Far)
-			{
-				if ((glm::dot(nor, point) + d) < 0)
-					return false;
-
-				//if((glm::dot(nor, point) + d) < 0)
-				//	return false;
-			}
-			else if ((glm::dot(nor, point)) < 0)
+			if ((glm::dot(nor, point) + d) < 0)
 				return false;
 		}
-
 		return true;
 	}
 

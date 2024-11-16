@@ -95,13 +95,13 @@ void Game::OnStart()
 	m_SceneManager->RegisterNewScene<AntiAliasingScene>("AntiAliasing Scene");
 	//m_SceneManager->RegisterNewScene<AdvanceLightingScene>("Advance Lighting Scene");
 	//m_SceneManager->RegisterNewScene<ParallaxExperimentalScene>("Parallax Scene");
-	m_SceneManager->RegisterNewScene<ExperimentScene>("ReWritingScene");
+	m_SceneManager->RegisterNewScene<ExperimentScene>("ReWorking_Scene_Rendering");
 
 	//Load
 	//m_CurrentScene = m_SceneManager->LoadScene("Instance Scene", m_Window);
 	//m_CurrentScene = m_SceneManager->LoadScene("Advance Lighting Scene", m_Window);
 	//m_CurrentScene = m_SceneManager->LoadScene("Parallax Scene", m_Window);
-	m_CurrentScene = m_SceneManager->LoadScene("ReWritingScene", m_Window);
+	m_CurrentScene = m_SceneManager->LoadScene("ReWorking_Scene_Rendering", m_Window);
 	//m_CurrentScene = m_SceneManager->LoadScene("Face Culling", m_Window);
 	//m_CurrentScene = m_SceneManager->LoadScene("Texture_FrameBufferScene", m_Window);
 	//m_CurrentScene = m_SceneManager->LoadScene("AntiAliasing Scene", m_Window);

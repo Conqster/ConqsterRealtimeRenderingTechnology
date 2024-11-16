@@ -34,6 +34,7 @@ The primary aim of this project is to deepen my understanding of:
 - Multiscene management
 - AABB Construction 
 - Dyanmic AABB - Parent-children generation (~600ums for 500 hierarchy level).
+- Frustum Culling (Dyanmic AABB intersection against Geometry planes).
 - Model Loading via Assimp
 - Image Loading via stb_image
 - Editing UI via ImGui

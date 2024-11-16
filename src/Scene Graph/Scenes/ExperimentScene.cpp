@@ -717,12 +717,13 @@ void ExperimentScene::SceneDebugger()
 
 	glm::vec3 a_pos(0.0f, 20.0f, 0.0f);
 	AABB a_aabb = AABB(a_pos);
-	a_aabb.Scale(glm::vec3(1.0f));
+	a_aabb.Scale(glm::vec3(5.0f));
 	glm::vec3 a_blue_col(0.0f, 0.0f, 1.0f);
 	glm::vec3 a_red_col(1.0f, 0.0f, 0.0f);
 	glm::vec3 rel_pos = a_aabb.GetCenter() - m_Camera->GetPosition();
-	rel_pos = glm::normalize(rel_pos);
-	bool isInView = frustum.InFrustum(rel_pos);
+	rel_pos = a_aabb.GetCenter();
+	//rel_pos = glm::normalize(rel_pos);
+	bool isInView = frustum.IntersectFrustum(a_aabb);
 	glm::vec3 a_use_col = (isInView) ? a_blue_col : a_red_col;
 	DebugGizmos::DrawBox(a_aabb, a_use_col);
 	DebugGizmos::DrawSphere(a_pos, 0.2f, a_use_col);
