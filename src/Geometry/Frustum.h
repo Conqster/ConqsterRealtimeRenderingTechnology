@@ -12,7 +12,6 @@ public:
 	Frustum(const glm::vec3& pos, const glm::vec3& forward, glm::vec3 _up, const float cam_near, const float cam_far, float fov, float aspect_ratio)
 	{
 		//Near plane
-		glm::vec3 pt; 
 		m_Planes[0] = Plane::CreateFromPointAndNormal(pos + (cam_near * forward), forward);
 		//far 
 		m_Planes[1] = Plane::CreateFromPointAndNormal(pos + (cam_far * forward), -forward);
@@ -58,6 +57,12 @@ public:
 	const Plane& GetPlane(int side) const { return m_Planes[side]; }
 
 
+	/// <summary>
+	/// Current issue if all points are out of view for a hugh AABB,
+	/// but one or more of its edge is in view there is no calculation to confirm its visisblity 
+	/// </summary>
+	/// <param name="aabb"></param>
+	/// <returns></returns>
 	inline bool IntersectFrustum(const AABB& aabb) const
 	{
 		//check if center is in frustum 

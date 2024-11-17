@@ -405,7 +405,11 @@ void ExperimentScene::BuildSceneEntities()
 	// 
 	//	by mesh data
 	// 
-	for (auto& e : m_SceneEntities)
+
+	std::vector<std::weak_ptr<Entity>> temp_entities = BuildVisibleEntities(m_SceneEntities);
+
+	//for (auto& e : m_SceneEntities)
+	for (auto& e : temp_entities)
 		BuildEntitiesWithRenderMesh(e);
 
 	//	by material
@@ -424,6 +428,57 @@ void ExperimentScene::BuildSceneEntities()
 	//	by shadowcast
 }
 
+
+
+std::vector<std::weak_ptr<Entity>> ExperimentScene::BuildVisibleEntities(const std::vector<std::shared_ptr<Entity>>& entity_collection)
+{
+	//return std::vector<std::weak_ptr<Entity>> instead of std::vector<std::weak_ptr<Entity>>& 
+	// because by return a ref the visible_entity is create within the function on stack and as soon as the function goes out of scope
+	// the variable gets deleted and returns an empty vector. but by returning a copy this ensures a returned data.
+	//loop through all entities 
+	//and create an aabb for entities
+	//then check aabb visiblity, if not remove entity
+
+	//create a frustum for the current camera state 
+	const auto& cam = m_Camera;
+	Frustum frustum = Frustum(cam->GetPosition(), cam->GetForward(),cam->GetUp(), *cam->Ptr_Near(), 
+							 *cam->Ptr_Far(), *cam->Ptr_FOV(), window->GetAspectRatio());
+
+	std::vector<std::weak_ptr<Entity>> visible_entity;
+	visible_entity.reserve(entity_collection.size());
+
+	//loop all entities
+	for (const auto& e : entity_collection)
+	{
+		//aabb points in world space
+		std::vector<glm::vec3> pt_world_space;
+		//transform a unit aabb cube (1 unit) to enitity pos neglecting oritentation 
+		for (const auto& v : MathsHelper::CubeLocalVertices())
+		{
+			glm::vec4 trans_v = e->GetWorldTransform() * glm::vec4(v, 1.0f);
+			pt_world_space.emplace_back(glm::vec3(trans_v));
+		}
+
+		//generate an AABB based of first vertex pt
+		AABB bounds = AABB(pt_world_space[0]);
+		//encapsulate the rest pts
+		for (const auto& p : pt_world_space)
+			bounds.Encapsulate(p);
+
+		//if e entity has children encapsulate their AABB
+		if (e->GetChildren().size() > 0)
+			bounds = e->GetEncapsulatedChildrenAABB(); //already computed
+
+
+		//check if aabb bounds is in frustum 
+		if (frustum.IntersectFrustum(bounds))
+			visible_entity.emplace_back(e); //store if entity is visible
+	}
+
+	//return all visiblities
+	return visible_entity;
+}
+
 /// <summary>
 /// Recursively build scene with renderable mesh as only enitities with mesh could be rendered.
 /// </summary>
@@ -438,6 +493,22 @@ void ExperimentScene::BuildEntitiesWithRenderMesh(const std::shared_ptr<Entity>&
 	auto& children = parent_entity->GetChildren();
 	for (auto c = children.begin(); c != children.end(); ++c)
 		BuildEntitiesWithRenderMesh(*c);
+}
+
+void ExperimentScene::BuildEntitiesWithRenderMesh(const std::weak_ptr<Entity>& parent_entity)
+{
+
+	if (!parent_entity.expired())
+	{
+		auto& render_mesh = parent_entity.lock()->GetMaterial();
+
+		if (render_mesh)
+			m_SceneEntitiesWcRenderableMesh.emplace_back(parent_entity);
+
+		auto& children = parent_entity.lock()->GetChildren();
+		for (auto c = children.begin(); c != children.end(); ++c)
+			BuildEntitiesWithRenderMesh(*c);
+	}
 }
 
 void ExperimentScene::BuildOpacityTransparencyFromRenderMesh(const std::vector<std::weak_ptr<Entity>>& renderable_list)
@@ -705,171 +776,21 @@ void ExperimentScene::PostProcess()
 
 void ExperimentScene::SceneDebugger()
 {
-	//const auto& cam = m_Camera;
-	//DebugGizmos::DrawPerspectiveCameraFrustum(cam->GetPosition(), -cam->GetForward(), *cam->Ptr_FOV(),
-	//										  window->GetAspectRatio(), *cam->Ptr_Near(), *cam->Ptr_Far(), 
-	//										  glm::vec3(0.0f, 0.0f, 1.0f), 2.0f);
+	const auto& cam = m_Camera;
+	Frustum frustum = Frustum(cam->GetPosition(), cam->GetForward(),cam->GetUp(), *cam->Ptr_Near(), 
+							 *cam->Ptr_Far(), *cam->Ptr_FOV(), window->GetAspectRatio());
 
 
-	Frustum frustum = Frustum(m_Camera->GetPosition(), m_Camera->GetForward(),
-		m_Camera->GetUp(), *m_Camera->Ptr_Near(), *m_Camera->Ptr_Far(), *m_Camera->Ptr_FOV(), window->GetAspectRatio());
-
-
-	glm::vec3 a_pos(0.0f, 20.0f, 0.0f);
-	AABB a_aabb = AABB(a_pos);
+	AABB a_aabb = AABB(glm::vec3(0.0f, 20.0f, 0.0f));
 	a_aabb.Scale(glm::vec3(5.0f));
 	glm::vec3 a_blue_col(0.0f, 0.0f, 1.0f);
 	glm::vec3 a_red_col(1.0f, 0.0f, 0.0f);
-	glm::vec3 rel_pos = a_aabb.GetCenter() - m_Camera->GetPosition();
-	rel_pos = a_aabb.GetCenter();
-	//rel_pos = glm::normalize(rel_pos);
 	bool isInView = frustum.IntersectFrustum(a_aabb);
 	glm::vec3 a_use_col = (isInView) ? a_blue_col : a_red_col;
 	DebugGizmos::DrawBox(a_aabb, a_use_col);
-	DebugGizmos::DrawSphere(a_pos, 0.2f, a_use_col);
+	DebugGizmos::DrawSphere(a_aabb.GetCenter(), 0.2f, a_use_col);
 	DebugGizmos::DrawFrustum(frustum, glm::vec3(1.0f, 0.0f, 0.0f));
-	return;
-	//draw a unit AABB at pos 
-	glm::vec3 pos(0.0f, 20.0f, 0.0f);
-	AABB aabb = AABB(pos);
-	aabb.Scale(glm::vec3(0.5f));
-	glm::vec3 blue_col(0.0f, 0.0f, 1.0f);
-	glm::vec3 red_col(1.0f, 0.0f, 0.0f);
 
-	//Draw a solid right plane 
-	float s = glm::radians(*m_Camera->Ptr_FOV()) * 0.5f;
-	float g = glm::atan(glm::tan(s) * window->GetAspectRatio());
-	glm::vec3 rt = glm::cross(m_Camera->GetForward(), m_Camera->GetUp());
-	rt = glm::normalize(rt);
-	glm::vec3 _up = glm::cross(rt, m_Camera->GetForward());
-	_up = glm::normalize(_up);
-	glm::vec3 rt_nor = glm::rotate(glm::mat4(1.0f), g, _up) * glm::vec4(rt, 0.0f);
-	Plane rt_f = Plane::CreateFromPointAndNormal(m_Camera->GetPosition(), rt_nor);
-	DebugGizmos::DrawPlane(rt_f, testPlaneSize);
-
-	//get object/aabb relative pos to camera
-	glm::vec3 relative_pos = aabb.GetCenter() - m_Camera->GetPosition();
-	glm::vec3 aabb_dir = glm::normalize(relative_pos);
-	glm::vec3 Nf = glm::normalize(rt_nor);
-	float _dot = glm::dot(Nf, aabb_dir);
-	glm::vec3 use_col = (_dot < 0) ? red_col : blue_col;
-	DebugGizmos::DrawBox(aabb, use_col);
-	DebugGizmos::DrawSphere(pos, 0.2f, use_col);
-
-	return;
-	//debug plane direction 
-	glm::vec3 vec;
-	if (std::fabs(Nf.x) > std::fabs(Nf.z))
-		vec = glm::vec3(-Nf.y, Nf.x, 0.0f);
-	else
-		vec = glm::vec3(0.0f, -Nf.z, Nf.y);
-	glm::vec3 _u = glm::cross(Nf, vec);
-	DebugGizmos::DrawWireCone(m_Camera->GetPosition() + *m_Camera->Ptr_Near() * m_Camera->GetForward() * 25.0f + _u * 50.0f, Nf, _u, 1.0f, 2.0f, glm::vec3(0.0f, 1.0f, 0.0f));
-
-	glm::vec3 aabb_w_dir = glm::normalize(aabb.GetCenter());
-	aabb_w_dir = glm::normalize(aabb_w_dir);
-	glm::vec3 N_f = rt_f.GetNormal();
-	//N_f = glm::normalize(N_f);
-	float d = rt_f.GetConstant();
-	glm::vec3 offset = d * N_f;
-	float dot_p = glm::dot(offset, aabb_w_dir);
-	//glm::vec3 use_col = (dot_p < 0.0f) ? red_col : blue_col;
-	DebugGizmos::DrawBox(aabb, use_col);
-	DebugGizmos::DrawSphere(aabb.GetCenter(), 0.2f, use_col);
-
-	return;
-	//TEST PLANE CODE
-	//RenderCommand::DisableDepthTest();
-	//DebugGizmos::DrawPlane(nearPlane, testPlaneSize, glm::vec3(1.0f, 0.0f, 0.0f));
-	//DebugGizmos::DrawPlane(rightPlane, testPlaneSize, glm::vec3(0.0f, 1.0f, 0.0f));
-	//DebugGizmos::DrawPlane(topPlane, testPlaneSize, glm::vec3(0.0f, 0.0f, 1.0f));
-
-	//DebugGizmos::DrawPlane(bottomPlane, testPlaneSize, glm::vec3(0.0f, 0.0f, 1.0f));
-	//DebugGizmos::DrawPlane(leftPlane, testPlaneSize, glm::vec3(0.0f, 0.0f, 1.0f));
-
-
-	glm::vec3 pt = m_Camera->GetPosition() +  (*m_Camera->Ptr_Near() + 1.5f) * m_Camera->GetForward();
-	Plane f = Plane::CreateFromPointAndNormal(pt, m_Camera->GetForward());
-	//DebugGizmos::DrawPlane(f,testPlaneSize);
-	//debug near plane normal
-	//DebugGizmos::DrawWireCone(pt + m_Camera->GetForward() * 2.0f, f.GetNormal(), m_Camera->GetRight());
-
-	float half_fov_y = glm::radians(*m_Camera->Ptr_FOV()) * 0.5f;
-	float half_fov_x = glm::atan(glm::tan(half_fov_y) * window->GetAspectRatio());
-
-	glm::vec3 right = m_Camera->GetRight();
-	glm::vec3 up = m_Camera->GetUp();
-
-	right = glm::cross(m_Camera->GetForward(), m_Camera->GetUp());
-	right = glm::normalize(right);
-	up = glm::cross(right, m_Camera->GetForward());
-	up = glm::normalize(up);
-
-	glm::vec3 left_plane_nor = glm::rotate(glm::mat4(1.0f), -half_fov_x, up) * glm::vec4(-right, 0.0f);
-	glm::vec3 right_plane_nor = glm::rotate(glm::mat4(1.0f), half_fov_x, up) * glm::vec4(right, 0.0f);
-	Plane left_f = Plane::CreateFromPointAndNormal(m_Camera->GetPosition(), left_plane_nor);
-	Plane right_f = Plane::CreateFromPointAndNormal(m_Camera->GetPosition(), right_plane_nor);
-	//DebugGizmos::DrawPlane(left_f, testPlaneSize, glm::vec3(0.0f, 0.0f, 1.0f));
-	//DebugGizmos::DrawPlane(right_f, testPlaneSize, glm::vec3(1.0f, 0.0f, 0.0f));
-	//debug right plane normal
-	glm::vec3 N = right_f.GetNormal();
-	N = glm::normalize(N);
-
-	glm::vec3 arbitrary_vec;
-	if (std::fabs(N.x) > std::fabs(N.z))
-		arbitrary_vec = glm::vec3(-N.y, N.x, 0.0f);
-	else
-		arbitrary_vec = glm::vec3(0.0f, -N.z, N.y);
-	glm::vec3 u = glm::cross(N, arbitrary_vec);
-	glm::vec3 v = glm::cross(N, u);
-	//DebugGizmos::DrawWireCone(pt + m_Camera->GetForward() * 15.0f, N, u, 1.0f, 2.0f, glm::vec3(0.0f, 0.0f, 1.0f));
-
-
-	//top and bottom
-	glm::vec3 top_plane_nor = glm::rotate(glm::mat4(1.0f), half_fov_y, right) * glm::vec4(-up, 0.0f);
-	glm::vec3 bottom_plane_nor = glm::rotate(glm::mat4(1.0f), -half_fov_y, right) * glm::vec4(up, 0.0f);
-	Plane top_f = Plane::CreateFromPointAndNormal(m_Camera->GetPosition(), top_plane_nor);
-	Plane bottom_f = Plane::CreateFromPointAndNormal(m_Camera->GetPosition(), bottom_plane_nor);
-	//DebugGizmos::DrawPlane(top_f, testPlaneSize, glm::vec3(0.0f, 1.0f, 0.0f));
-	DebugGizmos::DrawPlane(bottom_f, testPlaneSize, glm::vec3(1.0f, 1.0f, 0.0f));
-	//debug top plane normal
-	N = bottom_f.GetNormal();
-	N = glm::normalize(N);
-
-	
-	if (std::fabs(N.x) > std::fabs(N.z))
-		arbitrary_vec = glm::vec3(-N.y, N.x, 0.0f);
-	else
-		arbitrary_vec = glm::vec3(0.0f, -N.z, N.y);
-	u = glm::cross(N, arbitrary_vec);
-	DebugGizmos::DrawWireCone(pt + m_Camera->GetForward() * 15.0f, N, u, 1.0f, 2.0f, glm::vec3(0.0f, 1.0f, 0.0f));
-
-
-
-	//glm::vec3 pt = glm::vec3(0.0f);
-	//DebugGizmos::DrawWireSphere(pt, 0.5f, glm::vec3(1.0f, 0.0f, 0.0f));
-	//bool intersection = Plane::IntersectThreePlanes(nearPlane, rightPlane, topPlane, pt);
-	//DebugGizmos::DrawSphere(pt, 0.5f);
-	//RenderCommand::EnableDepthTest();
-
-
-	glm::vec3 pt_top_left = glm::vec3(0.0f), pt_top_right = glm::vec3(0.0f), 
-			  pt_bottom_left = glm::vec3(0.0f), pt_bottom_right = glm::vec3(0.0f);
-
-	Plane::IntersectThreePlanes(leftPlane, nearPlane, topPlane, pt_top_left);
-	Plane::IntersectThreePlanes(leftPlane, nearPlane, bottomPlane, pt_bottom_left);
-
-	Plane::IntersectThreePlanes(rightPlane, nearPlane, topPlane, pt_top_right);
-	Plane::IntersectThreePlanes(rightPlane, nearPlane, bottomPlane, pt_bottom_right);
-
-	DebugGizmos::DrawSphere(pt_top_left, 0.5f, glm::vec3(1.0f, 1.0f, 0.0f));
-	DebugGizmos::DrawSphere(pt_bottom_left, 0.5f, glm::vec3(0.0f, 1.0f, 1.0f));
-
-	DebugGizmos::DrawSphere(pt_top_right, 0.5f, glm::vec3(1.0f, 0.0f, 0.0f));
-	DebugGizmos::DrawSphere(pt_bottom_right, 0.5f, glm::vec3(0.0f, 0.0f, 1.0f));
-
-
-	return;
 
 	//test directional Shadow info 
 	if (dirLightObject.dirLightShadow.debugPara)

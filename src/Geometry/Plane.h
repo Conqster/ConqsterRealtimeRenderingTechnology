@@ -17,7 +17,6 @@ public:
 
 
 	//Creation 
-	//static Plane CreateFromPointAndNormal(glm::vec3 point, glm::vec3 normal) { return Plane(normal, glm::dot(-normal, point)); }
 	static Plane CreateFromPointAndNormal(glm::vec3 point, glm::vec3 normal) { return Plane(normal, -glm::dot(normal, point)); }
 
 

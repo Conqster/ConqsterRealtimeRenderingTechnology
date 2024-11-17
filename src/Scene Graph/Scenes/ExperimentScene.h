@@ -56,7 +56,9 @@ private:
 
 	//Pre-Rendering
 	void BuildSceneEntities();
+	std::vector<std::weak_ptr<Entity>> BuildVisibleEntities(const std::vector<std::shared_ptr<Entity>>& parent_entity);
 	void BuildEntitiesWithRenderMesh(const std::shared_ptr<Entity>& parent_entity);
+	void BuildEntitiesWithRenderMesh(const std::weak_ptr<Entity>& parent_entity);
 	void BuildOpacityTransparencyFromRenderMesh(const std::vector<std::weak_ptr<Entity>>& renderable_list);
 	void BuildSceneEntitiesViaOpacityTransparency(const std::shared_ptr<Entity>& parent_entity);
 	void SortByViewDistance(std::vector<std::weak_ptr<Entity>>& sorting_list);
