@@ -299,7 +299,7 @@ namespace CRRT
 		return to;
 	}
 
-	std::tuple<Mesh, Material> ModelLoader::ProcessMesh2(aiMesh* mesh, const aiScene* scene)
+	std::tuple<std::shared_ptr<Mesh>, std::shared_ptr<Material>> ModelLoader::ProcessMesh2(aiMesh* mesh, const aiScene* scene)
 	{
 		//data from current mesh
 		std::vector<Vertex> vertices;
@@ -391,7 +391,7 @@ namespace CRRT
 		// To-Do: TEXTURE MATERIAL
 		////////////////////////////
 		//Later check documentation if its possible to check is all other mesh ref same material
-		Material gen_mat;
+		std::shared_ptr<Material> gen_mat = nullptr;
 		if (mesh->mMaterialIndex >= 0)
 		{
 			aiMaterial* mat = scene->mMaterials[mesh->mMaterialIndex];
@@ -411,12 +411,22 @@ namespace CRRT
 			std::vector<Texture> normal_map = LoadMaterialTextures(mat, aiTextureType_NORMALS);
 			std::vector<Texture> parallax_map = LoadMaterialTextures(mat, aiTextureType_HEIGHT);
 
-			if (diffuse_map.size() > 0)
-				gen_mat.baseMap = std::make_shared<Texture>(diffuse_map[0]);
-			if (normal_map.size() > 0)
-				gen_mat.normalMap = std::make_shared<Texture>(normal_map[0]);
-			if (parallax_map.size() > 0)
-				gen_mat.parallaxMap = std::make_shared<Texture>(parallax_map[0]);
+			//if any material is retrived 
+			if (diffuse_map.size() + specular_map.size() + emission_map.size() +
+				normal_map.size() + parallax_map.size() > 0)
+			{
+				gen_mat = std::make_shared<Material>();
+
+				if (diffuse_map.size() > 0)
+					gen_mat->baseMap = std::make_shared<Texture>(diffuse_map[0]);
+				if (normal_map.size() > 0)
+					gen_mat->normalMap = std::make_shared<Texture>(normal_map[0]);
+				if (parallax_map.size() > 0)
+					gen_mat->parallaxMap = std::make_shared<Texture>(parallax_map[0]);
+			}
+
+
+
 		}
 
 
@@ -434,10 +444,14 @@ namespace CRRT
 
 		//}
 		//Generate Necessary data for Mesh
-		ModelMesh _mesh;
-		//_mesh.Generate(vertices, indices, new_mat);
-		Mesh gen_mesh;
-		gen_mesh.Generate(vertices, indices);
+
+		if (!mesh->HasNormals())
+		{
+			vertices = CalcAverageNormalsWcIndices(vertices, indices);
+		}
+		std::shared_ptr<Mesh> gen_mesh = nullptr;
+		gen_mesh = std::make_shared<Mesh>();
+		gen_mesh->Generate(vertices, indices);
 
 		return std::make_tuple(gen_mesh, gen_mat);
 	}
@@ -470,11 +484,11 @@ namespace CRRT
 		{
 			aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
 
-			std::tuple<Mesh, Material> process_mesh = ProcessMesh2(mesh, scene);
+			std::tuple<std::shared_ptr<Mesh>, std::shared_ptr<Material>> process_mesh = ProcessMesh2(mesh, scene);
 			//mesh data
-			std::shared_ptr<Mesh> entity_mesh = std::make_shared<Mesh>(std::get<0>(process_mesh));
+			std::shared_ptr<Mesh> entity_mesh = std::get<0>(process_mesh);
 			//update important data
-			std::shared_ptr<Material> entity_mat = std::make_shared<Material>(std::get<1>(process_mesh));
+			std::shared_ptr<Material> entity_mat = std::get<1>(process_mesh);
 
 			curr_entity->SetMesh(entity_mesh);
 			curr_entity->SetMaterial(entity_mat);
@@ -538,5 +552,60 @@ namespace CRRT
 			v.tangent[1] = tan.y;
 			v.tangent[2] = tan.z;
 		}
+	}
+
+	std::vector<Vertex> ModelLoader::CalcAverageNormalsWcIndices(std::vector<Vertex>& vertices, std::vector<unsigned int> indices)
+	{
+		std::vector<Vertex> temp = vertices;
+
+		for (size_t i = 0; i < indices.size(); i += 3)
+		{
+			unsigned int in0 = indices[i];
+			unsigned int in1 = indices[i + 1];
+			unsigned int in2 = indices[i + 2];
+
+			glm::vec3 v1;
+			glm::vec3 v2;
+
+			v1 = glm::vec3(temp[in1].position[0] - temp[in0].position[0],
+				temp[in1].position[1] - temp[in0].position[1],
+				temp[in1].position[2] - temp[in0].position[2]);
+
+			v2 = glm::vec3(temp[in2].position[0] - temp[in0].position[0],
+				temp[in2].position[1] - temp[in0].position[1],
+				temp[in2].position[2] - temp[in0].position[2]);
+
+			glm::vec3 nor = glm::cross(v1, v2);
+			nor = glm::normalize(nor);
+
+			//(accumulate) add current normally to all current vertices
+			temp[in0].normals[0] += nor.x;
+			temp[in0].normals[1] += nor.y;
+			temp[in0].normals[2] += nor.z;
+
+			temp[in1].normals[0] += nor.x;
+			temp[in1].normals[1] += nor.y;
+			temp[in1].normals[2] += nor.z;
+
+			temp[in2].normals[0] += nor.x;
+			temp[in2].normals[1] += nor.y;
+			temp[in2].normals[2] += nor.z;
+		}
+
+		//re-normalizing
+		for (size_t i = 0; i < temp.size(); i++)
+		{
+			glm::vec3 vec(temp[i].normals[0], temp[i].normals[1], temp[i].normals[2]);
+			vec = glm::normalize(vec);
+
+			if (glm::length(vec) > 0.0f)
+				vec = glm::normalize(vec);
+
+			temp[i].normals[0] = vec.x;
+			temp[i].normals[1] = vec.y;
+			temp[i].normals[2] = vec.z;
+		}
+
+		return temp;
 	}
 }

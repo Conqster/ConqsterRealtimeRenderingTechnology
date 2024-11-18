@@ -45,7 +45,7 @@ namespace CRRT
 		//[Asset-Importer-Lib]:https://assimp-docs.readthedocs.io/en/latest/usage/use_the_lib.html#the-node-hierarchy
 		void CopyNodesWithMesh(aiNode* node, const aiScene* scene, std::shared_ptr<Entity>& self_entity, glm::mat4 parent_trans);
 		void CopyMeshes(aiNode* node, const aiScene* scene, std::shared_ptr<Entity> curr_entity);
-		std::tuple<Mesh, Material> ProcessMesh2(aiMesh* mesh, const aiScene* scene);
+		std::tuple<std::shared_ptr<Mesh>, std::shared_ptr<Material>> ProcessMesh2(aiMesh* mesh, const aiScene* scene);
 		glm::mat4 ConvertMatrix(const aiMatrix4x4& from);
 
 
@@ -56,6 +56,8 @@ namespace CRRT
 		/// from [Foundation of Game Engine Developmenent - Rendering Eric Lengyel]
 		/// </summary>
 		void ForceCalculateTangents(aiMesh* mesh, std::vector<Vertex>& vertices);
+		//Helpers
+		std::vector<Vertex> CalcAverageNormalsWcIndices(std::vector<Vertex>& vertices, std::vector<unsigned int> indices);
 	};
 
 

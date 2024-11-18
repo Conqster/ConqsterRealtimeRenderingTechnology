@@ -37,7 +37,7 @@ const glm::mat4& Entity::GetWorldTransform()
 
 const AABB Entity::GetEncapsulatedChildrenAABB()
 {
-	AABB bounds;
+	AABB bounds = AABB(GetWorldTransform()[3]);
 
 	if (m_Mesh)
 	{

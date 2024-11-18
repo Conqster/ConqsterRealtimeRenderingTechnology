@@ -212,8 +212,8 @@ void ExperimentScene::CreateEntities()
 	glass2Mat->baseMap = std::make_shared<Texture>(FilePaths::Instance().GetPath("glass"));
 
 
-	m_SceneMaterials.emplace_back(floorMat);
 	m_SceneMaterials.emplace_back(plainMat);
+	m_SceneMaterials.emplace_back(floorMat);
 
 
 	////////////////////////////////////////
@@ -306,10 +306,11 @@ void ExperimentScene::CreateEntities()
 	m_SceneEntities.emplace_back(newModel);
 
 
-	//std::shared_ptr<Entity> backpack = m_NewModelLoader.LoadAsEntity(FilePaths::Instance().GetPath("backpack"), true);
-	//temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(17.2f, 0.8f, -17.6f));
-	//backpack->SetLocalTransform(temp_trans);
-	//m_SceneEntities.emplace_back(backpack);
+	std::shared_ptr<Entity> bunny = m_NewModelLoader.LoadAsEntity(FilePaths::Instance().GetPath("bunny"), true);
+	temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.2f, 0.8f, -17.6f)) *
+					glm::scale(glm::mat4(1.0f), glm::vec3(10.0f));
+	bunny->SetLocalTransform(temp_trans);
+	m_SceneEntities.emplace_back(bunny);
 }
 
 /// <summary>
@@ -494,7 +495,10 @@ std::vector<std::weak_ptr<Entity>> ExperimentScene::BuildVisibleEntities(const s
 /// <param name="parent_entity"></param>
 void ExperimentScene::BuildEntitiesWithRenderMesh(const std::shared_ptr<Entity>& parent_entity)
 {
-	auto& render_mesh = parent_entity->GetMaterial();
+	//this is wrong
+	//auto& render_mesh = parent_entity.lock()->GetMaterial();
+	//need to be GetMesh
+	auto& render_mesh = parent_entity->GetMesh();
 
 	if (render_mesh)
 		m_SceneEntitiesWcRenderableMesh.emplace_back(parent_entity);
@@ -509,7 +513,10 @@ void ExperimentScene::BuildEntitiesWithRenderMesh(const std::weak_ptr<Entity>& p
 
 	if (!parent_entity.expired())
 	{
-		auto& render_mesh = parent_entity.lock()->GetMaterial();
+		//this is wrong
+		//auto& render_mesh = parent_entity.lock()->GetMaterial();
+		//need to be GetMesh
+		auto& render_mesh = parent_entity.lock()->GetMesh();
 
 		if (render_mesh)
 			m_SceneEntitiesWcRenderableMesh.emplace_back(parent_entity);
@@ -526,7 +533,14 @@ void ExperimentScene::BuildOpacityTransparencyFromRenderMesh(const std::vector<s
 	{
 		if (!e.expired())
 		{
-			auto& mat = e.lock()->GetMaterial();
+			//auto& mat = e.lock()->GetMaterial();
+			std::shared_ptr<Material> mat = e.lock()->GetMaterial();
+
+			//if mesh, does not have a material use default
+			if (!mat)
+				mat = m_SceneMaterials[0];
+
+
 			switch (mat->renderMode)
 			{
 				case CRRT_Mat::RenderingMode::Transparent:
@@ -581,8 +595,8 @@ void ExperimentScene::SortByViewDistance(std::vector<std::weak_ptr<Entity>>& sor
 		e.lock()->UpdateViewSqrDist(m_Camera->GetPosition());
 
 
-	if (sorting_list.size() < 2)
-		return; 
+	//if (sorting_list.size() < 2)
+	//	return; 
 
 	std::sort(sorting_list.begin(), sorting_list.end(), Entity::CompareDistanceToView);
 
@@ -723,6 +737,8 @@ void ExperimentScene::DrawScene()
 			{
 				if (mat)
 					MaterialShaderBindHelper(*mat, m_SceneShader);
+				else//if no material, use first scene mat as default
+					MaterialShaderBindHelper(*m_SceneMaterials[0], m_SceneShader);
 
 
 				m_SceneShader.SetUniformMat4f("u_Model", e.lock()->GetWorldTransform());
@@ -755,6 +771,8 @@ void ExperimentScene::DrawScene()
 				{
 					if (mat)
 						MaterialShaderBindHelper(*mat, m_SceneShader);
+					else//if no material, use first scene mat as default
+						MaterialShaderBindHelper(*m_SceneMaterials[0], m_SceneShader);
 
 
 					m_SceneShader.SetUniformMat4f("u_Model", e.lock()->GetWorldTransform());
