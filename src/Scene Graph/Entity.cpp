@@ -35,6 +35,24 @@ const glm::mat4& Entity::GetWorldTransform()
 	return m_WorldTransform;
 }
 
+const AABB Entity::GetEncapsulatedChildrenAABB()
+{
+	AABB bounds;
+
+	if (m_Mesh)
+	{
+		//get entity mesh AABB
+		bounds = m_Mesh->GetAABB();
+		//transform aabb, based on entity transformation
+		bounds = bounds.Tranformed(GetWorldTransform());
+	}
+	//Recursive encapsulate children AABB
+	for (const auto& c : m_Children)
+		bounds.Encapsulate(c->GetEncapsulatedChildrenAABB());
+
+	return bounds;
+}
+
 void Entity::AddLocalChild(const Entity& entity)
 {
 	m_Children.emplace_back(std::make_shared<Entity>(entity));

@@ -304,6 +304,12 @@ void ExperimentScene::CreateEntities()
 	std::shared_ptr<Entity> newModel = m_NewModelLoader.LoadAsEntity(FilePaths::Instance().GetPath("shapes"), true);
 	newModel->SetLocalTransform(temp_trans);
 	m_SceneEntities.emplace_back(newModel);
+
+
+	//std::shared_ptr<Entity> backpack = m_NewModelLoader.LoadAsEntity(FilePaths::Instance().GetPath("backpack"), true);
+	//temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(17.2f, 0.8f, -17.6f));
+	//backpack->SetLocalTransform(temp_trans);
+	//m_SceneEntities.emplace_back(backpack);
 }
 
 /// <summary>
@@ -405,8 +411,18 @@ void ExperimentScene::BuildSceneEntities()
 	// 
 	//	by mesh data
 	// 
-
-	std::vector<std::weak_ptr<Entity>> temp_entities = BuildVisibleEntities(m_SceneEntities);
+	bool build_only_visible = true;
+	std::vector<std::weak_ptr<Entity>> temp_entities;
+	temp_entities.reserve(m_SceneEntities.size());
+	if (build_only_visible)
+	{
+		temp_entities = BuildVisibleEntities(m_SceneEntities);
+	}
+	else
+	{
+		for (const auto& e : m_SceneEntities)
+			temp_entities.emplace_back(e);
+	}
 
 	//for (auto& e : m_SceneEntities)
 	for (auto& e : temp_entities)
@@ -450,28 +466,21 @@ std::vector<std::weak_ptr<Entity>> ExperimentScene::BuildVisibleEntities(const s
 	//loop all entities
 	for (const auto& e : entity_collection)
 	{
-		//aabb points in world space
-		std::vector<glm::vec3> pt_world_space;
-		//transform a unit aabb cube (1 unit) to enitity pos neglecting oritentation 
-		for (const auto& v : MathsHelper::CubeLocalVertices())
+		AABB bounds;
+		if (e->GetMesh())
 		{
-			glm::vec4 trans_v = e->GetWorldTransform() * glm::vec4(v, 1.0f);
-			pt_world_space.emplace_back(glm::vec3(trans_v));
+			//get entity mesh AABB
+			bounds = e->GetMesh()->GetAABB();
+			//transform aabb, based on enitity transformation
+			bounds = bounds.Tranformed(e->GetWorldTransform());
 		}
-
-		//generate an AABB based of first vertex pt
-		AABB bounds = AABB(pt_world_space[0]);
-		//encapsulate the rest pts
-		for (const auto& p : pt_world_space)
-			bounds.Encapsulate(p);
-
 		//if e entity has children encapsulate their AABB
 		if (e->GetChildren().size() > 0)
 			bounds = e->GetEncapsulatedChildrenAABB(); //already computed
 
-
 		//check if aabb bounds is in frustum 
-		if (frustum.IntersectFrustum(bounds))
+		//if (frustum.PointsInFrustum(bounds))
+		if (frustum.IsAABBVisible(bounds))
 			visible_entity.emplace_back(e); //store if entity is visible
 	}
 
@@ -785,7 +794,7 @@ void ExperimentScene::SceneDebugger()
 	a_aabb.Scale(glm::vec3(5.0f));
 	glm::vec3 a_blue_col(0.0f, 0.0f, 1.0f);
 	glm::vec3 a_red_col(1.0f, 0.0f, 0.0f);
-	bool isInView = frustum.IntersectFrustum(a_aabb);
+	bool isInView = frustum.PointsInFrustum(a_aabb);
 	glm::vec3 a_use_col = (isInView) ? a_blue_col : a_red_col;
 	DebugGizmos::DrawBox(a_aabb, a_use_col);
 	DebugGizmos::DrawSphere(a_aabb.GetCenter(), 0.2f, a_use_col);
@@ -808,7 +817,6 @@ void ExperimentScene::SceneDebugger()
 		DebugGizmos::DrawCross(dirLightObject.sampleWorldPos);
 	}
 
-	AABB temp;
 	glm::vec3 translate, euler, scale;
 	bool debug_scene_entities = true;
 	if (debug_scene_entities)
@@ -819,32 +827,22 @@ void ExperimentScene::SceneDebugger()
 			std::string func_label = "Generating AABB for entity id: ";
 			func_label += std::to_string(e->GetID());
 			TimeTaken(func_label.c_str());
-			std::vector<glm::vec3> pt_world_space;
-			for (const auto& v : MathsHelper::CubeLocalVertices())
+
+
+			AABB bounds;
+			if (e->GetMesh())
 			{
-				glm::vec4 local4D = glm::vec4(v, 1.0f);
-				glm::vec4 trans_v = e->GetWorldTransform() * local4D;
-				pt_world_space.emplace_back(glm::vec3(trans_v));
+				//get entity mesh AABB
+				bounds = e->GetMesh()->GetAABB();
+				//transform aabb, based on enitity transformation
+				bounds = bounds.Tranformed(e->GetWorldTransform());
+				DebugGizmos::DrawBox(bounds);
 			}
-
-			//generate an AABB for first vertex pt
-			temp = AABB(pt_world_space[0]);
-			//encapsulated the rest pts 
-			for (const auto& p : pt_world_space)
-			{
-				DebugGizmos::DrawSphere(p, 0.2f);
-				temp.Encapsulate(p);
-			}
-			DebugGizmos::DrawBox(temp);
-
-
-			
-			//draw AABB with children encapsulated
+			//if e entity has children encapsulate their AABB
 			if (e->GetChildren().size() > 0)
 			{
-				//Already be translated & scale 
-				temp = e->GetEncapsulatedChildrenAABB();
-				DebugGizmos::DrawBox(temp, glm::vec3(0.0f, 0.0f, 1.0f), 2.0f);
+				bounds = e->GetEncapsulatedChildrenAABB(); //already computed
+				DebugGizmos::DrawBox(bounds, glm::vec3(0.0f, 0.0f, 1.0f), 2.0f);
 			}
 		}
 	}
@@ -856,19 +854,15 @@ void ExperimentScene::SceneDebugger()
 		{
 			if (!e.expired())
 			{
-				//Debug AABB volume
-				temp = e.lock()->GetAABB();
-				MathsHelper::DecomposeTransform(e.lock()->GetWorldTransform(), translate, euler, scale);
-				temp.Translate(translate);
-				temp.Scale((scale - glm::vec3(1.0f)) * glm::vec3(0.5f));
-				DebugGizmos::DrawBox(temp);
-
-				//if (e.lock()->GetChildren().size() > 0)
-				//{
-				//	//Already be translated & scale 
-				//	temp = e.lock()->GetEncapsulatedChildrenAABB();
-				//	DebugGizmos::DrawBox(temp, glm::vec3(0.0f, 0.0f, 1.0f), 2.0f);
-				//}
+				/////////////////////////////////////
+				// ALRIGHT LETS GO 
+				/////////////////////////////////////
+				//get already cached AABB
+				AABB bounds = e.lock()->GetMesh()->GetAABB();
+				//aabb is located at the origin, lets transform based on entity world transform
+				glm::mat4 e_trans = e.lock()->GetWorldTransform();
+				bounds = bounds.Tranformed(e_trans);
+				DebugGizmos::DrawBox(bounds, glm::vec3(1.0f, 0.0f, 0.0f));
 			}
 		}
 	}

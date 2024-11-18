@@ -23,6 +23,11 @@ public:
 		return m_Max - m_Min;
 	}
 
+	glm::vec3 const GetHalfSize() const
+	{
+		return (m_Max - m_Min) * 0.5f;
+	}
+
 	void Translate(glm::vec3 inTranslation)
 	{
 		m_Min += inTranslation;
@@ -42,6 +47,27 @@ public:
 	{
 		m_Min -= inScale;
 		m_Max += inScale;
+	}
+
+	AABB Tranformed(glm::mat4 in_Transform)
+	{
+		//New AABB center to be in tranform pos
+		glm::vec3 temp_min = in_Transform[3], 
+				  temp_max = in_Transform[3];
+
+
+		for (unsigned int i = 0; i < 3; i++)
+		{
+			glm::vec3 column = in_Transform[i];
+
+			glm::vec3 a = column * m_Min[i];
+			glm::vec3 b = column * m_Max[i];
+
+			temp_min += (glm::min)(a, b);
+			temp_max += (glm::max)(a, b);
+		}
+		
+		return AABB(temp_min, temp_max);
 	}
 
 	void Encapsulate(glm::vec3 inPos)

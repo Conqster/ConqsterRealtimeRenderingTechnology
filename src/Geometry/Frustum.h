@@ -63,7 +63,7 @@ public:
 	/// </summary>
 	/// <param name="aabb"></param>
 	/// <returns></returns>
-	inline bool IntersectFrustum(const AABB& aabb) const
+	inline bool PointsInFrustum(const AABB& aabb) const
 	{
 		//check if center is in frustum 
 		if (!InFrustum(aabb.GetCenter()))
@@ -90,6 +90,27 @@ public:
 			
 			//return last if failed/passed 
 			return InFrustum(glm::vec3(min.x, min.y, max.z));
+		}
+		return true;
+	}
+
+
+	/// <summary>
+	/// 
+	/// </summary>
+	/// <param name="aabb"></param>
+	/// <returns></returns>
+	inline bool IsAABBVisible(const AABB& aabb) const
+	{
+		for (unsigned int i = 0; i < 6; i++)
+		{
+			glm::vec3 nor = m_Planes[i].GetNormal();
+			nor = glm::normalize(nor);
+			float d = m_Planes[i].GetConstant();
+			float rg = std::fabs(nor.x * aabb.GetHalfSize().x) + 
+					   std::fabs(nor.y * aabb.GetHalfSize().y) + 
+					   std::fabs(nor.z * aabb.GetHalfSize().z);
+			if (glm::dot(nor, aabb.GetCenter()) <= -rg - d) return false;
 		}
 		return true;
 	}

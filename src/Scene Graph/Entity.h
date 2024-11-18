@@ -69,30 +69,7 @@ public:
 	inline bool* CanCastShadowPtr() { return &m_CanCastShadow; }
 	inline const AABB GetAABB() const { return m_AABB; }
 
-	inline const AABB GetEncapsulatedChildrenAABB()
-	{
-		//cache AABB vertex world pos
-		std::vector<glm::vec3> v_world;
-		for (const auto& v : MathsHelper::CubeLocalVertices())
-		{
-			//vertex pos in local space
-			glm::vec4 v_local = glm::vec4(v, 1.0f);
-			//transform v_local to object world space
-			glm::vec4 trans_v = GetWorldTransform() * v_local;
-			v_world.emplace_back(trans_v);
-		}
-		//construct temp AABB at first pos
-		AABB temp = AABB(v_world[0]);
-		//encapsulated the rest pts 
-		for (const auto& p : v_world)
-			temp.Encapsulate(p);
-
-		//Recursive encapsulate children AABB
-		for (const auto& c : m_Children)
-			temp.Encapsulate(c->GetEncapsulatedChildrenAABB());
-
-		return temp;
-	}
+	const AABB GetEncapsulatedChildrenAABB();
 
 	//set
 	void SetLocalTransform(const glm::mat4& transform) 
