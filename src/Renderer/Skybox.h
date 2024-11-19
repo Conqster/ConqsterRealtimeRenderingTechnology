@@ -22,6 +22,7 @@ public:
 	//Doesnt work because i am modifing the shader indirect if i call setUniforms
 	//as i would cache the uniform is it exist but not been cached
 	void Draw(class Camera& camera, class Window& window);
+	void Draw(Shader& shader, class CRRT::SceneRenderer& renderer);
 
 	void ActivateMap(uint16_t slot = 0);
 	void DisActivate();

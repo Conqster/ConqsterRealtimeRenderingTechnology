@@ -710,7 +710,7 @@ void DebugGizmos::DrawFrustum(const Frustum& f, glm::vec3 col, float thickness)
 	//Draw solid colours
 	m_Shader.Bind();
 	m_Shader.SetUniformMat4f("u_Model", glm::mat4(1.0f));
-	m_Shader.SetUniformVec4("u_Colour", glm::vec4(col, 0.5f));
+	m_Shader.SetUniformVec4("u_Colour", glm::vec4(col, 0.2f));
 	glDisable(GL_CULL_FACE);
 	glBegin(GL_LINE_LOOP);
 		glVertex3fv(&p1[0]);

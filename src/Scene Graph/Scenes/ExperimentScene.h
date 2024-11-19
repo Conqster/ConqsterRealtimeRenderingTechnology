@@ -98,19 +98,14 @@ private:
 	std::vector<std::weak_ptr<Entity>> m_TransparentEntites;
 
 	Shader m_SceneShader;//std::vector<std::shared_ptr<Shader>> m_SceneShaders;
-	Shader shadowDepthShader;  //this is not scene deoth shader
+	Shader m_ShadowDepthShader;  //this is not scene deoth shader
+	Shader m_SkyboxShader;
 	std::vector<std::shared_ptr<Material>> m_SceneMaterials;
 	Skybox m_Skybox;
 
 	Camera m_TopDownCamera;
 	Framebuffer m_TopDownFBO;
 
-	Plane nearPlane = Plane(glm::vec3(0.0f, 0.0f, 1.0f), 5.0f);
-	Plane rightPlane = Plane(glm::vec3(-1.0f, 0.0f, 0.0f), 5.0f);
-	Plane topPlane = Plane(glm::vec3(0.0f, -1.0f, 0.0f), 2.5f);
-	Plane leftPlane = Plane(glm::vec3(1.0f, 0.0f, 0.0f), 5.0f);
-	Plane bottomPlane = Plane(glm::vec3(0.0f, 1.0f, 0.0f), 2.5f);
-	glm::vec2 testPlaneSize = glm::vec2(20.0f, 20.0f);
 	////Later have a structure for RenderData
 	//struct MeshRenderer
 	//{

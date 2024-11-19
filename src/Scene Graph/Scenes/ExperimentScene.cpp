@@ -70,7 +70,7 @@ void ExperimentScene::OnRender()
 	BeginRenderScene();
 	PreUpdateGPUUniformBuffers(*m_Camera);
 	BuildSceneEntities(); //<------Not implemented yet
-	ShadowPass(shadowDepthShader); //<----- important for storing shadow data in texture 2D & texture cube map probab;y move to renderer and data is sent back 
+	ShadowPass(m_ShadowDepthShader); //<----- important for storing shadow data in texture 2D & texture cube map probab;y move to renderer and data is sent back 
 
 	//Start Rendering
 	RenderCommand::Clear();
@@ -188,7 +188,14 @@ void ExperimentScene::CreateEntities()
 		"Assets/Shaders/ShadowMapping/ShadowDepthGeometry.glsl", //geometry shader
 	};
 
-	shadowDepthShader.Create("point_shadow_depth", point_shadow_shader_file_path);
+	m_ShadowDepthShader.Create("point_shadow_depth", point_shadow_shader_file_path);
+
+	ShaderFilePath skybox_shader_file_path{
+	"Assets/Shaders/Utilities/Skybox/SkyboxVertex.glsl",
+	"Assets/Shaders/Utilities/Skybox/SkyboxFragment.glsl" };
+
+	m_SkyboxShader.Create("skybox_shader", skybox_shader_file_path);
+
 
 	////////////////////////////////////////
 	// CREATE TEXTURES 
@@ -348,7 +355,8 @@ void ExperimentScene::CreateGPUDatas()
 	m_SceneShader.SetUniformBlockIdx("u_LightBuffer", 1);
 	m_SceneShader.SetUniformBlockIdx("u_EnvironmentBuffer", 2);
 
-
+	m_SkyboxShader.Bind();
+	m_SkyboxShader.SetUniformBlockIdx("u_CameraMat", 0);
 }
 
 void ExperimentScene::CreateLightDatas()
@@ -594,12 +602,7 @@ void ExperimentScene::SortByViewDistance(std::vector<std::weak_ptr<Entity>>& sor
 	for (const auto& e : sorting_list)
 		e.lock()->UpdateViewSqrDist(m_Camera->GetPosition());
 
-
-	//if (sorting_list.size() < 2)
-	//	return; 
-
 	std::sort(sorting_list.begin(), sorting_list.end(), Entity::CompareDistanceToView);
-
 }
 
 
@@ -612,8 +615,8 @@ void ExperimentScene::ShadowPass(Shader& depth_shader)
 	RenderCommand::ClearDepthOnly();//clear the depth buffer 
 	//directional light
 	depth_shader.Bind();
-	shadowDepthShader.SetUniform1i("u_IsOmnidir", 0);
-	shadowDepthShader.SetUniformMat4f("u_LightSpaceMat", dirLightObject.dirLightShadow.GetLightSpaceMatrix());
+	m_ShadowDepthShader.SetUniform1i("u_IsOmnidir", 0);
+	m_ShadowDepthShader.SetUniformMat4f("u_LightSpaceMat", dirLightObject.dirLightShadow.GetLightSpaceMatrix());
 	//Draw Objects with material 
 	//Renderer::DrawMesh(Mesh)
 
@@ -717,9 +720,14 @@ void ExperimentScene::DrawScene()
 
 
 	//Move this up here has to render transparent object last 
-		//Render Sky box
-	m_Skybox.Draw(*m_Camera, *window);
+	//Render Sky box
+	//m_Skybox.Draw(*m_Camera, *window);
 
+	//check if i could a normal shader to render skybox
+	//but that would be useless as main model shader program as light etc 
+	//things skybox does not require. 
+	m_Skybox.Draw(m_SkyboxShader, m_SceneRenderer);
+	
 
 	m_SceneShader.Bind();
 	/////////////////////////////////////
@@ -748,6 +756,7 @@ void ExperimentScene::DrawScene()
 			//Dont need recursive childrens are already lay flat in the list during soring 
 		}
 	}
+	
 
 	/////////////////////////////////////
 	// DRAW TRANSPARENT ENTITIES NEXT
@@ -903,6 +912,7 @@ void ExperimentScene::ResizeBuffers(unsigned int width, unsigned int height)
 	m_PrevViewWidth = window->GetWidth();
 	m_PrevViewHeight = window->GetHeight();
 	m_SceneScreenFBO.ResizeBuffer(width, height);
+	m_TopDownFBO.ResizeBuffer(width, height);
 }
 
 /// <summary>
@@ -986,37 +996,7 @@ void ExperimentScene::MainUI()
 		ImGui::TreePop();
 	}
 
-	ImGui::Spacing();
-	ImGui::SeparatorText("Test Properties");
-	glm::vec4 a = nearPlane.GetNormalAndConstant(), b = rightPlane.GetNormalAndConstant(), c = topPlane.GetNormalAndConstant(),
-			 d = leftPlane.GetNormalAndConstant(), e = bottomPlane.GetNormalAndConstant();
-	if (ImGui::DragFloat4("Near Plane", &a[0], 0.1))
-	{
-		//testPlane1 = Plane(a, glm::length(a));
-		nearPlane = Plane(a);
-	}
-	if (ImGui::DragFloat4("Right Plane", &b[0], 0.1))
-	{
-		//testPlane2 = Plane(b, glm::length(b));
-		rightPlane = Plane(b);
-	}
-	if (ImGui::DragFloat4("Top plane", &c[0], 0.1))
-	{
-		//testPlane3 = Plane(c, glm::length(c));
-		topPlane = Plane(c);
-	}
-	if (ImGui::DragFloat4("Left plane", &d[0], 0.1))
-	{
-		//testPlane3 = Plane(c, glm::length(c));
-		leftPlane = Plane(d);
-	}
-	if (ImGui::DragFloat4("Bottom plane", &e[0], 0.1))
-	{
-		//testPlane3 = Plane(c, glm::length(c));
-		bottomPlane = Plane(e);
-	}
-;
-	ImGui::DragFloat2("Test Plane Size", &testPlaneSize[0], 0.1);
+
 
 	ImGui::Spacing();
 	ImGui::SeparatorText("Scene Properties");

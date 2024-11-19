@@ -102,9 +102,9 @@ The primary aim of this project is to deepen my understanding of:
 
 ## Documentation 
 - [Quick Start.](Docs/QuickStart.md)
-//- [Development Issues.](Docs/DevelopmentIssues.md).
+<!-- [Development Issues.](Docs/DevelopmentIssues.md).-->
 
-//For more detailed information, please refer to the [Detailed Documentation.](Docs/Documentation.md)
+<!--For more detailed information, please refer to the [Detailed Documentation.](Docs/Documentation.md)-->
 
 ## Dependencies
 Current libaries in use: GLM, GLEW, GLFW, stb-image, Assimp.

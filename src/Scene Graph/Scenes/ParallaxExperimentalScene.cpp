@@ -920,7 +920,9 @@ void ParallaxExperimentalScene::DrawObjects(Shader& shader, bool apply_tex)
 
 
 	for (auto& e : sceneEntities)
-		e->Draw(shader);
+		if(e->GetMesh())
+			m_SceneRenderer.DrawMesh(e->GetMesh());
+		//e->Draw(shader);
 
 
 	if (apply_tex)

@@ -84,7 +84,6 @@ public:
 	void AddLocalChild(const Entity& entity);
 	void AddWorldChild(const Entity& entity);
 	void SetParent(const std::shared_ptr<Entity> p) { m_Parent = p; }
-	void Draw(class Shader& shader); //later pass in renderer/context, pass shader for now
 	void Destroy();
 
 	void SetMaterial(std::shared_ptr<Material>& mat) { m_Material = mat; }

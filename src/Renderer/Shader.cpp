@@ -69,7 +69,7 @@
 	bool Shader::CreateFromCode(const char* vCode, const char* fCode, const std::string& gCode)
 	{
 		m_ProgramID = glCreateProgram();
-		printf("Thge shader program Id is %d\n", m_ProgramID);
+		printf("The shader program '%s' ID: %d\n", m_Name, m_ProgramID);
 
 		GLuint vshader = CompileShader(GL_VERTEX_SHADER, vCode);
 		GLuint fshader = CompileShader(GL_FRAGMENT_SHADER, fCode);
