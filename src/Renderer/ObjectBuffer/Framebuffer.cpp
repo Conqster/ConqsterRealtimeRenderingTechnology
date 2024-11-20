@@ -139,23 +139,23 @@ void Framebuffer::BindTexture(unsigned int slot)
 
 //----------------------------------------------Multiple Render Targets MRT----------------------/
 
-MRTFramebuffer::MRTFramebuffer() : m_Width(500), m_Height(500),
+OldMRTFramebuffer::OldMRTFramebuffer() : m_Width(500), m_Height(500),
 	m_ID(0)//, m_RenderbufferID(0)
 {
 }
 
-MRTFramebuffer::MRTFramebuffer(unsigned int width, unsigned int height, FBO_Format i_format) : m_Width(width),
+OldMRTFramebuffer::OldMRTFramebuffer(unsigned int width, unsigned int height, FBO_Format i_format) : m_Width(width),
 m_Height(height), m_ID(0)//, m_RenderbufferID(0)
 {
 	Generate(i_format);
 }
 
-MRTFramebuffer::~MRTFramebuffer()
+OldMRTFramebuffer::~OldMRTFramebuffer()
 {
 	Delete();
 }
 
-bool MRTFramebuffer::Generate(FBO_Format i_format)
+bool OldMRTFramebuffer::Generate(FBO_Format i_format)
 {
 	glGenFramebuffers(1, &m_ID);
 	glBindFramebuffer(GL_FRAMEBUFFER, m_ID);
@@ -200,11 +200,151 @@ bool MRTFramebuffer::Generate(FBO_Format i_format)
 	return true;
 }
 
-bool MRTFramebuffer::Generate(unsigned int width, unsigned int height, FBO_Format i_format)
+bool OldMRTFramebuffer::Generate(unsigned int width, unsigned int height, FBO_Format i_format)
 {
 	m_Width = width;
 	m_Height = height;
 	return Generate(i_format);
+}
+
+void OldMRTFramebuffer::Bind()
+{
+	glViewport(0, 0, m_Width, m_Height);
+	glBindFramebuffer(GL_FRAMEBUFFER, m_ID);
+
+}
+
+void OldMRTFramebuffer::UnBind()
+{
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void OldMRTFramebuffer::Delete()
+{
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glDeleteFramebuffers(1, &m_ID);
+
+	glDeleteRenderbuffers(1, &m_RenderbufferID);
+
+	glDeleteTextures(3, colourAttachments);        //delete frame texture/ texture attached to frame buffer
+}
+
+void OldMRTFramebuffer::BindTextureIdx(unsigned int idx, unsigned int slot)
+{
+	glActiveTexture(GL_TEXTURE0 + slot);
+	glBindTexture(GL_TEXTURE_2D, colourAttachments[idx]);
+}
+
+
+
+
+
+//----------------------------------------------Multiple Render Targets MRT----------------------/
+MRTFramebuffer::MRTFramebuffer() : m_Width(500), m_Height(500),
+								   m_ColourAttachmentCount(0), m_ID(0)//, m_RenderbufferID(0)
+{
+}
+
+MRTFramebuffer::MRTFramebuffer(unsigned int width, unsigned int height, unsigned int count, FBO_Format i_format) : m_Width(width),
+m_Height(height), m_ColourAttachmentCount(count), m_ID(0)//, m_RenderbufferID(0)
+{
+	Generate(count, i_format);
+}
+
+MRTFramebuffer::~MRTFramebuffer()
+{
+	Delete();
+}
+
+bool MRTFramebuffer::Generate(unsigned int count, FBO_Format i_format)
+{
+	m_InternalFormat = i_format;
+	m_ColourAttachmentCount = count;
+	glGenFramebuffers(1, &m_ID);
+	glBindFramebuffer(GL_FRAMEBUFFER, m_ID);
+
+	///////////////////////////////////////////////////////////////////////
+	// create colour attachment texture for frame buffer
+	///////////////////////////////////////////////////////////////////////
+	colourAttachments.reserve(count);
+	//Quick hack 
+	for (unsigned int i = 0; i < count; i++)
+		colourAttachments.emplace_back(i);
+	glGenTextures(count, &colourAttachments[0]);
+
+	for (unsigned int i = 0; i < count; i++)
+	{
+		glBindTexture(GL_TEXTURE_2D, colourAttachments[i]);
+		glTexImage2D(GL_TEXTURE_2D, 0, OpenGLFormat(i_format), m_Width, m_Height, 0, GL_RGBA, GL_FLOAT, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, colourAttachments[i], 0);
+	}
+
+
+	std::vector<unsigned int> attachment;
+	attachment.reserve(count);
+	for (unsigned int i = 0; i < count; i++)
+	{
+		attachment.emplace_back(GL_COLOR_ATTACHMENT0 + i);
+	}
+	glDrawBuffers(count, &attachment[0]);
+
+	///////////////////////////////////////////////////////////////////////
+	// create a render buffer object for depth and stencil 
+	///////////////////////////////////////////////////////////////////////
+	glGenRenderbuffers(1, &m_RenderbufferID);
+	glBindRenderbuffer(GL_RENDERBUFFER, m_RenderbufferID);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, m_Width, m_Height);
+
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_RenderbufferID);
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	{
+		std::cout << "[FRAMEBUFFER ERROR]: Framebuffer did not complete!!!!\n";
+		glBindRenderbuffer(GL_RENDERBUFFER, 0);
+		return false;
+	}
+
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+	return true;
+}
+
+bool MRTFramebuffer::Generate(unsigned int width, unsigned int height, unsigned int count, FBO_Format i_format)
+{
+	m_Width = width;
+	m_Height = height;
+	m_ColourAttachmentCount = count;
+	return Generate(count, i_format);
+}
+
+bool MRTFramebuffer::ResizeBuffer(unsigned int width, unsigned int height)
+{
+	m_Width = width;
+	m_Height = height;
+	//resize textures
+	for (unsigned int i = 0; i < m_ColourAttachmentCount; i++)
+	{
+		glBindTexture(GL_TEXTURE_2D, colourAttachments[i]);
+		glTexImage2D(GL_TEXTURE_2D, 0, OpenGLFormat(m_InternalFormat), m_Width, m_Height, 0, GL_RGBA, GL_FLOAT, NULL);
+	}
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	//resize render buffer
+	glBindRenderbuffer(GL_RENDERBUFFER, m_RenderbufferID);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, m_Width, m_Height);
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	{
+		std::cout << "[FRAMEBUFFER ERROR]: Framebuffer did not complete!!!!\n";
+		glBindRenderbuffer(GL_RENDERBUFFER, 0);
+		return false;
+	}
+
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+	return true;
 }
 
 void MRTFramebuffer::Bind()
@@ -226,11 +366,25 @@ void MRTFramebuffer::Delete()
 
 	glDeleteRenderbuffers(1, &m_RenderbufferID);
 
-	glDeleteTextures(3, colourAttachments);        //delete frame texture/ texture attached to frame buffer
+	//glDeleteTextures(3, colourAttachments);        //delete frame texture/ texture attached to frame buffer
+	glDeleteTextures(m_ColourAttachmentCount, &colourAttachments[0]);        //delete frame texture/ texture attached to frame buffer
 }
 
+/// <summary>
+/// Would return last colour attachment, 
+/// <para>if idx is greater than available colour attachment</para>
+/// </summary>
+/// <param name="idx"></param>
+/// <param name="slot"></param>
 void MRTFramebuffer::BindTextureIdx(unsigned int idx, unsigned int slot)
 {
+	if (idx > m_ColourAttachmentCount)
+	{
+		printf("idx pass colour attachment count/size :%d. return last colour attachment.\n", m_ColourAttachmentCount);
+		idx = m_ColourAttachmentCount;
+	}
 	glActiveTexture(GL_TEXTURE0 + slot);
 	glBindTexture(GL_TEXTURE_2D, colourAttachments[idx]);
 }
+
+

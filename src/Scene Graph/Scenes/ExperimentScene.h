@@ -66,7 +66,7 @@ private:
 
 	//Scene Render
 	void PostUpdateGPUUniformBuffers(); //light ubo after scene is sorted & light pass
-	void DrawScene();
+	void DrawScene(Shader& main_shader);
 
 	//Scene Post Render
 	void PostProcess();
@@ -89,6 +89,9 @@ private:
 
 	//Resource
 	Framebuffer m_SceneScreenFBO;
+	//Testing Test MRT (multi render target for GBuffer)
+	MRTFramebuffer m_TestGBuffer;
+	Shader m_TestGBufferShader;
 	Shader m_PostImgShader;
 	std::shared_ptr<Mesh> m_QuadMesh;
 	//Later store entities as enitity but sorted list should be a rendering data list (Mesh,Material,World Transform)
@@ -162,7 +165,7 @@ private:
 	void EntityDebugUI(Entity& entity);
 	void MaterialsUI();
 	void EditTopViewUI();
-	//void FrameBufferUI();
+	void TestMRT_GBufferUI();
 
 
 	void EntityModelMaterial(const Entity& entity);

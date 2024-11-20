@@ -20,6 +20,7 @@ The primary aim of this project is to deepen my understanding of:
 - Environment Mapping (Skybox)
 - Scene Rendering Entities Sorting (Spatial Ordering for Transparency)
 - Debug Gizmos Primitive
+- MRT (Multi-Render Target Framebuffer, for GBuffer, multi render output etc)
 - Light Source (Directional, Point & Spot)
 - Omnidirectional Shadow mapping for Point Lights
 - Directional Light Shadow mapping
@@ -72,6 +73,10 @@ The primary aim of this project is to deepen my understanding of:
 |:-|
 |<p align = "center"> *Only root (parent is tracked) Bounding Volume to determine is any child is visible during sorting. Construction of individual parent (root node) AABB takes ~(0.0001ms - 0.0006ms).* </p>|
 
+#### Dyanmic Multi-Render Target (MRT)
+|<img src = "Docs/Experiment_wc_MRT4GBuffer.png"/>|
+|:-|
+|<p align = "center"> *MRT, Experimenting with MRT for GBuffer - Deferred Rendering.* </p>|
 
 #### Skybox, Framebuffer
 |<img src = "Docs/Skybox, Framebuffer, Depthtest.png"/>|

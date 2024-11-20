@@ -81,17 +81,23 @@ void ExperimentScene::OnRender()
 	/////////////////////////////
 	m_SceneScreenFBO.Bind();
 	RenderCommand::Clear();
-	DrawScene();
+	DrawScene(m_SceneShader);
 	SceneDebugger();
 	m_SceneScreenFBO.UnBind();
-
-	//////////////////////////////
-	// Render To Top View Buffer
-	//////////////////////////////
 
 
 	//Post Rendering (post Process) 
 	PostProcess();
+
+	//////////////////////////////
+	// EXPERIMENT WC MRT GBUFFER
+	//////////////////////////////
+	m_TestGBuffer.Bind();
+	RenderCommand::Clear();
+	DrawScene(m_TestGBufferShader);
+	m_TestGBuffer.UnBind();
+
+
 
 	//After Rendering (Clean-up/Miscellenous)
 	//Change the camera buffer with top down cam
@@ -99,7 +105,7 @@ void ExperimentScene::OnRender()
 	m_TopDownFBO.Bind();						//bind fbo
 	RenderCommand::Clear();						
 	//draw scene in buffer
-	DrawScene();
+	DrawScene(m_SceneShader);
 	SceneDebugger();
 	m_TopDownFBO.UnBind();
 
@@ -114,6 +120,7 @@ void ExperimentScene::OnRenderUI()
 	EnititiesUI();
 	MaterialsUI();
 	EditTopViewUI();
+	TestMRT_GBufferUI();
 }
 
 void ExperimentScene::OnDestroy()
@@ -318,6 +325,20 @@ void ExperimentScene::CreateEntities()
 					glm::scale(glm::mat4(1.0f), glm::vec3(10.0f));
 	bunny->SetLocalTransform(temp_trans);
 	m_SceneEntities.emplace_back(bunny);
+
+
+
+
+	///////////////////////////////////////
+	// EXPERIMENTING FOR GBUFFER
+	///////////////////////////////////////
+	m_TestGBuffer.Generate(window->GetWidth(), window->GetHeight(), 3);
+	ShaderFilePath test_shader_file_path
+	{
+		"Assets/Shaders/Experimental/BasicVertexPos.glsl", //vertex shader
+		"Assets/Shaders/Experimental/ExperimentGBuffer.glsl", //fragment shader
+	};
+	m_TestGBufferShader.Create("experiment_GBuffer_shader", test_shader_file_path);
 }
 
 /// <summary>
@@ -687,7 +708,7 @@ void ExperimentScene::PostUpdateGPUUniformBuffers()
 	//m_SceneShader.SetUniform1i("u_SkyboxMap", 5);
 }
 
-void ExperimentScene::DrawScene()
+void ExperimentScene::DrawScene(Shader& main_shader)
 {
 	//Draw built scene 
 	//what it might look like 
@@ -729,7 +750,7 @@ void ExperimentScene::DrawScene()
 	m_Skybox.Draw(m_SkyboxShader, m_SceneRenderer);
 	
 
-	m_SceneShader.Bind();
+	main_shader.Bind();
 	/////////////////////////////////////
 	// DRAW OPAQUE ENTITIES FIRST
 	///////////////////////////////////
@@ -744,12 +765,12 @@ void ExperimentScene::DrawScene()
 			if (mesh)
 			{
 				if (mat)
-					MaterialShaderBindHelper(*mat, m_SceneShader);
+					MaterialShaderBindHelper(*mat, main_shader);
 				else//if no material, use first scene mat as default
-					MaterialShaderBindHelper(*m_SceneMaterials[0], m_SceneShader);
+					MaterialShaderBindHelper(*m_SceneMaterials[0], main_shader);
 
 
-				m_SceneShader.SetUniformMat4f("u_Model", e.lock()->GetWorldTransform());
+				main_shader.SetUniformMat4f("u_Model", e.lock()->GetWorldTransform());
 				m_SceneRenderer.DrawMesh(mesh);
 			}
 
@@ -779,12 +800,12 @@ void ExperimentScene::DrawScene()
 				if (mesh)
 				{
 					if (mat)
-						MaterialShaderBindHelper(*mat, m_SceneShader);
+						MaterialShaderBindHelper(*mat, main_shader);
 					else//if no material, use first scene mat as default
-						MaterialShaderBindHelper(*m_SceneMaterials[0], m_SceneShader);
+						MaterialShaderBindHelper(*m_SceneMaterials[0], main_shader);
 
 
-					m_SceneShader.SetUniformMat4f("u_Model", e.lock()->GetWorldTransform());
+					main_shader.SetUniformMat4f("u_Model", e.lock()->GetWorldTransform());
 					m_SceneRenderer.DrawMesh(mesh);
 				}
 
@@ -914,6 +935,7 @@ void ExperimentScene::ResizeBuffers(unsigned int width, unsigned int height)
 	m_PrevViewHeight = window->GetHeight();
 	m_SceneScreenFBO.ResizeBuffer(width, height);
 	m_TopDownFBO.ResizeBuffer(width, height);
+	m_TestGBuffer.ResizeBuffer(width, height);
 }
 
 /// <summary>
@@ -1250,6 +1272,26 @@ void ExperimentScene::EditTopViewUI()
 	img_size.y *= (m_TopDownFBO.GetSize().y / m_TopDownFBO.GetSize().x); //invert
 	ImGui::Image((ImTextureID)(intptr_t)m_TopDownFBO.GetColourAttachment(), img_size, ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f));
 
+
+	ImGui::End();
+}
+
+void ExperimentScene::TestMRT_GBufferUI()
+{
+	ImGui::Begin("Experimenting GBuffer");
+	static int scale = 3;
+	ImGui::SliderInt("image scale", &scale, 1, 5);
+	ImVec2 img_size(500.0f * scale, 500.0f * scale);
+	img_size.y *= (m_TestGBuffer.GetSize().y / m_TestGBuffer.GetSize().x); //invert
+	ImGui::Text("Colour Attachment Count: %d", m_TestGBuffer.GetColourAttachmentCount());
+	//render image base on how many avaliable render tragets
+	for (unsigned int i = 0; i < m_TestGBuffer.GetColourAttachmentCount(); i++)
+	{
+		ImGui::PushID(&i);//use this id 
+		ImGui::Separator();
+		ImGui::Image((ImTextureID)(intptr_t)m_TestGBuffer.GetColourAttachment(i), img_size, ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f));
+		ImGui::PopID();
+	}
 
 	ImGui::End();
 }

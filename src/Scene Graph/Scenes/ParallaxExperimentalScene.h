@@ -145,7 +145,7 @@ private:
 	Framebuffer depthFBO;
 	Shader depthShader;
 
-	MRTFramebuffer MRT_FBO;
+	OldMRTFramebuffer MRT_FBO;
 	Shader MRTShader;
 	Shader bloomShader;
 	bool horiBloom = false;

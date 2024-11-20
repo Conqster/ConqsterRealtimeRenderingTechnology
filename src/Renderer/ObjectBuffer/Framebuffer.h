@@ -1,5 +1,6 @@
 #pragma once
 #include "glm/glm.hpp"
+#include <vector>
 
 enum FBO_Format
 {
@@ -46,12 +47,12 @@ private:
 //----------------------------------------------Multiple Render Targets MRT----------------------/
 
 
-class MRTFramebuffer
+class OldMRTFramebuffer
 {
 public:
-	MRTFramebuffer();
-	MRTFramebuffer(unsigned int width, unsigned int height, FBO_Format i_format = FBO_Format::RGB);
-	~MRTFramebuffer();
+	OldMRTFramebuffer();
+	OldMRTFramebuffer(unsigned int width, unsigned int height, FBO_Format i_format = FBO_Format::RGB);
+	~OldMRTFramebuffer();
 
 	bool Generate(FBO_Format i_format = FBO_Format::RGB);
 	bool Generate(unsigned int width, unsigned int height, FBO_Format i_format = FBO_Format::RGB);
@@ -75,4 +76,44 @@ private:
 	unsigned int m_ID,
 				 m_RenderbufferID,
 				 colourAttachments[3]; //hard code for now
+};
+
+
+
+//----------------------------------------------Multiple Render Targets MRT----------------------/
+
+class MRTFramebuffer
+{
+public:
+	MRTFramebuffer();
+	MRTFramebuffer(unsigned int width, unsigned int height, unsigned int count = 2, FBO_Format i_format = FBO_Format::RGB);
+	~MRTFramebuffer();
+
+	bool Generate(unsigned int count = 2, FBO_Format i_format = FBO_Format::RGB);
+	bool Generate(unsigned int width, unsigned int height, unsigned int count = 2, FBO_Format i_format = FBO_Format::RGB);
+
+	bool ResizeBuffer(unsigned int width, unsigned int height);
+
+	void Bind();
+	void UnBind();
+	void Delete();
+
+	void BindTextureIdx(unsigned int idx, unsigned int slot = 0);
+
+	inline glm::vec2 GetSize() { return glm::vec2(m_Width, m_Height); }
+	inline unsigned int GetColourAttachmentCount() { return m_ColourAttachmentCount; }
+	inline unsigned int GetColourAttachment(unsigned int idx) { return colourAttachments[idx]; }
+
+
+private:
+	unsigned int m_Width,
+				 m_Height;
+
+	unsigned int m_ID,
+				 m_RenderbufferID;
+
+	unsigned int m_ColourAttachmentCount = 0;
+	
+	std::vector<unsigned int> colourAttachments;
+	FBO_Format m_InternalFormat;
 };
