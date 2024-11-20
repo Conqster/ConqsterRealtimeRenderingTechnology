@@ -1,16 +1,16 @@
 #pragma once
 #include "Scene.h"
-#include "Scene Graph/Model.h"
+#include "Scene Graph/Deprecated/Model.h"
 
 #include "Renderer/Renderer.h"
-#include "Renderer/Meshes/Meshes.h"
+#include "Renderer/Meshes/Mesh.h"
 #include "Renderer/Lights/Lights.h"
 #include "Renderer/ObjectBuffer/ShadowMap.h"
 #include "Renderer/ObjectBuffer/UniformBuffer.h"
 
 #include "Geometry/AABB.h"
 #include "Util/Constants.h"
-#include "Util/ModelLoader.h"
+#include "Util/Deprecated/OldModelLoader.h"
 
 
 enum ResolutionSetting
@@ -124,7 +124,7 @@ private:
 	// Objects
 	//////////////
 	//sphere
-	SphereMesh sphere;
+	Mesh sphere;
 	//glm::vec3 spherePos = glm::vec3(0.0f);
 	//float sphereScale = 1.0f;
 #define MAX_SPHERE 5
@@ -139,11 +139,11 @@ private:
 	float cubesScale[MAX_CUBE]; 
 	bool debugCubeAABB = false;
 	//ground
-	SquareMesh ground;
+	Mesh ground;
 	glm::vec3 groundPos = glm::vec3();
 	float groundScale = 50.0f;
 	//cube 
-	CubeMesh cube;
+	Mesh cube;
 	//model1 (stanford-bunny)
 	std::shared_ptr<Model> model_1;
 	//glm::vec3 model_1Pos = glm::vec3(0.0f);

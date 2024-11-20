@@ -5,10 +5,12 @@
 
 #include "Util/MathsHelpers.h"
 
+#include "Meshes/PrimitiveMeshFactory.h"
+
 bool DebugGizmos::active = false;
 bool DebugGizmos::use = true;
 Shader DebugGizmos::m_Shader;
-SphereMesh DebugGizmos::sphere;
+Mesh DebugGizmos::sphere;
 CRRT::SceneRenderer DebugGizmos::m_Renderer;
 
 //UniformBuffer* DebugGizmos::m_CameraMatUBO = nullptr;
@@ -786,8 +788,7 @@ void DebugGizmos::Generate()
 	};
 	m_Shader.Create("debug_shader", debug_shader_file_path);
 
-	//sphere.Create();
-	sphere.Create(12);
+	sphere = CRRT::PrimitiveMeshFactory::Instance().CreateASphere(12, 6);
 
 	active = true;
 

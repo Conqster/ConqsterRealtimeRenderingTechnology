@@ -3,7 +3,7 @@
 #include "glm/glm.hpp"
 #include "Shader.h"
 #include "ObjectBuffer/UniformBuffer.h"
-#include "Meshes/SphereMesh.h"
+#include "Meshes/Mesh.h"
 
 #include "SceneRenderer.h"
 
@@ -42,7 +42,7 @@ private:
 	static bool active;
 	static bool use;
 	static Shader m_Shader;
-	static SphereMesh sphere;
+	static Mesh sphere;
 
 	static CRRT::SceneRenderer m_Renderer;
 

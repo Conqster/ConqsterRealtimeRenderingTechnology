@@ -2,7 +2,7 @@
 
 #include "Renderer/Shader.h"
 #include "Renderer/Material.h"
-#include "Renderer/Meshes/Meshes.h"
+#include "Renderer/Meshes/Mesh.h"
 
 void Entity::UpdateWorldTransform()
 {

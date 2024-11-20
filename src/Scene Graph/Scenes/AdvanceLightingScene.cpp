@@ -1,12 +1,14 @@
 #include "AdvanceLightingScene.h"
 
-#include "Scene Graph/Model.h"
-#include "Util/ModelLoader.h"
+#include "Scene Graph/Deprecated/Model.h"
+#include "Util/Deprecated/OldModelLoader.h"
 
 #include "External Libs/imgui/imgui.h"
 #include "Util/FilePaths.h"
 
 #include "EventHandle.h"
+
+#include "Renderer/Meshes/PrimitiveMeshFactory.h"
 
 void AdvanceLightingScene::SetWindow(Window* window)
 {
@@ -804,17 +806,17 @@ void AdvanceLightingScene::CreateObjects()
 	////////////////////////////////////////
 	// CREATE SPHERE MESH
 	////////////////////////////////////////
-	sphere.Create();
+	sphere = CRRT::PrimitiveMeshFactory::Instance().CreateASphere();
 
 	//////////////////////////////////////
 	// CREATE GROUND MESH
 	//////////////////////////////////////
-	ground.Create();
+	ground = CRRT::PrimitiveMeshFactory::Instance().CreateAQuad();
 
 	//////////////////////////////////////
 	// CREATE CUBE MESH
 	//////////////////////////////////////
-	cube.Create();
+	cube = CRRT::PrimitiveMeshFactory::Instance().CreateACube();
 
 
 

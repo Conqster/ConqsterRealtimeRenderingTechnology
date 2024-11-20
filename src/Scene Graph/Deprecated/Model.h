@@ -8,6 +8,10 @@
 
 #include "Renderer/SceneRenderer.h"
 
+
+/// <summary>
+/// Deprecated Class, Entity is Object class now
+/// </summary>
 class Model
 {
 public:

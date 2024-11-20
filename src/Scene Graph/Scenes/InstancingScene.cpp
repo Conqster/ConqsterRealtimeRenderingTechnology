@@ -1,6 +1,7 @@
 #include "InstancingScene.h"
 
 #include "External Libs/imgui/imgui.h"
+#include "Renderer/Meshes/PrimitiveMeshFactory.h"
 
 void InstancingScene::OnInit(Window* window)
 {
@@ -246,7 +247,7 @@ void InstancingScene::CreateObjects()
 	////////////////////////////////////////
 	// CREATE SQUARE MESH
 	////////////////////////////////////////
-	m_SquareMesh.Create();
+	m_SquareMesh = CRRT::PrimitiveMeshFactory::Instance().CreateAQuad();
 
 
 
@@ -277,7 +278,7 @@ void InstancingScene::CreateObjects()
 	/////////////////////////////////////////
 	//CREATE SPHERE MESH
 	/////////////////////////////////////////
-	sphereMesh.Create();
+	sphereMesh = CRRT::PrimitiveMeshFactory::Instance().CreateASphere();
 
 
 	/////////////////////////////////////////

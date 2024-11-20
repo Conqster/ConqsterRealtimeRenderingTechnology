@@ -8,6 +8,8 @@
 #include "EventHandle.h"
 #include "SceneManager.h"
 
+#include "Renderer/Meshes/PrimitiveMeshFactory.h"
+
 
 
 void Texture_FrameBufferScene::OnInit(Window* window)
@@ -413,7 +415,7 @@ void Texture_FrameBufferScene::CreateObjects()
 	////////////////////////////////////
 	// Create Spheres
 	////////////////////////////////////
-	m_Sphere.Create();
+	m_Sphere = CRRT::PrimitiveMeshFactory::Instance().CreateASphere();
 	m_SphereTex = new Texture("Assets/Textures/plain64.png");
 
 	uint16_t num_of_sphere = 10;

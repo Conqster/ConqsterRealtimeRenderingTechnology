@@ -9,6 +9,8 @@
 #include "../Entity.h"
 #include "Renderer/RenderCommand.h"
 
+#include "Renderer/Meshes/PrimitiveMeshFactory.h"
+
 void ParallaxExperimentalScene::SetWindow(Window* window)
 {
 	this->window = window;
@@ -621,8 +623,8 @@ void ParallaxExperimentalScene::OnDestroy()
 
 void ParallaxExperimentalScene::CreateObjects()
 {
-	ground.Create();
-	glowingCube.Create();
+	ground = CRRT::PrimitiveMeshFactory::Instance().CreateAQuad();
+	glowingCube = CRRT::PrimitiveMeshFactory::Instance().CreateACube();
 	ShaderFilePath shader
 	{
 		"Assets/Shaders/Learning/ParallaxExperiment/ParallaxModelVertex.glsl", //vertex shader
@@ -751,7 +753,6 @@ void ParallaxExperimentalScene::CreateObjects()
 					 glm::rotate(planeWorldTran, glm::radians(-50.0f), glm::vec3(1.0f, 0.0f, 0.0f)) *
 					 glm::scale(planeWorldTran, glm::vec3(20.0f));	
 
-	
 	blenderShapes = modelLoader.Load(FilePaths::Instance().GetPath("shapes"), true);
 	shapesTrans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -200.0f, 25.0f)) *
 					 glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) *

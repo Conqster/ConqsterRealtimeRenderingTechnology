@@ -13,7 +13,7 @@
 #include "Renderer/Shader.h"
 
 #include "Renderer/Skybox.h"  //update when Skybox is update
-#include "Util/ModelLoaderN.h"   //new model loader 
+#include "Util/ModelLoader.h"   //new model loader 
 
 #include "Renderer/ObjectBuffer/Framebuffer.h"
 

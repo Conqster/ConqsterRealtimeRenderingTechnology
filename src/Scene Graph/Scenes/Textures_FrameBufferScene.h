@@ -3,7 +3,7 @@
 
 #include "Renderer/Renderer.h"
 #include "Renderer/Skybox.h"
-#include "Renderer/Meshes/Meshes.h"
+#include "Renderer/Meshes/Mesh.h"
 
 #include "Renderer/ObjectBuffer/Framebuffer.h"
 
@@ -54,7 +54,7 @@ private:
 	//Test skybox shader reflect on objects 
 	Shader m_ObjectSampleReflect;
 
-	SphereMesh m_Sphere;
+	Mesh m_Sphere;
 	Texture* m_SphereTex;
 	float m_SkyboxInfluencity = 0.5f;
 	glm::vec3 m_TextureColour = glm::vec3(0.0f, 0.0f, 1.0f);

@@ -4,23 +4,17 @@
 #include "Renderer/Meshes/Mesh.h"
 #include "Renderer/Texture.h"
 
-//#include "Graphics/Material.h"
+//////////////////////////////////////////////
+//Deprecated Class, Entity is Object class now
+//////////////////////////////////////////////
 
-GameObject::GameObject(Mesh* mesh, Texture* texture)
-	: m_Mesh(mesh), m_Texture(texture)//, m_Material(nullptr)
+GameObject::GameObject(Mesh* mesh, Texture* texture, bool a_sphere)
+	: m_Mesh(mesh), m_Texture(texture), aSphere(a_sphere)
 {
 	m_Mesh->RegisterUse();
 	m_Texture->RegisterUse();
 	std::cout << "GameObject constructed !!!!!!!!!!!!!!!!!\n";
 }
-
-//GameObject::GameObject(Mesh* mesh, Texture* texture, Material* material)
-//	: m_Mesh(mesh), m_Texture(texture), m_Material(material)
-//{
-//	m_Mesh->RegisterUse();
-//	m_Texture->RegisterUse();
-//	std::cout << "GameObject constructed !!!!!!!!!!!!!!!!!\n";
-//}
 
 GameObject::~GameObject()
 {
@@ -32,21 +26,12 @@ GameObject::~GameObject()
 void GameObject::Draw()
 {
 	m_Texture->Activate();
-
-	//if (m_Material)
-	//	m_Material->Use();
-
-	//m_Mesh->Render();
 	m_SceneRenderer.DrawMesh(*m_Mesh);
-	//m_Texture->DisActivate();
-	//m_Mesh.Render();
 }
 
 void GameObject::DebugDraw()
 {
-	//m_Mesh->RenderDebugOutLine();
 	m_SceneRenderer.DrawMeshOutline(*m_Mesh);
-	//m_Mesh.RenderDebugOutLine();
 }
 
 void GameObject::Cleanup()

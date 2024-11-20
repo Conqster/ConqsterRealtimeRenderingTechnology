@@ -2,16 +2,15 @@
 #include "Scene.h"
 
 #include "Renderer/Renderer.h"
-#include "Renderer/Meshes/Meshes.h"
+#include "Renderer/Meshes/Mesh.h"
 #include "Renderer/Lights/Lights.h"
 #include "Renderer/ObjectBuffer/ShadowMap.h"
 
 #include "Renderer/Material.h"
-#include "Scene Graph/Model.h"
-#include "Util/ModelLoader.h"
+#include "Util/Deprecated/OldModelLoader.h"
+#include "Scene Graph/Deprecated/Model.h"
 
 #include "Renderer/ObjectBuffer/Framebuffer.h"
-#include "Renderer/Meshes/CubeMesh.h"
 
 #include "../Entity.h"
 
@@ -119,7 +118,7 @@ private:
 	std::shared_ptr<Material> wallMat;
 
 	//ground
-	SquareMesh ground;
+	Mesh ground;
 	glm::mat4 groundWorldTrans = glm::mat4(1.0f);
 	bool useNor = true;
 
@@ -156,7 +155,7 @@ private:
 	Framebuffer pingFBO2;
 	Shader pingBloomShader;
 
-	CubeMesh glowingCube;
+	Mesh glowingCube;
 	glm::vec3 glowingCubeColour = glm::vec3(0.0f, 0.0f, 1.0f);
 	glm::mat4 glowingCubeTrans = glm::mat4(1.0f);
 	Shader glowingCubeShader;

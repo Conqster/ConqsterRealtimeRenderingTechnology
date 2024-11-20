@@ -2,6 +2,8 @@
 
 #include "External Libs/imgui/imgui.h"
 
+#include "Renderer/Meshes/PrimitiveMeshFactory.h"
+
 
 void GeometryScene::OnInit(Window* window)
 {
@@ -233,7 +235,7 @@ void GeometryScene::CreateObjects()
 	////////////////////////////////////////
 	// CREATE SQUARE MESH
 	////////////////////////////////////////
-	m_SquareMesh.Create();
+	m_SquareMesh = CRRT::PrimitiveMeshFactory::Instance().CreateAQuad();
 
 
 	////////////////////////////////////////
@@ -263,7 +265,7 @@ void GeometryScene::CreateObjects()
 	////////////////////////////////////////
 	// CREATE SPHERE MESH
 	////////////////////////////////////////
-	sphere.Create();
+	sphere = CRRT::PrimitiveMeshFactory::Instance().CreateASphere();
 	sphereTex = new Texture("Assets/Textures/brick.png");
 
 	//SPHERE NORMAL DEBUG SHADER
@@ -280,5 +282,5 @@ void GeometryScene::CreateObjects()
 	////////////////////////////////////////
 	// CREATE CUBE MESH
 	////////////////////////////////////////
-	testCube.Create();
+	testCube = CRRT::PrimitiveMeshFactory::Instance().CreateACube();
 }

@@ -2,7 +2,7 @@
 
 #include "Scene Graph/Scenes/Scene.h"
 
-#include "Renderer/Meshes/CubeMesh.h"
+#include "Renderer/Meshes/Mesh.h"
 #include "Renderer/Renderer.h"
 
 #include "Renderer/ObjectBuffer/UniformBuffer.h"
@@ -31,7 +31,7 @@ private:
 	bool useDebugColour;
 
 	Shader cubeShader;
-	CubeMesh cube;
+	Mesh cube;
 
 	float scaleBy = 1.0f;
 

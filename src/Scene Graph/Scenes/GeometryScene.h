@@ -2,7 +2,7 @@
 #include "Scene.h"
 
 #include "Renderer/Renderer.h"
-#include "Renderer/Meshes/Meshes.h"
+#include "Renderer/Meshes/Mesh.h"
 
 #include "Renderer/ObjectBuffer/UniformBuffer.h"
 
@@ -25,7 +25,7 @@ private:
 	void CreateObjects();
 
 	Shader m_Shader;
-	SquareMesh m_SquareMesh;
+	Mesh m_SquareMesh;
 
 	
 	bool debugSquare;
@@ -43,7 +43,7 @@ private:
 
 
 	//sphere
-	SphereMesh sphere;
+	Mesh sphere;
 	Texture* sphereTex;
 	Shader sphereNormDebugShader;
 
@@ -52,6 +52,6 @@ private:
 	bool useDebugColour = true;
 
 	//test cube
-	class CubeMesh testCube;
+	class Mesh testCube;
 	
 };

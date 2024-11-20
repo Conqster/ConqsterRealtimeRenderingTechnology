@@ -114,6 +114,7 @@ Current libaries in use: GLM, GLEW, GLFW, stb-image, Assimp.
 - [The Cherno C++ videos.](https://www.youtube.com/playlist?list=PLlrATfBNZ98dudnM48yfGUldqGD0S4FFb)
 - OpenGl Programming Guide 9th Edition (Red Book).
 - Mathematics for 3D Game Programming and Computer Graphics - Eric Lengyel.
+- Foundations of Game Engine Development (Volume 1 - Mathematics) Eric Lengyel.
 - Foundations of Game Engine Development (Volume 2 - Rendering) Eric Lengyel.
 - [Forward and Deferred Rendering - Cambridge Computer Science Talks.](https://youtu.be/n5OiqJP2f7w?si=QQGg5Mj2bPoBzMiu)
 - Core Techniques and Algorithms in Game Programming.

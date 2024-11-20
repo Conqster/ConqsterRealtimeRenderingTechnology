@@ -5,7 +5,7 @@
 #include "Renderer/Material.h"
 #include "Util/FilePaths.h"
 
-#include "Renderer/Meshes/Meshes.h"
+#include "Renderer/Meshes/Mesh.h"
 #include "Scene Graph/Entity.h"
 
 #include "Renderer/DebugGizmos.h"
@@ -275,8 +275,8 @@ void ExperimentScene::CreateEntities()
 
 	//create  a sphere with world pos an center
 	//then add as cube1child_entity child
-	SphereMesh sphere_mesh;
-	sphere_mesh.Create();
+	Mesh sphere_mesh;
+	sphere_mesh = CRRT::PrimitiveMeshFactory::Instance().CreateASphere();
 	temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 3.5f, 0.0f));// *
 				// glm::scale(glm::mat4(1.0f), glm::vec3(0.5f));
 	Entity sphere_entity = Entity(id_idx++, "sphere-entity", temp_trans, CRRT::PrimitiveMeshFactory::Instance().CreateSphere(), plainMat);
@@ -812,6 +812,7 @@ void ExperimentScene::PostProcess()
 
 void ExperimentScene::SceneDebugger()
 {
+	return;
 	const auto& cam = m_Camera;
 	Frustum frustum = Frustum(cam->GetPosition(), cam->GetForward(),cam->GetUp(), *cam->Ptr_Near(), 
 							 *cam->Ptr_Far(), *cam->Ptr_FOV(), window->GetAspectRatio());

@@ -1,4 +1,7 @@
-#include "Scene Graph/Model.h"
+#include "Model.h"
+//////////////////////////////////////////////
+//Deprecated Class, Entity is Object class now
+//////////////////////////////////////////////
 
 Model::Model(std::vector<ModelMesh> _meshes)
 {
@@ -7,19 +10,12 @@ Model::Model(std::vector<ModelMesh> _meshes)
 	aabb = AABB(meshes[0].GetAABB());
 	for (auto& m : meshes)
 		UpdateAABB(m.GetAABB());
-
-
-
-	//i could generate mesh data here by loop through all the meshes
-	//for(auto& mesh : meshes)
-	//	mesh......
 }
 
 void Model::Draw()
 {
 	for (auto& mesh : meshes)
-		m_SceneRenderer.DrawMesh(mesh);
-		//mesh.Render();
+		m_SceneRenderer.DrawVertexElements(mesh.GetVAO(), mesh.GetIBO());
 }
 
 void Model::Draw(Shader& shader)
@@ -31,8 +27,7 @@ void Model::Draw(Shader& shader)
 void Model::DebugWireDraw()
 {
 	for (auto& mesh : meshes)
-		m_SceneRenderer.DrawMeshOutline(mesh);
-		//mesh.RenderDebugOutLine();
+		m_SceneRenderer.DrawVertexElementsOutline(mesh.GetVAO(), mesh.GetIBO());
 }
 
 void Model::Destroy()

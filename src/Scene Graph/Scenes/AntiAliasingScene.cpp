@@ -1,6 +1,7 @@
 #include "AntiAliasingScene.h"
 
 #include "External Libs/imgui/imgui.h"
+#include "Renderer/Meshes/PrimitiveMeshFactory.h"
 
 void AntiAliasingScene::OnInit(Window* window)
 {
@@ -288,7 +289,7 @@ void AntiAliasingScene::CreateObjects()
 	////////////////////////////////////////
 	// CREATE SQUARE MESH
 	////////////////////////////////////////
-	cube.Create();
+	cube = CRRT::PrimitiveMeshFactory::Instance().CreateACube();
 
 
 	float quad_vertices[] = {

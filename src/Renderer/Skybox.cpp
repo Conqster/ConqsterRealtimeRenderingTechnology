@@ -8,6 +8,8 @@
 #include "RenderCommand.h"
 #include "SceneRenderer.h"
 
+#include "Meshes/PrimitiveMeshFactory.h"
+
 
 Skybox::Skybox() : m_FacePath(std::vector<std::string>())
 {}
@@ -29,7 +31,7 @@ void Skybox::Create(const std::vector<std::string> faces_image_path)
 
 	m_Shader.Create("default_skybox_shader", skybox_shader_file_path);
 
-	m_Mesh.Create();
+	m_Mesh = CRRT::PrimitiveMeshFactory::Instance().CreateACube();
 }
 
 

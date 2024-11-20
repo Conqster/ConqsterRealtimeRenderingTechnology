@@ -20,6 +20,10 @@ class Texture;
 
 //TRACKING THE SELECTED GAMEOBJECT IN RENDER AS INT 
 //4 BYTES COMPARE TO GAMEOBJECT SIZE
+
+/// <summary>
+/// Deprecated Class, Entity is Object class now
+/// </summary>
 class GameObject
 {
 private:
@@ -32,10 +36,13 @@ private:
 	
 public:
 	//GameObject(Mesh& mesh);
-	GameObject(Mesh* mesh, Texture* texture);
+	GameObject(Mesh* mesh, Texture* texture, bool a_sphere = false);
 	//GameObject(Mesh* mesh, Texture* texture, Material* material);
 	GameObject() = default;
 	~GameObject();
+
+	//Quick hack
+	bool aSphere = false;
 
 	void Draw();
 	void DebugDraw();

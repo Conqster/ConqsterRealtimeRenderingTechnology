@@ -3,9 +3,10 @@
 #include "Renderer/Renderer.h"
 #include "External Libs/imgui/imgui.h"
 
-#include "Renderer/Meshes/Meshes.h"
+#include "Renderer/Meshes/Mesh.h"
 
 #include "Scene Graph/Scenes/SceneManager.h"
+#include "Renderer/Meshes/PrimitiveMeshFactory.h"
 
 void AdvanceOpenGLScene::OnInit(Window* window)
 {
@@ -346,8 +347,7 @@ void AdvanceOpenGLScene::CreateObjects()
 	outlineShader.Create("stencil_outline_test", outlineShader_file_path);
 
 
-	grassMesh = new SquareMesh();
-	grassMesh->Create();
+	grassMesh = CRRT::PrimitiveMeshFactory::Instance().CreateQuad();
 
 	grassTexture = new Texture("Assets/Textures/blending_transparent_window.png");
 

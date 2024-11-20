@@ -3,6 +3,9 @@
 #include "Meshes/Mesh.h"
 #include "RendererErrorAssertion.h"
 
+#include "ObjectBuffer/VertexArray.h"
+#include "ObjectBuffer/IndexBuffer.h"
+
 namespace CRRT
 {
 	void SceneRenderer::Viewport(unsigned int x, unsigned int y, unsigned int width, unsigned int height)
@@ -24,6 +27,19 @@ namespace CRRT
 		vao->Bind();
 		ibo->Bind();
 		GLCall(glDrawElements(GL_TRIANGLES, ibo->GetCount(), GL_UNSIGNED_INT, (void*)0));
+	}
+	void SceneRenderer::DrawVertexElements(const VertexArray vao, const IndexBuffer ibo)
+	{
+		vao.Bind();
+		ibo.Bind();
+		GLCall(glDrawElements(GL_TRIANGLES, ibo.GetCount(), GL_UNSIGNED_INT, (void*)0));
+	}
+	void SceneRenderer::DrawVertexElementsOutline(const VertexArray vao, const IndexBuffer ibo, float thickness)
+	{
+		vao.Bind();
+		ibo.Bind();
+		GLCall(glLineWidth(thickness));
+		GLCall(glDrawElements(GL_LINE_LOOP, ibo.GetCount(), GL_UNSIGNED_INT, (void*)0));
 	}
 	void SceneRenderer::DrawMeshOutline(Mesh& mesh, float thickness)
 	{

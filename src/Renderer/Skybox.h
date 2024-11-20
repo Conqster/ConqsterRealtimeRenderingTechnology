@@ -1,7 +1,7 @@
 #pragma once
 
 #include "TextureCube.h";
-#include "Meshes/CubeMesh.h"
+#include "Meshes/Mesh.h"
 #include "Shader.h"
 
 #include "SceneRenderer.h"
@@ -36,7 +36,7 @@ private:
 	std::vector<std::string> m_FacePath;
 
 	TextureCube m_TextureMap;
-	CubeMesh m_Mesh;
+	Mesh m_Mesh;
 	Shader m_Shader;
 
 	CRRT::SceneRenderer m_SceneRenderer;
