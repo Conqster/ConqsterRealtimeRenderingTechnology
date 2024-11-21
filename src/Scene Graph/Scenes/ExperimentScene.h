@@ -125,7 +125,7 @@ private:
 
 	//Utilities
 	CRRT::ModelLoader m_NewModelLoader;
-	unsigned int m_PrevViewWidth, m_PrevViewHeight;
+	unsigned int m_PrevViewWidth = 0, m_PrevViewHeight = 0;
 
 
 	//UniformBuffers

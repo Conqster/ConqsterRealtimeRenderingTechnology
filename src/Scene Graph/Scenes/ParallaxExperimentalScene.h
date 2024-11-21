@@ -14,7 +14,7 @@
 
 #include "../Entity.h"
 
-enum ResolutionSetting
+enum class ResolutionSetting
 {
 	LOW_RESOLUTION,
 	MEDUIM_RESOLUTION,
@@ -23,7 +23,7 @@ enum ResolutionSetting
 
 struct ShadowConfig
 {
-	ResolutionSetting res = LOW_RESOLUTION;
+	ResolutionSetting res = ResolutionSetting::LOW_RESOLUTION;
 
 	float cam_near = 0.1f;
 	float cam_far = 25.0f;
@@ -145,7 +145,7 @@ private:
 	Framebuffer depthFBO;
 	Shader depthShader;
 
-	OldMRTFramebuffer MRT_FBO;
+	MRTFramebuffer MRT_FBO;
 	Shader MRTShader;
 	Shader bloomShader;
 	bool horiBloom = false;

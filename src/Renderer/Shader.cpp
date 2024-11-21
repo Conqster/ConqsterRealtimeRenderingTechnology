@@ -12,8 +12,8 @@
 			case GL_FRAGMENT_SHADER: return "Fragmant Shader";
 			case GL_GEOMETRY_SHADER: return "Geometry Shader";
 
-			return "Not registed shader type";
 		}
+		return "Not registed shader type";
 	}
 
 
@@ -204,8 +204,8 @@
 			case GL_FRAGMENT_SHADER: return m_FragFilePath.c_str();
 			case GL_GEOMETRY_SHADER: return m_GeometryFilePath.c_str();
 
-			return "Not a registered shader";
 		}
+		return "Not a registered shader";
 	}
 
 	void Shader::SetUniformBlockIdx(const char* name, int blockBindingIdx) const

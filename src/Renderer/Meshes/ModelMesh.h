@@ -33,8 +33,8 @@ public:
 	void NewRender(class Shader& shader);
 
 	std::vector<Vertex> GetVerties() { return m_Vertices; }
-	inline VertexArray& const GetVAO() { return VAO; }
-	inline IndexBuffer& const GetIBO() { return IBO; }
+	inline VertexArray const GetVAO() { return VAO; }
+	inline IndexBuffer const GetIBO() { return IBO; }
 	inline AABB GetAABB() { return aabb; }
 	inline std::shared_ptr<Material> const GetMaterial() const { return m_Material; }
 private:

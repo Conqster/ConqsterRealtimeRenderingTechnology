@@ -4,7 +4,7 @@
 #include <string>
 
 
-enum TextureType
+enum class TextureType
 {
 	TextureType_NONE,
 	TextureType_DIFFUSE,
@@ -61,14 +61,14 @@ private:
 public:
 	Texture();
 	Texture(const Texture&) = default;
-	Texture(const std::string& fileLoc, bool flip = false, TextureFormat format = TextureFormat::RGBA, TextureType type = TextureType_NONE);
+	Texture(const std::string& fileLoc, bool flip = false, TextureFormat format = TextureFormat::RGBA, TextureType type = TextureType::TextureType_NONE);
 	~Texture();
 
 	void RegisterUse();
 	void UnRegisterUse();
 	inline int const RefCount() const { return m_RefCount; }
 
-	bool LoadTexture(const std::string& fileLoc, bool flip = false,  TextureFormat format = TextureFormat::RGBA, TextureType type = TextureType_NONE);
+	bool LoadTexture(const std::string& fileLoc, bool flip = false,  TextureFormat format = TextureFormat::RGBA, TextureType type = TextureType::TextureType_NONE);
 	void Activate(unsigned int slot = 0) const;
 	void DisActivate() const;
 	void Clear();
@@ -87,6 +87,6 @@ private:
 	int m_RefCount = 0;
 	std::string relativePath = "";
 	TextureFormat m_TexFormat = TextureFormat::RGBA;
-	TextureType m_TexType = TextureType_NONE;
+	TextureType m_TexType = TextureType::TextureType_NONE;
 };
 

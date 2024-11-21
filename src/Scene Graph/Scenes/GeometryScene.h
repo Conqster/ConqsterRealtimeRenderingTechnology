@@ -28,7 +28,7 @@ private:
 	Mesh m_SquareMesh;
 
 	
-	bool debugSquare;
+	bool debugSquare = false;
 
 	UniformBuffer m_CameraMatUBO;
 
@@ -36,7 +36,7 @@ private:
 
 	//Ground 
 	Shader m_GroundShader;
-	Texture* m_GroundTex;
+	Texture* m_GroundTex = nullptr;
 	glm::vec3 ground_pos = glm::vec3();
 	float ground_rot = 90.0f;
 	glm::vec3 ground_scale = glm::vec3(1.0);
@@ -44,7 +44,7 @@ private:
 
 	//sphere
 	Mesh sphere;
-	Texture* sphereTex;
+	Texture* sphereTex = nullptr;
 	Shader sphereNormDebugShader;
 
 	float normDebugLength = 0.2f;

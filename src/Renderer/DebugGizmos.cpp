@@ -241,7 +241,7 @@ void DebugGizmos::DrawWireDisc(glm::vec3 center, glm::vec3 right, glm::vec3 up, 
 
 	//Quick hack
 	glm::vec3 prev = center + (right * radius);
-	for (float theta = 0.0f; theta < 2.0f * MathsHelper::PI; theta += (MathsHelper::PI/step))
+	for (float theta = 0.0f; theta < 2.0f * (float)MathsHelper::PI; theta += ((float)MathsHelper::PI/(float)step))
 	{
 		glm::vec3 p = center + radius * (right * glm::cos(theta) + up * glm::sin(theta));
 		DrawLine(prev, p, colour, thickness);
@@ -249,7 +249,6 @@ void DebugGizmos::DrawWireDisc(glm::vec3 center, glm::vec3 right, glm::vec3 up, 
 	}
 	//last with first
 	DrawLine(prev, center + (right * radius), colour, thickness);
-
 }
 
 void DebugGizmos::DrawWireThreeDisc(glm::vec3 center, float radius, int steps, glm::vec3 colour, float thickness)
@@ -280,7 +279,7 @@ void DebugGizmos::DrawWireCone(glm::vec3 center, glm::vec3 up, glm::vec3 right, 
 	DrawLine(center, prev, colour, thickness);
 	DrawLine(prev, peak, colour, thickness);
 
-	for (float theta = 0.0f; theta < 2.0f * MathsHelper::PI; theta += (MathsHelper::PI / 5))
+	for (float theta = 0.0f; theta < 2.0f * (float)MathsHelper::PI; theta += ((float)MathsHelper::PI / 5.0f))
 	{
 		glm::vec3 p = center + radius * (right * glm::cos(theta) + forward * glm::sin(theta));
 		DrawLine(prev, p, colour, thickness);
@@ -661,12 +660,12 @@ void DebugGizmos::DrawFrustum(const Frustum& f, glm::vec3 col, float thickness)
 		Generate();
 
 
-	Plane lt_plane = f.GetPlane(Frustum::Planes_side::Left);
-	Plane rt_plane = f.GetPlane(Frustum::Planes_side::Right);
-	Plane nr_plane = f.GetPlane(Frustum::Planes_side::Near);
-	Plane tp_plane = f.GetPlane(Frustum::Planes_side::Top);
-	Plane bm_plane = f.GetPlane(Frustum::Planes_side::Bottom);
-	Plane fr_plane = f.GetPlane(Frustum::Planes_side::Far);
+	Plane lt_plane = f.GetPlane(Planes_side::Left);
+	Plane rt_plane = f.GetPlane(Planes_side::Right);
+	Plane nr_plane = f.GetPlane(Planes_side::Near);
+	Plane tp_plane = f.GetPlane(Planes_side::Top);
+	Plane bm_plane = f.GetPlane(Planes_side::Bottom);
+	Plane fr_plane = f.GetPlane(Planes_side::Far);
 
 	//near pts top_lt >> bottom_lt >> bottom_rt >> top_rt
 	glm::vec3 p1 = glm::vec3(0.0f); 

@@ -2,8 +2,8 @@
 class IndexBuffer
 {
 private:
-	unsigned int m_Id;
-	unsigned int m_Count;
+	unsigned int m_Id = 0;
+	unsigned int m_Count = 0;
 public:
 	IndexBuffer() = default;
 	//triangle count = 3

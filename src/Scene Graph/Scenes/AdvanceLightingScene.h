@@ -13,7 +13,7 @@
 #include "Util/Deprecated/OldModelLoader.h"
 
 
-enum ResolutionSetting
+enum class ResolutionSetting
 {
 	LOW_RESOLUTION,
 	MEDUIM_RESOLUTION,
@@ -22,7 +22,7 @@ enum ResolutionSetting
 
 struct ShadowConfig
 {
-	ResolutionSetting res = LOW_RESOLUTION;
+	ResolutionSetting res = ResolutionSetting::LOW_RESOLUTION;
 
 	float cam_near = 0.1f;
 	float cam_far = 25.0f;
@@ -110,7 +110,7 @@ private:
 	bool debugVertexPosColour = false;
 	bool disableTexture = false;
 	bool useBlinnPhong = true;
-	enum DebugModelType : int
+	enum class DebugModelType : int
 	{
 		MODEL_SPACE,
 		NORMAL,

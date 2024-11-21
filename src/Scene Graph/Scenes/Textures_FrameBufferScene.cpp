@@ -65,14 +65,14 @@ void Texture_FrameBufferScene::OnRender()
 	DrawObjects(false, false);
 	
 
-	uint16_t win_width = window->GetWidth() * 0.25f; // 0.25f;
-	uint16_t win_height = window->GetHeight() * 0.25f; // 0.25f;
-	uint16_t x_offset = win_width * 0.6f,
+	float win_width = (float)window->GetWidth() * 0.25f; // 0.25f;
+	float win_height = (float)window->GetHeight() * 0.25f; // 0.25f;
+	float x_offset = win_width * 0.6f,
 			y_offset = win_height * 0.6f;
-	uint16_t x_pos = window->GetWidth() - (win_width * 0.5f) - x_offset;
-	uint16_t y_pos = window->GetHeight() - (win_height * 0.5f) - y_offset;
+	float x_pos = (float)window->GetWidth() - (win_width * 0.5f) - x_offset;
+	float y_pos = (float)window->GetHeight() - (win_height * 0.5f) - y_offset;
 
-	glViewport(x_pos, y_pos, win_width, win_height);
+	glViewport((int)x_pos, (int)y_pos, (uint16_t)win_width, (uint16_t)win_height);
 	screenShader.Bind();
 	glBindVertexArray(m_Quad.VAO);
 
@@ -118,15 +118,15 @@ void Texture_FrameBufferScene::OnRenderUI()
 		ImGui::SliderFloat("Move Speed", m_Camera->Ptr_MoveSpeed(), 5.0f, 50.0f);
 		ImGui::SliderFloat("Rot Speed", m_Camera->Ptr_RotSpeed(), 0.0f, 2.0f);
 
-		float window_width = window->GetWidth();
-		float window_height = window->GetHeight();
+		float window_width = (float)window->GetWidth();
+		float window_height = (float)window->GetHeight();
 		static glm::mat4 test_proj;
 
 		bool update_camera_proj = false;
 
 		update_camera_proj = ImGui::SliderFloat("FOV", m_Camera->Ptr_FOV(), 0.0f, 179.0f, "%.1f");
-		update_camera_proj += ImGui::DragFloat("Near", m_Camera->Ptr_Near(), 0.1f, 0.1f, 50.0f, "%.1f");
-		update_camera_proj += ImGui::DragFloat("Far", m_Camera->Ptr_Far(), 0.1f, 0.0f, 500.0f, "%.1f");
+		update_camera_proj |= ImGui::DragFloat("Near", m_Camera->Ptr_Near(), 0.1f, 0.1f, 50.0f, "%.1f");
+		update_camera_proj |= ImGui::DragFloat("Far", m_Camera->Ptr_Far(), 0.1f, 0.0f, 500.0f, "%.1f");
 
 		if (update_camera_proj)
 		{

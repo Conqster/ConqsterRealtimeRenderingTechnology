@@ -17,6 +17,7 @@ static GLint OpenGLTexFormat(TextureFormat format)
 	}
 
 	std::cout << "[TEXTURE]: Format not supported yet !!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+	return GL_RGB;
 }
 
 Texture::Texture()
@@ -62,10 +63,10 @@ bool Texture::LoadTexture(const std::string& fileLoc, bool flip , TextureFormat 
 	m_TexType = type;
 	m_TexFormat = format;
 	stbi_set_flip_vertically_on_load(flip);
-	int desire_channel = (type == TextureType_NONE) ? 4 : 0;
+	int desire_channel = (type == TextureType::TextureType_NONE) ? 4 : 0;
 		//m_LocalBuffer = stbi_load(fileLoc.c_str(), &m_Width, &m_Height, &m_BitDepth, desire_channel);
 
-	if (type == TextureType_NONE)
+	if (type == TextureType::TextureType_NONE)
 	{
 		m_LocalBuffer = stbi_load(fileLoc.c_str(), &m_Width, &m_Height, &m_BitDepth, 4); 
 
@@ -103,7 +104,7 @@ bool Texture::LoadTexture(const std::string& fileLoc, bool flip , TextureFormat 
 	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
 	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
 
-	if (type == TextureType_NONE)
+	if (type == TextureType::TextureType_NONE)
 	{
 		//GLCall(glTexImage2D(GL_TEXTURE_2D, 0, OpenGLTexFormat(m_TexFormat), m_Width, m_Height, 0, GL_RGB, GL_UNSIGNED_BYTE, m_LocalBuffer));
 		//GLCall(glTexImage2D(GL_TEXTURE_2D, 0, OpenGLTexFormat(m_TexFormat), m_Width, m_Height, 0, OpenGLTexFormat(m_TexFormat), GL_UNSIGNED_BYTE, m_LocalBuffer));

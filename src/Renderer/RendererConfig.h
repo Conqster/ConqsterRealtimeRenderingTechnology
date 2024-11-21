@@ -2,7 +2,7 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"  //remove when Shadow Calculation is removed
 
-enum ResolutionSetting
+enum class ResolutionSetting
 {
 	LOW_RESOLUTION,
 	MEDUIM_RESOLUTION,
@@ -11,7 +11,7 @@ enum ResolutionSetting
 
 struct ShadowConfig
 {
-	ResolutionSetting res = LOW_RESOLUTION;
+	ResolutionSetting res = ResolutionSetting::LOW_RESOLUTION;
 
 	float cam_near = 0.1f;
 	float cam_far = 25.0f;

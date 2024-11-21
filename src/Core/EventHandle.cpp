@@ -96,19 +96,19 @@ void EventHandle::HandleMouse(GLFWwindow* window, double xPos, double yPos)
 {
 	if (mouseFirstMoved)
 	{
-		lastX = xPos;
-		lastY = yPos;
+		lastX = (float)xPos;
+		lastY = (float)yPos;
 		mouseFirstMoved = false;
 	}
 
-	xChange = xPos - lastX;
-	yChange = lastY - yPos;
+	xChange = (float)xPos - lastX;
+	yChange = lastY - (float)yPos;
 
-	xChange += xPos - lastX;
-	yChange += lastY - yPos;
+	xChange += (float)xPos - lastX;
+	yChange += lastY - (float)yPos;
 
-	lastX = xPos;
-	lastY = yPos;
+	lastX = (float)xPos;
+	lastY = (float)yPos;
 
 
 	m_CurrentMousePos = glm::vec2(xPos, yPos);

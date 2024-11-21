@@ -201,7 +201,7 @@ void Game::Run()
 
 		switch (m_GameState)
 		{
-		case LOADSCENE:
+		case State::LOADSCENE:
 
 			m_Window->OnWaitUpdate();
 
@@ -212,7 +212,7 @@ void Game::Run()
 			//std::cout << "Loading scene\n";
 
 			break;
-		case RUNNINGSCENE:
+		case State::RUNNINGSCENE:
 		
 		
 			m_CurrentScene->OnUpdate(m_Time.DeltaTime());

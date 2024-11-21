@@ -332,7 +332,7 @@ void ExperimentScene::CreateEntities()
 	///////////////////////////////////////
 	// EXPERIMENTING FOR GBUFFER
 	///////////////////////////////////////
-	m_TestGBuffer.Generate(window->GetWidth(), window->GetHeight(), 3);
+	m_TestGBuffer.Generate(window->GetWidth(), window->GetHeight(), 4, FBO_Format::RGBA16F);
 	ShaderFilePath test_shader_file_path
 	{
 		"Assets/Shaders/Experimental/BasicVertexPos.glsl", //vertex shader
@@ -670,7 +670,7 @@ void ExperimentScene::ShadowPass(Shader& depth_shader)
 /// </summary>
 void ExperimentScene::PostUpdateGPUUniformBuffers()
 {
-	long long int offset_pointer = 0;
+	unsigned int offset_pointer = 0;
 	offset_pointer = 0;
 	dirLightObject.dirlight.UpdateUniformBufferData(m_LightDataUBO, offset_pointer);
 	//for (int i = 0; i < MAX_POINT_LIGHT; i++)
@@ -866,16 +866,16 @@ void ExperimentScene::SceneDebugger()
 		DebugGizmos::DrawCross(dirLightObject.sampleWorldPos);
 	}
 
-	glm::vec3 translate, euler, scale;
 	bool debug_scene_entities = true;
 	if (debug_scene_entities)
 	{
-		TimeTaken("All Root AABB Enities Construction");
+
+		TimeTaken RootAABBConstruction_Time("All Root AABB Enities Construction");
 		for (const auto& e : m_SceneEntities)
 		{
 			std::string func_label = "Generating AABB for entity id: ";
 			func_label += std::to_string(e->GetID());
-			TimeTaken(func_label.c_str());
+			TimeTaken AABBConstruction_Time(func_label.c_str());
 
 
 			AABB bounds;
@@ -924,7 +924,7 @@ void ExperimentScene::SceneDebugger()
 void ExperimentScene::DebugEntitiesPos(Entity& entity)
 {
 	DebugGizmos::DrawCross(entity.GetWorldTransform()[3], 2.5f);
-	for (int i = 0; i < entity.GetChildren().size(); i++)
+	for (size_t i = 0; i < entity.GetChildren().size(); i++)
 		DebugEntitiesPos(*entity.GetChildren()[i]);
 }
 
@@ -999,15 +999,15 @@ void ExperimentScene::MainUI()
 		ImGui::SliderFloat("Move Speed", m_Camera->Ptr_MoveSpeed(), 5.0f, 50.0f);
 		ImGui::SliderFloat("Rot Speed", m_Camera->Ptr_RotSpeed(), 0.0f, 2.0f);
 
-		float window_width = window->GetWidth();
-		float window_height = window->GetHeight();
+		float window_width = (float)window->GetWidth();
+		float window_height = (float)window->GetHeight();
 		static glm::mat4 test_proj;
 
 		bool update_camera_proj = false;
 
 		update_camera_proj = ImGui::SliderFloat("FOV", m_Camera->Ptr_FOV(), 0.0f, 179.0f, "%.1f");
-		update_camera_proj += ImGui::DragFloat("Near", m_Camera->Ptr_Near(), 0.1f, 0.1f, 50.0f, "%.1f");
-		update_camera_proj += ImGui::DragFloat("Far", m_Camera->Ptr_Far(), 0.1f, 0.0f, 500.0f, "%.1f");
+		update_camera_proj |= ImGui::DragFloat("Near", m_Camera->Ptr_Near(), 0.1f, 0.1f, 50.0f, "%.1f");
+		update_camera_proj |= ImGui::DragFloat("Far", m_Camera->Ptr_Far(), 0.1f, 0.0f, 500.0f, "%.1f");
 
 		if (update_camera_proj)
 		{
@@ -1185,10 +1185,8 @@ void ExperimentScene::EntityModelMaterial(const Entity& entity)
 		ImGui::PopID();
 	}
 
-	for (int i = 0; i < entity.GetChildren().size(); i++)
-	{
+	for (size_t i = 0; i < entity.GetChildren().size(); i++)
 		EntityModelMaterial(*entity.GetChildren()[i]);
-	}
 }
 
 void ExperimentScene::MaterialsUI()
@@ -1266,7 +1264,7 @@ void ExperimentScene::EditTopViewUI()
 
 
 	ImGui::SeparatorText("Frame Buffers");
-	static int scale = 3;
+	static int scale = 1;
 	ImGui::SliderInt("Scale", &scale, 1, 5);
 	ImVec2 img_size(500.0f * scale, 500.0f * scale);
 	img_size.y *= (m_TopDownFBO.GetSize().y / m_TopDownFBO.GetSize().x); //invert
@@ -1279,7 +1277,7 @@ void ExperimentScene::EditTopViewUI()
 void ExperimentScene::TestMRT_GBufferUI()
 {
 	ImGui::Begin("Experimenting GBuffer");
-	static int scale = 3;
+	static int scale = 1;
 	ImGui::SliderInt("image scale", &scale, 1, 5);
 	ImVec2 img_size(500.0f * scale, 500.0f * scale);
 	img_size.y *= (m_TestGBuffer.GetSize().y / m_TestGBuffer.GetSize().x); //invert

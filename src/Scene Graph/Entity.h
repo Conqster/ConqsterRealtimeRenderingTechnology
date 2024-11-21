@@ -58,7 +58,7 @@ public:
 
 	//retrive
 	inline const int GetID() const { return m_ID; }
-	inline const const char* GetName() const { return m_Name.c_str(); }
+	inline const char* GetName() const { return m_Name.c_str(); }
 	const glm::mat4& GetWorldTransform();
 	inline const glm::mat4& GetTransform() const { return m_LocalTransform; }
 	inline const std::shared_ptr<Mesh>& GetMesh() const { return m_Mesh; }

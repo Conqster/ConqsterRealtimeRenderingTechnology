@@ -21,8 +21,8 @@ public:
 
 
 	//retrive 
-	const glm::vec3& GetNormal() const { return glm::vec3(m_NormalAndConstant.x, m_NormalAndConstant.y, m_NormalAndConstant.z); }
-	const glm::vec4& GetNormalAndConstant() const { return m_NormalAndConstant; }
+	const glm::vec3 GetNormal() const { return glm::vec3(m_NormalAndConstant.x, m_NormalAndConstant.y, m_NormalAndConstant.z); }
+	const glm::vec4 GetNormalAndConstant() const { return m_NormalAndConstant; }
 	const float GetConstant() const { return m_NormalAndConstant.w; }
 
 

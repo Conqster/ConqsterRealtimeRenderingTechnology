@@ -3,7 +3,8 @@
 //--------------OUT--------------/
 layout(location = 0) out vec4 o_BaseColour;
 layout(location = 1) out vec4 o_Normal;
-layout(location = 2) out vec4 o_Position;
+layout(location = 2) out vec4 o_TangentNormal;
+layout(location = 3) out vec4 o_Position;
 
 //--------------IN--------------/
 in VS_OUT
@@ -39,5 +40,15 @@ void main()
 	
 	o_BaseColour = vec4(base_colour, 1.0f);
 	o_Normal = vec4(normalize(fs_in.normal), 1.0f);
+	
+	vec3 N = normalize(fs_in.normal);
+	if(u_Material.useNormal)
+	{
+		N = texture(u_Material.normalMap, fs_in.uv).rgb;
+		N = N * 2.0f - 1.0f;
+		N = normalize(fs_in.TBN * N);
+	}
+	o_TangentNormal = vec4(N, 1.0f);
+	
 	o_Position = vec4(fs_in.fragPos, 1.0f);
 }

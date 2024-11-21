@@ -1,5 +1,4 @@
 #pragma once
-
 #include "TextureCube.h";
 #include "Meshes/Mesh.h"
 #include "Shader.h"

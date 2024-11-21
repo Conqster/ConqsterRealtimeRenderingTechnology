@@ -3,6 +3,15 @@
 #include "Plane.h"
 #include <glm/gtc/matrix_transform.hpp>
 
+enum class Planes_side : uint8_t
+{
+	Near = 0,
+	Far = 1,
+	Left = 2,
+	Right = 3,
+	Top = 4,
+	Bottom = 5,
+};
 
 class Frustum
 {
@@ -42,15 +51,7 @@ public:
 	}
 
 
-	static enum class Planes_side : uint8_t
-	{
-		Near = 0,
-		Far = 1,
-		Left = 2,
-		Right = 3,
-		Top = 4,
-		Bottom = 5,
-	};
+
 
 	const Plane* GetPlanes() const { return m_Planes; }
 	const Plane& GetPlane(Planes_side side) const { return m_Planes[(int)side]; }

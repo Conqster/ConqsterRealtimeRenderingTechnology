@@ -27,20 +27,20 @@ public:
 private:
 	void CreateObjects();
 
-	glm::vec3 debugColour;
-	bool useDebugColour;
+	glm::vec3 debugColour = glm::vec3(1.0f, 0.0f, 1.0f);
+	bool useDebugColour = false;
 
 	Shader cubeShader;
 	Mesh cube;
 
 	float scaleBy = 1.0f;
 
-	LearnVertex m_Quad; //for screen frame tex
+	LearnVertex m_Quad = {}; //for screen frame tex
 	Shader screenShader;
 
 	//debugging screen space texture
-	bool m_DebugScreenTex;
-	glm::vec3 m_DebugScreenTexColour;
+	bool m_DebugScreenTex = false;
+	glm::vec3 m_DebugScreenTexColour = glm::vec3(1.0f, 0.0f, 1.0f);
 
 
 	MSAA m_MSAA;

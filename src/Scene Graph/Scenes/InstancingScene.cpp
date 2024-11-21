@@ -85,14 +85,14 @@ void InstancingScene::OnRender()
 		}
 	}
 
-	for (unsigned int i = 0; i < count; i++)
+	for (int i = 0; i < count; i++)
 		m_Shader.SetUniformVec2(("offsets[" + std::to_string(i) + "]"), translate_offsets[i]);
 
 	//m_SquareMesh.GetVAO()->Bind();
 	m_Shader.SetUniformMat4f("u_Model", model);
 	//m_Shader.SetUniform1f("u_AR", aspect_ratio);
-	m_Shader.SetUniform1f("u_Width", window->GetWidth());
-	m_Shader.SetUniform1f("u_Height", window->GetHeight());
+	m_Shader.SetUniform1f("u_Width", (float)window->GetWidth());
+	m_Shader.SetUniform1f("u_Height", (float)window->GetHeight());
 	m_Shader.SetUniform1i("u_Debug", debugColour);
 	//m_SquareMesh.Render();
 	//m_SquareMesh.RenderInstances(100);
@@ -161,15 +161,15 @@ void InstancingScene::OnRenderUI()
 		ImGui::SliderFloat("Move Speed", m_Camera->Ptr_MoveSpeed(), 5.0f, 50.0f);
 		ImGui::SliderFloat("Rot Speed", m_Camera->Ptr_RotSpeed(), 0.0f, 2.0f);
 
-		float window_width = window->GetWidth();
-		float window_height = window->GetHeight();
+		float window_width = (float)window->GetWidth();
+		float window_height = (float)window->GetHeight();
 		static glm::mat4 test_proj;
 
 		bool update_camera_proj = false;
 
 		update_camera_proj = ImGui::SliderFloat("FOV", m_Camera->Ptr_FOV(), 0.0f, 179.0f, "%.1f");
-		update_camera_proj += ImGui::DragFloat("Near", m_Camera->Ptr_Near(), 0.1f, 0.1f, 50.0f, "%.1f");
-		update_camera_proj += ImGui::DragFloat("Far", m_Camera->Ptr_Far(), 0.1f, 0.0f, 500.0f, "%.1f");
+		update_camera_proj |= ImGui::DragFloat("Near", m_Camera->Ptr_Near(), 0.1f, 0.1f, 50.0f, "%.1f");
+		update_camera_proj |= ImGui::DragFloat("Far", m_Camera->Ptr_Far(), 0.1f, 0.0f, 500.0f, "%.1f");
 
 		if (update_camera_proj)
 		{

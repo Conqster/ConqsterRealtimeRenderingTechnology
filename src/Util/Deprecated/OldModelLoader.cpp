@@ -7,18 +7,21 @@ TextureType ConvertType(aiTextureType ai_type)
 	switch (ai_type)
 	{
 	case aiTextureType_NONE:
-		return TextureType_NONE;
+		return TextureType::TextureType_NONE;
 		break;
 	case aiTextureType_DIFFUSE:
-		return TextureType_DIFFUSE;
+		return TextureType::TextureType_DIFFUSE;
 		break;
 	case aiTextureType_SPECULAR:
-		return TextureType_SPECULAR;
+		return TextureType::TextureType_SPECULAR;
 		break;
 	case aiTextureType_EMISSIVE:
-		return TextureType_EMISSIVE;
+		return TextureType::TextureType_EMISSIVE;
 		break;
 	}
+
+	printf("[TEXTURE TYPE CONVERSION]: ASSIMP type currently not supported.\n");
+	return TextureType::TextureType_NONE;
 }
 
 

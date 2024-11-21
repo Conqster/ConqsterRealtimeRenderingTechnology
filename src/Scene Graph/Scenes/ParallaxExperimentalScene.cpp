@@ -313,15 +313,15 @@ void ParallaxExperimentalScene::OnRenderUI()
 		ImGui::SliderFloat("Move Speed", m_Camera->Ptr_MoveSpeed(), 5.0f, 50.0f);
 		ImGui::SliderFloat("Rot Speed", m_Camera->Ptr_RotSpeed(), 0.0f, 2.0f);
 
-		float window_width = window->GetWidth();
-		float window_height = window->GetHeight();
+		float window_width = (float)window->GetWidth();
+		float window_height = (float)window->GetHeight();
 		static glm::mat4 test_proj;
 
 		bool update_camera_proj = false;
 
 		update_camera_proj = ImGui::SliderFloat("FOV", m_Camera->Ptr_FOV(), 0.0f, 179.0f, "%.1f");
-		update_camera_proj += ImGui::DragFloat("Near", m_Camera->Ptr_Near(), 0.1f, 0.1f, 50.0f, "%.1f");
-		update_camera_proj += ImGui::DragFloat("Far", m_Camera->Ptr_Far(), 0.1f, 0.0f, 500.0f, "%.1f");
+		update_camera_proj |= ImGui::DragFloat("Near", m_Camera->Ptr_Near(), 0.1f, 0.1f, 50.0f, "%.1f");
+		update_camera_proj |= ImGui::DragFloat("Far", m_Camera->Ptr_Far(), 0.1f, 0.0f, 500.0f, "%.1f");
 
 		if (update_camera_proj)
 		{
@@ -678,7 +678,7 @@ void ParallaxExperimentalScene::CreateObjects()
 
 
 	//Multiple Render Target
-	MRT_FBO.Generate(window->GetWidth(), window->GetHeight(), FBO_Format::RGBA16F);
+	MRT_FBO.Generate(window->GetWidth(), window->GetHeight(), 3, FBO_Format::RGBA16F);
 	ShaderFilePath mrt_shader
 	{
 		"Assets/Shaders/Learning/ParallaxExperiment/ParallaxModelVertex.glsl", //vertex shader
@@ -939,7 +939,7 @@ void ParallaxExperimentalScene::DrawObjects(Shader& shader, bool apply_tex)
 void ParallaxExperimentalScene::LightPass()
 {
 	//------------------Update uniform GPU buffer Lights -----------------------------/ 
-	long long int offset_pointer = 0;
+	unsigned int offset_pointer = 0;
 	offset_pointer = 0;
 	dirLightObject.dirlight.UpdateUniformBufferData(m_LightDataUBO, offset_pointer);
 	for(int i = 0; i < MAX_POINT_LIGHT; i++)

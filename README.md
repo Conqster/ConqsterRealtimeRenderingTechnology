@@ -122,6 +122,8 @@ Current libaries in use: GLM, GLEW, GLFW, stb-image, Assimp.
 - Foundations of Game Engine Development (Volume 1 - Mathematics) Eric Lengyel.
 - Foundations of Game Engine Development (Volume 2 - Rendering) Eric Lengyel.
 - [Forward and Deferred Rendering - Cambridge Computer Science Talks.](https://youtu.be/n5OiqJP2f7w?si=QQGg5Mj2bPoBzMiu)
+- [Forward vs Deferred vs Forward+ Rendering with DirectX 11.](https://www.3dgep.com/forward-plus/)
+- [Physicall Based Shading in Theory & Practice.](https://blog.selfshadow.com/publications/s2013-shading-course/#course_content)
 - Core Techniques and Algorithms in Game Programming.
 
 ## Models & Textures Acknowledgements 

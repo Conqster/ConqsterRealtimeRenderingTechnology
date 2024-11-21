@@ -34,7 +34,7 @@ private:
 	bool m_PerfromDepthTest = true;
 
 	Shader screenShader;
-	LearnVertex m_Quad;
+	LearnVertex m_Quad = {};
 	float screenTexSampleOffset = 300.0f; //inverted in shader
 	bool specialScreenKernel = false;
 	int specialKernelType = 0;
@@ -46,8 +46,8 @@ private:
 
 	void DrawObjects(bool depth_test, bool get_rear);
 
-	LearnVertex m_Cube;
-	class Texture* m_CrateTex;
+	LearnVertex m_Cube = {};
+	class Texture* m_CrateTex = nullptr;
 	Shader m_CrateShader;
 
 
@@ -55,7 +55,7 @@ private:
 	Shader m_ObjectSampleReflect;
 
 	Mesh m_Sphere;
-	Texture* m_SphereTex;
+	Texture* m_SphereTex = nullptr;
 	float m_SkyboxInfluencity = 0.5f;
 	glm::vec3 m_TextureColour = glm::vec3(0.0f, 0.0f, 1.0f);
 
@@ -67,8 +67,8 @@ private:
 
 	}m_CubeWorTrans;
 
-	LearnVertex m_Plane;
-	Texture* m_PlaneTex;
+	LearnVertex m_Plane = {};
+	Texture* m_PlaneTex = nullptr;
 	Transform m_PlaneWorTrans;
 
 	//Transform m_SphereTrans;
