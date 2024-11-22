@@ -139,7 +139,8 @@ void main()
 	
 	//directional light influence
 	vec3 final_colour = CalDirLight(N, V, base_colour);
-	final_colour += CalPointLight(N, V, base_colour);
+	//final_colour += CalPointLight(N, V, base_colour);
+	
 
 	
 	//with sky box reflection 
@@ -249,7 +250,7 @@ float DirShadowCalculation(vec3 N, vec4 frag_pos_lightSpace)
             shadow += currentDepth - bias > pcfDepth ? 1.0f : 0.0f;
         }
     }
-    shadow /= 20.0f;
+    shadow /= 10.0f;
     
     return shadow;
 }

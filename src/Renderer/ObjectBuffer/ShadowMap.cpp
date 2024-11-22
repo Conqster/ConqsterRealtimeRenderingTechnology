@@ -68,6 +68,16 @@ void ShadowMap::UnBind()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+void ShadowMap::Clear()
+{
+	GLCall(glDeleteTextures(1, &m_Id));
+	m_Id = 0;
+	m_Height = 0;
+	m_Width = 0;
+	m_TexMapId = 0;
+	std::cout << "Cleared shadow map\n";
+}
+
 
 //---------------------------------Shadow Cube---------------------------------/
 

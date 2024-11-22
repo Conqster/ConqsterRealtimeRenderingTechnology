@@ -126,6 +126,40 @@ void ExperimentScene::OnRenderUI()
 void ExperimentScene::OnDestroy()
 {
 	//Perform all required clean up here
+	m_QuadMesh->Clear();
+	m_QuadMesh = nullptr;
+
+	m_SceneEntities.clear();
+
+	//the following should be nullptr, is there are weak_ptr
+	m_SceneEntitiesWcRenderableMesh.clear();
+	m_OpaqueEntites.clear();
+	m_TransparentEntites.clear();
+
+
+	m_SceneMaterials.clear();
+
+
+	//FBOs;
+	m_SceneScreenFBO.Delete();
+	m_TestGBuffer.Delete();
+	m_TopDownFBO.Delete();
+
+	//Shaders 
+	m_TestGBufferShader.Clear();
+	m_PostImgShader.Clear();
+	m_SceneShader.Clear();
+	m_ShadowDepthShader.Clear();
+	m_SkyboxShader.Clear();
+
+	//UBO
+	m_CamMatUBO.Delete();
+	m_LightDataUBO.Delete();
+	m_EnviUBO.Delete();
+
+	//other Resources
+	m_Skybox.Destroy();
+	dirDepthMap.Clear();
 }
 
 void ExperimentScene::InitRenderer()
@@ -247,87 +281,99 @@ void ExperimentScene::CreateEntities()
 	int id_idx = 0;
 	//id_idx = newModel->GetID() + 1;
 
-	Entity transparent_1 = Entity(id_idx++, "transparent_1_entity", temp_trans, cube_mesh, glassMat);
-	m_SceneEntities.emplace_back(std::make_shared<Entity>(transparent_1));
-	temp_trans = glm::translate(temp_trans, glm::vec3(0.0f, 0.0f, 10.0f));
-	Entity transparent_2 = Entity(id_idx++, "transparent_2_entity", temp_trans, cube_mesh, glass2Mat);
-	m_SceneEntities.emplace_back(std::make_shared<Entity>(transparent_2));
-	temp_trans = glm::translate(temp_trans, glm::vec3(0.0f, 0.5f, -5.0f)) * 
-				 glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 0.1f, 10.0f));
-	Entity transparent_3 = Entity(id_idx++, "transparent_3_entity", temp_trans, cube_mesh, glassMat);
-	m_SceneEntities.emplace_back(std::make_shared<Entity>(transparent_3));
+	bool load_primitives = false;
+	if (load_primitives)
+	{
+		Entity transparent_1 = Entity(id_idx++, "transparent_1_entity", temp_trans, cube_mesh, glassMat);
+		m_SceneEntities.emplace_back(std::make_shared<Entity>(transparent_1));
+		temp_trans = glm::translate(temp_trans, glm::vec3(0.0f, 0.0f, 10.0f));
+		Entity transparent_2 = Entity(id_idx++, "transparent_2_entity", temp_trans, cube_mesh, glass2Mat);
+		m_SceneEntities.emplace_back(std::make_shared<Entity>(transparent_2));
+		temp_trans = glm::translate(temp_trans, glm::vec3(0.0f, 0.5f, -5.0f)) *
+			glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 0.1f, 10.0f));
+		Entity transparent_3 = Entity(id_idx++, "transparent_3_entity", temp_trans, cube_mesh, glassMat);
+		m_SceneEntities.emplace_back(std::make_shared<Entity>(transparent_3));
+
+		//move up 
+		temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 1.6f, 0.0f));
+		Entity cube_entity = Entity(id_idx++, "cube-entity", temp_trans, cube_mesh, plainMat);
+		m_SceneEntities.emplace_back(std::make_shared<Entity>(cube_entity));
+		//move right
+		temp_trans = glm::translate(temp_trans, glm::vec3(5.0f, 0.0f, 0.0f)) *
+			glm::scale(temp_trans, glm::vec3(2.0f));
+		Entity cube1_entity = Entity(id_idx++, "cube1-entity", temp_trans, cube_mesh, plainMat);
+		m_SceneEntities.emplace_back(std::make_shared<Entity>(cube1_entity));
+		//move up & add to previous as world child & scale down
+		temp_trans = glm::translate(temp_trans, glm::vec3(0.0f, 2.0f, 0.0f)) *
+			glm::scale(glm::mat4(1.0f), glm::vec3(0.5f));
+		Entity cube1child_entity = Entity(id_idx++, "cube1child-entity", temp_trans, cube_mesh, plainMat);
+		m_SceneEntities.back()->AddWorldChild(cube1child_entity);
+
+		//create  a sphere with world pos an center
+		//then add as cube1child_entity child
+		Mesh sphere_mesh;
+		sphere_mesh = CRRT::PrimitiveMeshFactory::Instance().CreateASphere();
+		temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 3.5f, 0.0f));// *
+					// glm::scale(glm::mat4(1.0f), glm::vec3(0.5f));
+		Entity sphere_entity = Entity(id_idx++, "sphere-entity", temp_trans, CRRT::PrimitiveMeshFactory::Instance().CreateSphere(), plainMat);
+		//cube1child_entity.AddWorldChild(sphere_entity);
+		//Quick Hack
+		m_SceneEntities.back()->GetChildren()[0]->AddWorldChild(sphere_entity);
+
+		unsigned int hierarchy_count = 0; // 500;
+		std::string name = "child_cube";
+		temp_trans = glm::translate(glm::mat4(1.0), glm::vec3(0.0, 5.0f, 5.0f));
+		std::shared_ptr<Entity> prev = m_SceneEntities.back()->GetChildren()[0];
+		for (unsigned int i = 0; i < hierarchy_count; i++)
+		{
+			std::shared_ptr<Entity> child_cube = std::make_shared<Entity>(id_idx++, (name + std::to_string(i)), temp_trans, cube_mesh, plainMat);
+			prev->AddLocalChild(child_cube);
+			prev = child_cube;
+		}
+	}
 	
 	temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f)) *
-				 glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) *
-				 glm::scale(glm::mat4(1.0f), glm::vec3(50)); 
+		glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+		glm::scale(glm::mat4(1.0f), glm::vec3(50));
 
 	//floor 
 	Entity floor_plane_entity = Entity(id_idx++, "floor-plane-entity", temp_trans, m_QuadMesh, floorMat);
 	m_SceneEntities.emplace_back(std::make_shared<Entity>(floor_plane_entity));
 
-	//move up 
-	temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 1.6f, 0.0f));
-	Entity cube_entity = Entity(id_idx++, "cube-entity", temp_trans, cube_mesh, plainMat);
-	m_SceneEntities.emplace_back(std::make_shared<Entity>(cube_entity));
-	//move right
-	temp_trans = glm::translate(temp_trans, glm::vec3(5.0f, 0.0f, 0.0f)) * 
-				 glm::scale(temp_trans, glm::vec3(2.0f));
-	Entity cube1_entity = Entity(id_idx++, "cube1-entity", temp_trans, cube_mesh, plainMat);
-	m_SceneEntities.emplace_back(std::make_shared<Entity>(cube1_entity));
-	//move up & add to previous as world child & scale down
-	temp_trans = glm::translate(temp_trans, glm::vec3(0.0f, 2.0f, 0.0f)) *
-				 glm::scale(glm::mat4(1.0f), glm::vec3(0.5f));
-	Entity cube1child_entity = Entity(id_idx++, "cube1child-entity", temp_trans, cube_mesh, plainMat);
-	m_SceneEntities.back()->AddWorldChild(cube1child_entity);
-
-	//create  a sphere with world pos an center
-	//then add as cube1child_entity child
-	Mesh sphere_mesh;
-	sphere_mesh = CRRT::PrimitiveMeshFactory::Instance().CreateASphere();
-	temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 3.5f, 0.0f));// *
-				// glm::scale(glm::mat4(1.0f), glm::vec3(0.5f));
-	Entity sphere_entity = Entity(id_idx++, "sphere-entity", temp_trans, CRRT::PrimitiveMeshFactory::Instance().CreateSphere(), plainMat);
-	//cube1child_entity.AddWorldChild(sphere_entity);
-	//Quick Hack
-	m_SceneEntities.back()->GetChildren()[0]->AddWorldChild(sphere_entity);
-
-	unsigned int hierarchy_count = 0; // 500;
-	std::string name = "child_cube";
-	temp_trans = glm::translate(glm::mat4(1.0), glm::vec3(0.0, 5.0f, 5.0f));
-	std::shared_ptr<Entity> prev = m_SceneEntities.back()->GetChildren()[0];
-	for (unsigned int i = 0; i < hierarchy_count; i++)
-	{
-		std::shared_ptr<Entity> child_cube = std::make_shared<Entity>(id_idx++, (name + std::to_string(i)), temp_trans, cube_mesh, plainMat);
-		prev->AddLocalChild(child_cube);
-		prev = child_cube;
-	}
-
 
 	temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(-14.0f, 13.0f, -20.0f)) * 
 							glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) *
 							glm::scale(glm::mat4(1.0f), glm::vec3(0.1f));
-	//model 1
-	std::shared_ptr<Entity> newModel2 = m_NewModelLoader.LoadAsEntity(FilePaths::Instance().GetPath("electrical-charger"), true);
-	newModel2->SetLocalTransform(temp_trans);
-	m_SceneEntities.emplace_back(newModel2);
 
-	temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(-10.0f, 2.0f, 0.0f)) * 
-						   glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) *
-						   glm::scale(glm::mat4(1.0f), glm::vec3(0.5f));
-	//model 2 
-	std::shared_ptr<Entity> newModel = m_NewModelLoader.LoadAsEntity(FilePaths::Instance().GetPath("shapes"), true);
-	newModel->SetLocalTransform(temp_trans);
-	m_SceneEntities.emplace_back(newModel);
+	bool load_models = false;
+	if (load_models)
+	{
+		//model 1
+		std::shared_ptr<Entity> newModel2 = m_NewModelLoader.LoadAsEntity(FilePaths::Instance().GetPath("electrical-charger"), true);
+		newModel2->SetLocalTransform(temp_trans);
+		m_SceneEntities.emplace_back(newModel2);
 
-
-	std::shared_ptr<Entity> bunny = m_NewModelLoader.LoadAsEntity(FilePaths::Instance().GetPath("bunny"), true);
-	temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.2f, 0.8f, -17.6f)) *
-					glm::scale(glm::mat4(1.0f), glm::vec3(10.0f));
-	bunny->SetLocalTransform(temp_trans);
-	m_SceneEntities.emplace_back(bunny);
+		temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(-10.0f, 2.0f, 0.0f)) *
+			glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) *
+			glm::scale(glm::mat4(1.0f), glm::vec3(0.5f));
+		//model 2 
+		std::shared_ptr<Entity> newModel = m_NewModelLoader.LoadAsEntity(FilePaths::Instance().GetPath("shapes"), true);
+		newModel->SetLocalTransform(temp_trans);
+		m_SceneEntities.emplace_back(newModel);
 
 
+		std::shared_ptr<Entity> bunny = m_NewModelLoader.LoadAsEntity(FilePaths::Instance().GetPath("bunny"), true);
+		temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.2f, 0.8f, -17.6f)) *
+			glm::scale(glm::mat4(1.0f), glm::vec3(10.0f));
+		bunny->SetLocalTransform(temp_trans);
+		m_SceneEntities.emplace_back(bunny);
+	}
 
+	//testing sponza
+	temp_trans = glm::scale(glm::mat4(1.0f), glm::vec3(0.1f));
+	std::shared_ptr<Entity> sponza_model = m_NewModelLoader.LoadAsEntity(FilePaths::Instance().GetPath("sponza"), true);
+	sponza_model->SetLocalTransform(temp_trans);
+	m_SceneEntities.emplace_back(sponza_model);
 
 	///////////////////////////////////////
 	// EXPERIMENTING FOR GBUFFER
@@ -457,6 +503,39 @@ void ExperimentScene::BuildSceneEntities()
 	//for (auto& e : m_SceneEntities)
 	for (auto& e : temp_entities)
 		BuildEntitiesWithRenderMesh(e);
+
+
+
+	bool brute_force_fix = false;
+	//Quick extra visiblity test for renderable mesh
+	//create a frustum for the current camera state 
+	if (brute_force_fix)
+	{
+		for (auto& e : m_SceneEntities)
+			BuildEntitiesWithRenderMesh(e);
+		const auto& cam = m_Camera;
+		Frustum frustum = Frustum(cam->GetPosition(), cam->GetForward(), cam->GetUp(), *cam->Ptr_Near(),
+			*cam->Ptr_Far(), *cam->Ptr_FOV(), window->GetAspectRatio());
+		AABB bounds;
+		//quick override 
+		temp_entities = m_SceneEntitiesWcRenderableMesh;
+		m_SceneEntitiesWcRenderableMesh.clear();
+		for (auto& e : temp_entities)
+		{
+			if (!e.expired())
+			{
+				//get entity mesh AABB
+				bounds = e.lock()->GetMesh()->GetAABB();
+				//transform aabb, based on enitity transformation
+				bounds = bounds.Tranformed(e.lock()->GetWorldTransform());
+
+				//check if aabb bounds is in frustum 
+				if (frustum.IsAABBVisible(bounds))
+					m_SceneEntitiesWcRenderableMesh.emplace_back(e); //store if entity is visible
+			}
+		}
+	}
+	
 
 	//	by material
 	//	by transparency / opacity
@@ -833,6 +912,21 @@ void ExperimentScene::PostProcess()
 
 void ExperimentScene::SceneDebugger()
 {
+	//test directional Shadow info 
+	if (dirLightObject.dirLightShadow.debugPara)
+	{
+		auto& ds = dirLightObject.dirLightShadow;
+		float dcv = dirLightObject.cam_offset + ds.config.cam_near * 0.5f; //dcv is the center/value between the near & far plane 
+		glm::vec3 orthCamPos = dirLightObject.sampleWorldPos + (dirLightObject.dirlight.direction * dirLightObject.cam_offset);
+		glm::vec3 farPlane = orthCamPos + (glm::normalize(-dirLightObject.dirlight.direction) * ds.config.cam_far);
+		glm::vec3 nearPlane = orthCamPos + (glm::normalize(dirLightObject.dirlight.direction) * ds.config.cam_near);
+		DebugGizmos::DrawOrthoCameraFrustrm(orthCamPos, dirLightObject.dirlight.direction,
+			ds.config.cam_near, ds.config.cam_far, ds.config.cam_size,
+			glm::vec3(0.0f, 1.0f, 0.0f));
+
+		//Shadow Camera Sample Position 
+		DebugGizmos::DrawCross(dirLightObject.sampleWorldPos);
+	}
 	return;
 	const auto& cam = m_Camera;
 	Frustum frustum = Frustum(cam->GetPosition(), cam->GetForward(),cam->GetUp(), *cam->Ptr_Near(), 
@@ -850,21 +944,7 @@ void ExperimentScene::SceneDebugger()
 	DebugGizmos::DrawFrustum(frustum, glm::vec3(1.0f, 0.0f, 0.0f));
 
 
-	//test directional Shadow info 
-	if (dirLightObject.dirLightShadow.debugPara)
-	{
-		auto& ds = dirLightObject.dirLightShadow;
-		float dcv = dirLightObject.cam_offset + ds.config.cam_near * 0.5f; //dcv is the center/value between the near & far plane 
-		glm::vec3 orthCamPos = dirLightObject.sampleWorldPos + (dirLightObject.dirlight.direction * dirLightObject.cam_offset);
-		glm::vec3 farPlane = orthCamPos + (glm::normalize(-dirLightObject.dirlight.direction) * ds.config.cam_far);
-		glm::vec3 nearPlane = orthCamPos + (glm::normalize(dirLightObject.dirlight.direction) * ds.config.cam_near);
-		DebugGizmos::DrawOrthoCameraFrustrm(orthCamPos, dirLightObject.dirlight.direction,
-			ds.config.cam_near, ds.config.cam_far, ds.config.cam_size,
-			glm::vec3(0.0f, 1.0f, 0.0f));
 
-		//Shadow Camera Sample Position 
-		DebugGizmos::DrawCross(dirLightObject.sampleWorldPos);
-	}
 
 	bool debug_scene_entities = true;
 	if (debug_scene_entities)

@@ -167,6 +167,7 @@
     <ClInclude Include="src\Scene Graph\Entity.h" />
     <ClInclude Include="src\Scene Graph\Deprecated\Model.h" />
     <ClInclude Include="src\Scene Graph\Scenes\ExperimentScene.h" />
+    <ClInclude Include="src\Scene Graph\Scenes\ForwardVsDeferredRenderingScene.h" />
     <ClInclude Include="src\Scene Graph\Scenes\NewScene.h" />
     <ClInclude Include="src\Scene Graph\Scenes\ParallaxExperimentalScene.h" />
     <ClInclude Include="src\Util\GPUStructure.h" />
@@ -228,6 +229,7 @@
     <ClCompile Include="src\Scene Graph\Entity.cpp" />
     <ClCompile Include="src\Scene Graph\Deprecated\Model.cpp" />
     <ClCompile Include="src\Scene Graph\Scenes\ExperimentScene.cpp" />
+    <ClCompile Include="src\Scene Graph\Scenes\ForwardVsDeferredRenderingScene.cpp" />
     <ClCompile Include="src\Scene Graph\Scenes\NewScene.cpp" />
     <ClCompile Include="src\Scene Graph\Scenes\ParallaxExperimentalScene.cpp" />
     <ClCompile Include="src\Util\Deprecated\OldModelLoader.cpp" />

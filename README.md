@@ -20,7 +20,7 @@ The primary aim of this project is to deepen my understanding of:
 - Environment Mapping (Skybox)
 - Scene Rendering Entities Sorting (Spatial Ordering for Transparency)
 - Debug Gizmos Primitive
-- MRT (Multi-Render Target Framebuffer, for GBuffer, multi render output etc)
+- MRT (Multi-Render Target Framebuffer, for Geometric Buffer (GBuffer), multi render output etc)
 - Light Source (Directional, Point & Spot)
 - Omnidirectional Shadow mapping for Point Lights
 - Directional Light Shadow mapping

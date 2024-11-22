@@ -15,6 +15,7 @@ public:
 	void BindMapTexture(unsigned int slot = 0);
 	virtual void UnBindMap();
 	void UnBind();
+	void Clear();
 protected:
 	unsigned int m_Id = 0;
 	unsigned int m_Height = 2048;// 1024;// 4096;//2048;

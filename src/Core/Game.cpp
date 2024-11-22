@@ -18,6 +18,7 @@
 //#include "Scene Graph/Scenes/AdvanceLightingScene.h"
 //#include "Scene Graph/Scenes/ParallaxExperimentalScene.h"
 #include "Scene Graph/Scenes/ExperimentScene.h"
+#include "Scene Graph/Scenes/ForwardVsDeferredRenderingScene.h"
 
 //FOR TESTING: Remove later
 #include "External Libs/imgui/imgui.h"
@@ -77,6 +78,7 @@ void Game::OnStart()
 		FilePaths::Instance().RegisterPath("bunny", "Assets/Models/stanford-bunny.obj");
 		FilePaths::Instance().RegisterPath("backpack", "Assets/Models/backpack/backpack.obj");
 		FilePaths::Instance().RegisterPath("shapes", "Assets/Models/blendershapes/blend_shapes.obj");
+		FilePaths::Instance().RegisterPath("sponza", "Assets/Models/Sponza/sponza.obj");
 		FilePaths::Instance().RegisterPath("electrical-charger", "Assets/Textures/sci-fi_electrical_charger/scene.gltf");
 	}
 
@@ -96,12 +98,14 @@ void Game::OnStart()
 	//m_SceneManager->RegisterNewScene<AdvanceLightingScene>("Advance Lighting Scene");
 	//m_SceneManager->RegisterNewScene<ParallaxExperimentalScene>("Parallax Scene");
 	m_SceneManager->RegisterNewScene<ExperimentScene>("ReWorking_Scene_Rendering");
+	m_SceneManager->RegisterNewScene<ForwardVsDeferredRenderingScene>("ForwardVsDeferredRendering_Scene");
 
 	//Load
 	//m_CurrentScene = m_SceneManager->LoadScene("Instance Scene", m_Window);
 	//m_CurrentScene = m_SceneManager->LoadScene("Advance Lighting Scene", m_Window);
 	//m_CurrentScene = m_SceneManager->LoadScene("Parallax Scene", m_Window);
-	m_CurrentScene = m_SceneManager->LoadScene("ReWorking_Scene_Rendering", m_Window);
+	//m_CurrentScene = m_SceneManager->LoadScene("ReWorking_Scene_Rendering", m_Window);
+	m_CurrentScene = m_SceneManager->LoadScene("ForwardVsDeferredRendering_Scene", m_Window);
 	//m_CurrentScene = m_SceneManager->LoadScene("Face Culling", m_Window);
 	//m_CurrentScene = m_SceneManager->LoadScene("Texture_FrameBufferScene", m_Window);
 	//m_CurrentScene = m_SceneManager->LoadScene("AntiAliasing Scene", m_Window);

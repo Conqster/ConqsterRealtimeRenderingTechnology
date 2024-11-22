@@ -2,9 +2,9 @@
 
 //--------------OUT--------------/
 layout(location = 0) out vec4 o_BaseColour;
-layout(location = 1) out vec4 o_Normal;
-layout(location = 2) out vec4 o_TangentNormal;
-layout(location = 3) out vec4 o_Position;
+layout(location = 1) out vec4 o_TangentNormal;
+layout(location = 2) out vec4 o_Position;
+layout(location = 3) out vec4 o_Depth;
 
 //--------------IN--------------/
 in VS_OUT
@@ -33,13 +33,22 @@ struct Material
 };
 //--------------uniform--------------/
 uniform Material u_Material;
+float far = 150.0f;
+float near = 0.1f;
+
+float LinearizeDepth(float depth)
+{
+	float z = depth * 2.0f - 1.0f;
+	return (2.0f * near * far) /(far + near - z * (far - near));
+}
 void main()
 {
 	vec3 base_colour = u_Material.baseColour.rgb;
 	base_colour *= texture(u_Material.baseMap, fs_in.uv).rgb;
 	
 	o_BaseColour = vec4(base_colour, 1.0f);
-	o_Normal = vec4(normalize(fs_in.normal), 1.0f);
+	float linear_depth = LinearizeDepth(gl_FragCoord.z) /far;
+	o_Depth = vec4(vec3(linear_depth), 1.0f);
 	
 	vec3 N = normalize(fs_in.normal);
 	if(u_Material.useNormal)
