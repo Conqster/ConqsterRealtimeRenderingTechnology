@@ -33,8 +33,9 @@ void ForwardVsDeferredRenderingScene::OnInit(Window* window)
 
 	InitRenderer();
 	CreateEntities();
-	CreateGPUDatas();
 	CreateLightDatas();
+	//all generate and scene data should be ready before creating GPU specific datas
+	CreateGPUDatas();
 }
 
 void ForwardVsDeferredRenderingScene::OnUpdate(float delta_time)
@@ -47,6 +48,10 @@ void ForwardVsDeferredRenderingScene::OnUpdate(float delta_time)
 			dirLightObject.dirlight.direction,
 			dirLightObject.cam_offset);
 	}
+	//point shadow far update 
+	float shfar = m_PtShadowConfig.cam_far;
+	for (int i = 0; i < m_PtLightCount; i++)
+		m_PtLights[i].shadow_far = shfar;
 
 
 	OnRender();
@@ -79,6 +84,7 @@ void ForwardVsDeferredRenderingScene::OnRender()
 	OpaquePass(m_ForwardShader, m_RenderableEntities);
 	frames_count++;
 
+	//return;
 	SceneDebugger();
 }
 
@@ -121,7 +127,7 @@ void ForwardVsDeferredRenderingScene::CreateEntities()
 	};
 	m_ForwardShader.Create("model_shader", shader_file_path);
 	m_ForwardShader.Bind();
-	m_ForwardShader.SetUniform1i("u_SkyboxMap", 5);
+	m_ForwardShader.SetUniform1i("u_SkyboxMap", 4);
 	ShaderFilePath shadow_shader_file_path
 	{
 		"Assets/Shaders/ShadowMapping/ShadowDepthVertex.glsl", //vertex shader
@@ -151,7 +157,7 @@ void ForwardVsDeferredRenderingScene::CreateEntities()
 		"Assets/Textures/Skyboxes/default_skybox/back.jpg"
 	};
 	m_Skybox.Create(def_skybox_faces);
-	m_Skybox.ActivateMap(5);
+	m_Skybox.ActivateMap(4);
 
 
 	////////////////////////////////////////
@@ -220,7 +226,6 @@ void ForwardVsDeferredRenderingScene::CreateEntities()
 
 
 }
-
 void ForwardVsDeferredRenderingScene::CreateGPUDatas()
 {
 	////////////////////////////////////////
@@ -237,6 +242,8 @@ void ForwardVsDeferredRenderingScene::CreateGPUDatas()
 	//PointLight pointLights[MAX_POINT_LIGHTS];
 	long long int light_buffer_size = 0;
 	light_buffer_size += DirectionalLight::GetGPUSize();
+	//Point Light
+	light_buffer_size += PointLight::GetGPUSize() * MAX_POINT_LIGHT;
 	m_LightDataUBO.Generate(light_buffer_size);
 	m_LightDataUBO.BindBufferRndIdx(1, light_buffer_size, 0);
 
@@ -282,6 +289,30 @@ void ForwardVsDeferredRenderingScene::CreateLightDatas()
 	dirLightObject.dirLightShadow.config.cam_far = 300.0f;
 	dirLightObject.cam_offset = 64.0f;
 	dirLightObject.dirLightShadow.config.cam_size = 95.0f;
+
+
+	//Point Lights
+	//for now only create one light 
+	m_PtLights[0].colour = glm::vec3(0.0f, 0.4f, 0.8f);
+	m_PtLights[0].position = glm::vec3(0.0f);
+	m_PtLights[0].ambientIntensity = 0.05f;
+	m_PtLights[0].diffuseIntensity = 0.4f;
+	m_PtLights[0].specularIntensity = 0.2f;
+	m_PtLights[0].colour = glm::vec3(1.0f, 0.9568f, 0.8392f);
+	m_PtLights[0].enable = true;
+	m_PtLights[0].castShadow = true;
+	//m_PtLightCount++;
+	m_PtLightCount = 1;  //only one light at the moment
+	//point light shadow map 
+	ShadowCube sc;
+	sc = ShadowCube(1024, 1024);
+	sc.Generate();
+	for (auto& pt : m_PtLights)
+	{
+		//using push_back instead of emplace_back 
+		//to create a copy when storing in vector 
+		m_PtDepthMapCubes.push_back(sc);
+	}
 }
 
 void ForwardVsDeferredRenderingScene::BeginRenderScene()
@@ -329,6 +360,44 @@ void ForwardVsDeferredRenderingScene::ShadowPass(Shader& depth_shader, const std
 	dirDepthMap.UnBind();
 
 	//point light shadows
+	std::vector<glm::mat4> shadowMats = PointShadowCalculation::PointLightSpaceMatrix(m_PtLights[0].position, m_PtShadowConfig);
+	//general shadowing values
+	depth_shader.SetUniform1i("u_IsOmnidir", 1);
+	depth_shader.SetUniform1f("u_FarPlane", m_PtShadowConfig.cam_far);
+
+	for (unsigned int i = 0; i < m_PtLightCount; i++)
+	{
+		if (m_PtLightCount > MAX_POINT_LIGHT)
+			break;
+
+		depth_shader.SetUniformVec3("u_LightPos", m_PtLights[i].position);
+		shadowMats = PointShadowCalculation::PointLightSpaceMatrix(m_PtLights[i].position, m_PtShadowConfig);
+		for (int f = 0; f < 6; ++f)
+		{
+			depth_shader.SetUniformMat4f(("u_ShadowMatrices[" + std::to_string(f) + "]").c_str(), shadowMats[f]);
+		}
+
+		m_PtDepthMapCubes[i].Write();//ready to write in the depth cube framebuffer for light "i"
+		RenderCommand::ClearDepthOnly();//clear the depth buffer 
+
+		//draw renderable meshes 
+		for (const auto& e : renderable_meshes)
+		{
+			if (!e.expired())
+			{
+				auto entity = e.lock();
+				if (entity->CanCastShadow())
+				{
+					depth_shader.SetUniformMat4f("u_Model", entity->GetWorldTransform());
+					m_SceneRenderer.DrawMesh(entity->GetMesh());
+				}
+			}
+		}
+		//unbind current point light shadow cube
+		m_PtDepthMapCubes[i].UnBind();
+	}
+
+	//done with shadow calculation
 	depth_shader.UnBind();
 	RenderCommand::CullBack();
 	RenderCommand::Viewport(0, 0, window->GetWidth(), window->GetHeight());
@@ -354,28 +423,41 @@ void ForwardVsDeferredRenderingScene::PostUpdateGPUUniformBuffers()
 	//for (int i = 0; i < MAX_POINT_LIGHT; i++)
 		//ptLight[i].UpdateUniformBufferData(m_LightDataUBO, offset_pointer);
 
+	//direction needs to be updated before point light 
+	//has point light is dynamic, but the max light data are updated every frame
+	//if only one light is available, we only update the available light 
+	//and perform directional light before keeps the Light uniform buffer integrity 
+	for (int i = 0; i < m_PtLightCount; i++)
+		if (m_PtLightCount < MAX_POINT_LIGHT)
+			m_PtLights[i].UpdateUniformBufferData(m_LightDataUBO, offset_pointer);
+
 
 	m_ForwardShader.Bind();
 	m_ForwardShader.SetUniformVec3("u_ViewPos", m_Camera->GetPosition());
 
-	m_ForwardShader.SetUniform1i("u_EnableSceneShadow", m_EnableShadows);
+	//m_ForwardShader.SetUniform1i("u_EnableSceneShadow", m_EnableShadows);
 	if (m_EnableShadows)
 	{
 		m_ForwardShader.SetUniformMat4f("u_DirLightSpaceMatrix", dirLightObject.dirLightShadow.GetLightSpaceMatrix());
-		//tex unit 0 >> texture 
+		//tex unit 0 >> texture (base map)
 		//tex unit 1 >> potenially normal map
 		//tex unit 2 >> potenially parallax map
 		//tex unit 3 >> shadow map (dir Light)
-		//tex unit 4 >> shadow cube (pt Light)
+		//tex unit 4 >> skybox cube map
+		//tex unit 5 >> shadow cube (pt Light)
 		dirDepthMap.Read(3);
 		m_ForwardShader.SetUniform1i("u_DirShadowMap", 3);
-		//ptDepthCube.Read(4);
-		m_ForwardShader.SetUniform1i("u_PointShadowCube", 4);
+
+		//point light shadow starts at 5 
+		for (int i = 0; i < m_PtLightCount; i++)
+		{
+			m_PtDepthMapCubes[i].Read(5 + i);
+			m_ForwardShader.SetUniform1i(("u_PointShadowCubes[" + std::to_string(i) + "]").c_str(), 5 + i);
+		}
 	}
 
 
-	//Hack that there is no pt light the scene
-	m_ForwardShader.SetUniform1i("u_PtLightCount", 0);
+	m_ForwardShader.SetUniform1i("u_PtLightCount", m_PtLightCount);
 	//environment
 	offset_pointer = 0;
 	m_EnviUBO.SetSubDataByID(&m_EnableSkybox, sizeof(bool), offset_pointer);
@@ -383,7 +465,7 @@ void ForwardVsDeferredRenderingScene::PostUpdateGPUUniformBuffers()
 	m_EnviUBO.SetSubDataByID(&m_SkyboxInfluencity, sizeof(float), offset_pointer);
 	offset_pointer += sizeof(float);
 	m_EnviUBO.SetSubDataByID(&m_SkyboxReflectivity, sizeof(float), offset_pointer);
-	//m_SceneShader.SetUniform1i("u_SkyboxMap", 5);
+	//m_SceneShader.SetUniform1i("u_SkyboxMap", 4);
 }
 
 void ForwardVsDeferredRenderingScene::OpaquePass(Shader& main_shader, const std::vector<std::weak_ptr<Entity>> opaque_entities)
@@ -428,6 +510,24 @@ void ForwardVsDeferredRenderingScene::SceneDebugger()
 		//Shadow Camera Sample Position 
 		DebugGizmos::DrawCross(dirLightObject.sampleWorldPos);
 	}
+
+	
+	if (m_PtShadowConfig.debugLight)
+	{
+		for (int i = 0; i < m_PtLightCount; i++)
+		{
+			DebugGizmos::DrawWireThreeDisc(m_PtLights[i].position, m_PtShadowConfig.cam_far, 10, m_PtLights[i].colour, 1.0f);
+			DebugGizmos::DrawCross(m_PtLights[i].position);
+		}
+	}
+
+
+
+
+
+	//Extra debugging
+	DebugGizmos::DrawSphere(glm::vec3(0.0f));
+	DebugGizmos::DrawLine(glm::vec3(0.0f), m_PtLights[0].position);
 }
 
 void ForwardVsDeferredRenderingScene::MaterialShaderBindHelper(Material& mat, Shader& shader)
@@ -444,16 +544,16 @@ void ForwardVsDeferredRenderingScene::MaterialShaderBindHelper(Material& mat, Sh
 		mat.normalMap->Activate(tex_units);
 		shader.SetUniform1i("u_Material.normalMap", tex_units++);
 	}
-	if (mat.parallaxMap)
-	{
-		mat.parallaxMap->Activate(tex_units);
-		shader.SetUniform1i("u_Material.parallaxMap", tex_units++);
-	}
-	shader.SetUniform1i("u_Material.isTransparent", (mat.renderMode == CRRT_Mat::RenderingMode::Transparent));
+	//if (mat.parallaxMap)
+	//{
+	//	mat.parallaxMap->Activate(tex_units);
+	//	shader.SetUniform1i("u_Material.parallaxMap", tex_units++);
+	//}
+	//shader.SetUniform1i("u_Material.isTransparent", (mat.renderMode == CRRT_Mat::RenderingMode::Transparent));
 	shader.SetUniform1i("u_Material.useNormal", mat.useNormal && mat.normalMap);
 	shader.SetUniform1i("u_Material.shinness", mat.shinness);
-	shader.SetUniform1i("u_Material.useParallax", mat.useParallax);
-	shader.SetUniform1f("u_Material.parallax", mat.heightScale);
+	//shader.SetUniform1i("u_Material.useParallax", mat.useParallax);
+	//shader.SetUniform1f("u_Material.parallax", mat.heightScale);
 }
 
 void ForwardVsDeferredRenderingScene::MainUI()
@@ -512,6 +612,14 @@ void ForwardVsDeferredRenderingScene::MainUI()
 	// SCENE LIGHTS
 	///////////////////////////////////////////
 	ImGui::Spacing();
+	ExternalMainUI_LightTreeNode();
+
+
+	ImGui::End();
+}
+
+void ForwardVsDeferredRenderingScene::ExternalMainUI_LightTreeNode()
+{
 	if (ImGui::TreeNode("Lights"))
 	{
 		ImGui::SeparatorText("Environment");
@@ -532,7 +640,7 @@ void ForwardVsDeferredRenderingScene::MainUI()
 		ImGui::Checkbox("Enable Directional", &dirLightObject.dirlight.enable);
 		//ImGui::SameLine();
 		//ImGui::Checkbox("Cast Shadow", &dirLightObject.dirlight.castShadow);
-		ImGui::DragFloat3("Light Direction", &dirLightObject.dirlight.direction[0], 0.1f, -10.0f, 10.0f);
+		ImGui::DragFloat3("Light Direction", &dirLightObject.dirlight.direction[0], 0.05f, -5.0f, 5.0f);
 		//ImGui::DragFloat3("Light Direction", &dirLightObject.dirlight.direction[0], 0.1f, -1.0f, 1.0f);
 		ImGui::ColorEdit3("Dir Light colour", &dirLightObject.dirlight.colour[0]);
 		ImGui::SliderFloat("Light ambinentIntensity", &dirLightObject.dirlight.ambientIntensity, 0.0f, 1.0f);
@@ -555,11 +663,47 @@ void ForwardVsDeferredRenderingScene::MainUI()
 		}
 		ImGui::Spacing();
 
+		//////////////////////////////////////////
+		// Point Lights
+		//////////////////////////////////////////
+		ImGui::SeparatorText("Point Lights");
+		if (ImGui::TreeNode("Points Lights"))
+		{
+			//ImGui::Checkbox("Point Light Gizmos", &ptLightGizmos);
+			if (ImGui::TreeNode("Shadow Camera Info"))
+			{
+				auto& shadow = m_PtShadowConfig;
+				ImGui::Checkbox("Debug Pt Lights", &shadow.debugLight);
+				ImGui::SliderFloat("Pt Shadow Camera Near", &shadow.cam_near, 0.0f, shadow.cam_far - 0.5f);
+				ImGui::SliderFloat("Pt Shadow Camera Far", &shadow.cam_far, shadow.cam_near + 0.5f, 80.0f);
+				ImGui::TreePop();
+			}
 
+
+			for (int i = 0; i < m_PtLightCount; i++)
+			{
+				if (m_PtLightCount > MAX_POINT_LIGHT)
+					break;
+
+				std::string label = "point light: " + std::to_string(i);
+				ImGui::SeparatorText(label.c_str());
+				ImGui::Checkbox((label + " Enable light").c_str(), &m_PtLights[i].enable);
+
+				ImGui::DragFloat3((label + " position").c_str(), &m_PtLights[i].position[0], 0.1f);
+
+				ImGui::ColorEdit3((label + " colour").c_str(), &m_PtLights[i].colour[0]);
+				ImGui::SliderFloat((label + " ambinentIntensity").c_str(), &m_PtLights[i].ambientIntensity, 0.0f, 1.0f);
+				ImGui::SliderFloat((label + " diffuseIntensity").c_str(), &m_PtLights[i].diffuseIntensity, 0.0f, 1.0f);
+				ImGui::SliderFloat((label + " specIntensity").c_str(), &m_PtLights[i].specularIntensity, 0.0f, 1.0f);
+				ImGui::SliderFloat((label + " constant attenuation").c_str(), &m_PtLights[i].attenuation[0], 0.0f, 1.0f);
+				ImGui::SliderFloat((label + " linear attenuation").c_str(), &m_PtLights[i].attenuation[1], 0.0f, 1.0f);
+				ImGui::SliderFloat((label + " quadratic attenuation").c_str(), &m_PtLights[i].attenuation[2], 0.0f, 1.0f);
+			}
+			ImGui::TreePop();
+		}
 
 		ImGui::TreePop();
 	}
-	ImGui::End();
 }
 
 void ForwardVsDeferredRenderingScene::EnititiesUI()

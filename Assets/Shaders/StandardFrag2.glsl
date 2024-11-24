@@ -1,4 +1,4 @@
-#version 400
+#version 420
 
 //--------------attributes--------------/
 out vec4 FragColour; 
@@ -63,7 +63,7 @@ in VS_OUT
 	vec3 normal;
 }fs_in;
 
-const int MAX_POINT_LIGHTS = 4 + 3;
+const int MAX_POINT_LIGHTS = 10;
 //--------------uniform--------------/
 //Model specify 
 uniform Material u_Material;
@@ -77,9 +77,11 @@ layout (std140) uniform u_LightBuffer
     DirectionalLight dirLight;                  //aligned
     PointLight pointLights[MAX_POINT_LIGHTS];   //aligned
 };
+//-------------------------Shadow Map Sampler---------------------------
 uniform bool u_EnableSceneShadow;
-uniform sampler2D u_DirShadowMap;
-uniform samplerCube u_PointShadowCube;
+layout(binding = 3) uniform sampler2D u_DirShadowMap;
+layout(binding = 4) uniform samplerCube u_SkyboxMap;
+layout(binding = 5) uniform samplerCube u_PointShadowCubes[MAX_POINT_LIGHTS];
 
 //--------------------Environment-----------------------------------------
 //struct Environment only called once if changed
@@ -90,17 +92,27 @@ layout (std140) uniform u_EnvironmentBuffer
 	float objectReflectivity; 
 	vec2 alignmentPadding;
 };
-uniform samplerCube u_SkyboxMap;
 
+
+
+vec3 sampleOffsetDir[20] = vec3[]
+(
+	vec3(1, 1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1, 1,  1), 
+	vec3(1, 1, -1), vec3( 1, -1, -1), vec3(-1, -1, -1), vec3(-1, 1, -1), 
+	vec3(1, 1,  0), vec3( 1, -1,  0), vec3(-1, -1,  0), vec3(-1, 1,  0), 
+	vec3(1, 0,  0), vec3(-1,  0,  1), vec3( 1,  0, -1), vec3(-1, 0, -1), 
+	vec3(0, 0,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0, 1, -1)
+);
 ///////////////////////////////
 //FUNCTIONS DECLARATIONs
 ///////////////////////////////
 float CalculateDirectionalShadow(vec4 shadow_coord);
-float CalculatePointShadow(samplerCube depth_map, vec3 light_pos);
+float CalculatePointShadow(samplerCube depth_map, PointLight light, float pixel_view_dist);
 
 vec3 CalculateDirectionalLight(DirectionalLight light, vec3 base_colour, vec3 normal, vec3 view_dir, float shadow);
-vec3 CalculatePointLight();
+vec3 CalculatePointLights(vec3 base_colour, vec3 normal, vec3 view_dir);
 
+vec3 ReflectedSkybox(vec3 vdir, vec3 nor);
 
 void main()
 {
@@ -125,6 +137,17 @@ void main()
 	{
 		float dir_shadow = CalculateDirectionalShadow(fs_in.fragPosLightSpace);
 		commulated_light += CalculateDirectionalLight(dirLight, base_colour, N, V, dir_shadow);
+	}
+	//point light contribtion 
+	commulated_light += CalculatePointLights(base_colour, N, V);
+	
+	
+	//with sky box reflection 
+	if(useSkybox)
+	{
+		vec3 v_dir = (u_Material.useParallax) ? (V * fs_in.TBN) : (V);
+		//final_colour *= ReflectedSkybox(v_dir, N);
+		commulated_light += mix(vec3(0.0f), ReflectedSkybox(v_dir, N), skyboxInfluencity);
 	}
 
 	FragColour = vec4(commulated_light, 1.0f);
@@ -151,8 +174,50 @@ vec3 CalculateDirectionalLight(DirectionalLight light, vec3 base_colour, vec3 N,
 	//have a specular map later
 	vec3 specular = light.specular * light.colour * spec_factor;
 	
-	vec3 lighting = (ambinent + (1.0f - shadow) * (diffuse + specular)) * base_colour;
+	vec3 lighting = (ambinent + (1.0f - shadow) * (diffuse + specular));// * base_colour;
 	return lighting;
+}
+
+vec3 CalculatePointLights(vec3 base_colour, vec3 N, vec3 V)
+{
+	vec3 accumulated_point_light = vec3(0.0f);
+	
+	for(int i = 0; i < u_PtLightCount; i++)
+	{
+		if(!pointLights[i].enable)
+		continue;
+		
+		//Ambient 
+		//ambinent = light ambinent colour * object/model colour
+		//for now light ambinent colour is ambinent intensity * colour;
+		vec3 ambinent = pointLights[i].ambinent * pointLights[i].colour * base_colour;
+		
+		//diffuse
+		vec3 Ld = normalize(pointLights[i].position - fs_in.fragPos);//light direction
+		float factor = max(dot(Ld, N), 0.0f);
+		//similar tp ambinent, diffuse = light diffuse intensity * light diffuse colour * object/model colour
+		vec3 diffuse = pointLights[i].diffuse * pointLights[i].colour * factor * base_colour;
+		
+		//Specular
+		vec3 H = normalize(Ld + V);//halfway view & light direction
+		float spec_factor = pow(max(dot(N, H), 0.0f), u_Material.shinness);
+		//have a specular map later
+		vec3 specular = pointLights[i].specular * pointLights[i].colour * spec_factor;
+		
+		//Shadow calculation 
+		float shadow = 0.0f;
+		float pixel_view_dist = length(u_ViewPos - fs_in.fragPos);
+		shadow = CalculatePointShadow(u_PointShadowCubes[i], pointLights[i], pixel_view_dist);
+		
+		//attenuation
+		float distance = length(pointLights[i].position - fs_in.fragPos);
+		float total_attenuation = pointLights[i].attenuation.x +
+								 (pointLights[i].attenuation.y * distance) +
+								 (pointLights[i].attenuation.z * distance * distance);
+		
+		accumulated_point_light += ((ambinent + (1.0f - shadow) * (diffuse + specular)) / total_attenuation);
+	}
+	return accumulated_point_light;
 }
 
 //----------------------------------Light Shadow---------------------------/
@@ -178,4 +243,37 @@ float CalculateDirectionalShadow(vec4 shadow_coord)
     shadow /= 10.0f;
     
     return shadow;
+}
+
+
+float CalculatePointShadow(samplerCube depth_map, PointLight light, float pixel_view_dist)
+{
+	float disk_radius = (1.0f + (pixel_view_dist / light.far))/ 25.0f;
+	vec3 vecLF = fs_in.fragPos - light.position; //fragPos vec to light position 
+	float curr_depth = length(vecLF);
+	
+	float shadow = 0.0f;
+	int samples = 20; //20 samplers available
+	float bias = 0.0f;
+	bias = 0.05f;
+	for(int i = 0; i < samples; ++i)
+	{
+		float closest_depth = texture(depth_map, vecLF + sampleOffsetDir[i] * 0.1f, disk_radius).r;
+		closest_depth *= light.far;
+		if(curr_depth - bias > closest_depth)
+			shadow += 1;
+	}
+	shadow /= float(samples);
+	
+	return shadow;
+}
+
+
+vec3 ReflectedSkybox(vec3 vdir, vec3 nor)
+{
+	vec3 R = reflect(-vdir, nor);
+	
+	//return (texture(u_SkyboxMap, R).rgb) * skyIntensity;
+	//return (texture(u_SkyboxMap, R).rgb);
+	return (texture(u_SkyboxMap, R).rgb) * objectReflectivity;
 }

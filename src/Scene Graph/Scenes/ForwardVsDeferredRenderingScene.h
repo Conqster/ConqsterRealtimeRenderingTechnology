@@ -86,16 +86,25 @@ private:
 		DirShadowCalculation dirLightShadow; //direction light shadow data
 	}dirLightObject;
 	ShadowMap dirDepthMap;
+	//Point Light data
+	static const int MAX_POINT_LIGHT = 10;
+	PointLight m_PtLights[MAX_POINT_LIGHT];
+	unsigned int m_PtLightCount = 0;
+	ShadowConfig m_PtShadowConfig;
+	std::vector<ShadowCube> m_PtDepthMapCubes;
+
+	float orbit_range = 2.0f;
 
 
 	//------------------------------Utility functions------------------------/
 	//need to take this out later
-	void ResizeBuffers(unsigned int width, unsigned int height);
+	//void ResizeBuffers(unsigned int width, unsigned int height);
 
 	void MaterialShaderBindHelper(Material& mat, Shader& shader);
 
 	//UIs
 	void MainUI();
+	void ExternalMainUI_LightTreeNode();
 	void EnititiesUI();
 	void EntityDebugUI(Entity& entity);
 	void MaterialsUI();

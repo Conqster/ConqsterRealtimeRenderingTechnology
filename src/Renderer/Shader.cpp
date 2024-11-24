@@ -149,8 +149,8 @@
 
 	void Shader::Bind() const
 	{
-		//GLCall(glUseProgram(m_ProgramID));
-		glUseProgram(m_ProgramID);
+		GLCall(glUseProgram(m_ProgramID));
+		//glUseProgram(m_ProgramID);
 	}
 
 	void Shader::UnBind() const
@@ -169,7 +169,7 @@
 		GLCall(int location = glGetUniformLocation(m_ProgramID, name));
 
 		if (location == -1)
-			printf("[SHADER UNIFORM (WARNING)]: uniform '%s' doesn't exist!!!!!\n", name);
+			printf("[SHADER UNIFORM (WARNING) program: %s]: uniform '%s' doesn't exist!!!!!\n", m_Name, name);
 		else
 			cacheUniformLocations[name] = location;
 

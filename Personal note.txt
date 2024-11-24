@@ -53,7 +53,7 @@ Tangent Space
 		- Light modelling using TBN (tangent bitangent normal) matrix from model space.
 		- mat TBN = mat3(t, b, n). where all elements t, b, n are translated based on model in model space.
 			- i.e t = model * tangent; etc 
-		- all vectors (t, b, n) are perpendicular to each other, i.e having t, n ,  b = cross(n, t);
+		- all vectors (t, b, n) are perpendicular to each other, i.e having t, n,  b = cross(n, t);
 	- Important for Parallax mapping, 
 		- All calculation of height is performed in tangent space before converting to world space pixel/point 
 
@@ -64,4 +64,29 @@ ISSUE ISSE >> FIXED
 NEED TO WORK ON (MESH THAT DOES NOT HAVE TANGENT & BITANGENT) algorithm to calculate them. 
 RETHINK ENTITY GET WORLD TRANSFORM - should the transform be updated if dirty upon retrieval or updated immediately when dirty/updated at the start/end of the frame? This would make it nice to have the function has const. 
 
-MATERIAL DUPLICATE ON LOAD: prevent model/entity to have duplicate material. if mesh tries to use use a similar material already generated don't create a new one 
+MATERIAL DUPLICATE ON LOAD: prevent model/entity to have duplicate material. if mesh tries to use a similar material already generated don't create a new one 
+
+
+SHADER: gl versions 400 >> 420
+	Had issue with Material (base_map, normal_map, parallax_map), dir_shadow_map, skybox_cube_map, point_shadow_map[list]
+	Example when skybox is not in use and unit is not active, when I pass all the other texture into accesdening unit from CPU then point_shadow_map[list] would want to take skybox_cube_map. 
+	Which would have conflict as ambiguous but a solution is layout(binding = N) etc. so even is one of earlier texture are not activate next wouldn't take it up.
+	Sample: 
+		struct Material
+		{
+			bool isTransparent;
+			vec4 baseColour;
+	
+			sampler2D baseMap;  <-----------------0
+			sampler2D normalMap;<-----------------1
+			bool useNormal;
+	
+			sampler2D parallaxMap;<-----------------2
+			bool useParallax;
+			float parallax;
+	
+			int shinness;
+		};
+		layout(binding = 3) uniform sampler2D u_DirShadowMap;<-----------------3
+		layout(binding = 4) uniform samplerCube u_SkyboxMap;<-----------------4
+		layout(binding = 5) uniform samplerCube u_PointShadowCubes[MAX_POINT_LIGHTS];<-----------------5
