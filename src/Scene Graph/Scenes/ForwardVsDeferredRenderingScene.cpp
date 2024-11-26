@@ -37,8 +37,9 @@ void ForwardVsDeferredRenderingScene::OnInit(Window* window)
 
 
 	InitRenderer();
-	CreateEntities();
-	CreateLightDatas();
+	LoadSceneFromFile();
+	//CreateEntities();
+	//CreateLightDatas();
 	//all generate and scene data should be ready before creating GPU specific datas
 	CreateGPUDatas();
 }
@@ -120,52 +121,56 @@ void ForwardVsDeferredRenderingScene::InitRenderer()
 	//etc 
 }
 
-void ForwardVsDeferredRenderingScene::CreateEntities()
+void ForwardVsDeferredRenderingScene::CreateEntities(const SceneData&  scene_data)
 {
 	//////////////////////////////////////
 	// GENERATE SHADERS
 	//////////////////////////////////////
 	//model shader
-	ShaderFilePath shader_file_path
+
+	bool load_from_file = true;
+	if (load_from_file)
 	{
-		"Assets/Shaders/StandardVertex.glsl", //vertex shader
-		//"Assets/Shaders/StandardFrag.glsl", //fragment shader
-		"Assets/Shaders/StandardFrag2.glsl", //fragment shader
-	};
-	m_ForwardShader.Create("model_shader", shader_file_path);
-	m_ForwardShader.Bind();
-	m_ForwardShader.SetUniform1i("u_SkyboxMap", 4);
-	ShaderFilePath shadow_shader_file_path
-	{
-		"Assets/Shaders/ShadowMapping/ShadowDepthVertex.glsl", //vertex shader
-		"Assets/Shaders/ShadowMapping/ShadowDepthFrag.glsl", //fragment shader
-		"Assets/Shaders/ShadowMapping/ShadowDepthGeometry.glsl", //geometry shader
-	};
-
-	m_ShadowDepthShader.Create("point_shadow_depth", shadow_shader_file_path);
-
-	ShaderFilePath skybox_shader_file_path{
-	"Assets/Shaders/Utilities/Skybox/SkyboxVertex.glsl",
-	"Assets/Shaders/Utilities/Skybox/SkyboxFragment.glsl" };
-
-	m_SkyboxShader.Create("skybox_shader", skybox_shader_file_path);
+		auto& renderer_config = scene_data.m_RenderingConfig;
+		ShaderFilePath shader_file_path
+		{
+			renderer_config.m_ForwardShader.m_Vertex,
+			renderer_config.m_ForwardShader.m_Fragment,
+			renderer_config.m_ForwardShader.m_Geometry,
+		};
+		m_ForwardShader.Create("model_forward_shading", shader_file_path);
+		m_ForwardShader.Bind();
+		m_ForwardShader.SetUniform1i("u_SkyboxMap", 4);
 
 
+		auto& shadow_data = scene_data.m_Shadow;
+
+		m_ShadowDepthShader.Create("point_shadow_depth", shadow_data.m_depthVerShader,
+								shadow_data.m_depthFragShader, shadow_data.m_depthGeoShader);
+	}
+
+
+	auto& envir_data = scene_data.m_SceneEnvi;
+	m_EnableSkybox = envir_data.m_EnableSkybox;
+	m_SkyboxInfluencity = envir_data.m_SkyboxInfluencity;
+	m_SkyboxReflectivity = envir_data.m_SkyboxReflectivity;
 	///////////////////////////////////////////////////////////////////////
 	// SKY BOX: Cube Texture Map
 	///////////////////////////////////////////////////////////////////////
 	std::vector<std::string> def_skybox_faces
 	{
-		"Assets/Textures/Skyboxes/default_skybox/right.jpg",
-		"Assets/Textures/Skyboxes/default_skybox/left.jpg",
-		"Assets/Textures/Skyboxes/default_skybox/top.jpg",
-		"Assets/Textures/Skyboxes/default_skybox/bottom.jpg",
-		"Assets/Textures/Skyboxes/default_skybox/front.jpg",
-		"Assets/Textures/Skyboxes/default_skybox/back.jpg"
+		envir_data.m_SkyboxTex.tex_rt,
+		envir_data.m_SkyboxTex.tex_lt,
+		envir_data.m_SkyboxTex.tex_tp,
+		envir_data.m_SkyboxTex.tex_bm,
+		envir_data.m_SkyboxTex.tex_ft,
+		envir_data.m_SkyboxTex.tex_bk,
 	};
 	m_Skybox.Create(def_skybox_faces);
 	m_Skybox.ActivateMap(4);
-
+	//skybox shading
+	m_SkyboxShader.Create(envir_data.m_SkyboxShader.m_Name, envir_data.m_SkyboxShader.m_Vertex, 
+						 envir_data.m_SkyboxShader.m_Fragment, envir_data.m_SkyboxShader.m_Geometry);
 
 	////////////////////////////////////////
 	// CREATE TEXTURES 
@@ -179,14 +184,6 @@ void ForwardVsDeferredRenderingScene::CreateEntities()
 	floorMat->baseMap = std::make_shared<Texture>(FilePaths::Instance().GetPath("cobblestone-diff"));
 	floorMat->normalMap = std::make_shared<Texture>(FilePaths::Instance().GetPath("cobblestone-nor"));
 	floorMat->parallaxMap = std::make_shared<Texture>(FilePaths::Instance().GetPath("cobblestone-disp"));
-
-	//auto glassMat = std::make_shared<Material>();
-	//glassMat->name = "Glass Material";
-	//glassMat->baseMap = std::make_shared<Texture>(FilePaths::Instance().GetPath("glass"));
-
-	//auto glass2Mat = std::make_shared<Material>();
-	//glass2Mat->name = "Glass Material";
-	//glass2Mat->baseMap = std::make_shared<Texture>(FilePaths::Instance().GetPath("glass"));
 
 
 	defaultFallBackMaterial = plainMat;
@@ -227,9 +224,7 @@ void ForwardVsDeferredRenderingScene::CreateEntities()
 	sponza_model->SetLocalTransform(temp_trans);
 	m_SceneEntities.emplace_back(sponza_model);
 
-	//override camera location & far 
-	m_Camera->SetPosition(glm::vec3(4.7f, 29.03f, -68.14f));
-	*m_Camera->Ptr_Far() = 1500.0f; //bad but well!!!
+
 
 
 }
@@ -271,88 +266,24 @@ void ForwardVsDeferredRenderingScene::CreateGPUDatas()
 	m_SkyboxShader.SetUniformBlockIdx("u_CameraMat", 0);
 }
 
-void ForwardVsDeferredRenderingScene::CreateLightDatas()
+void ForwardVsDeferredRenderingScene::LoadSceneFromFile()
 {
-	//experiment with loading data
-	bool load_light_from_file = true;
-
-	if (load_light_from_file)
-	{
-		DeSerialiseScene();
-	}
-	else
-	{
-		//--------------------Light--------------------------------/
-		//Dir light
-		auto& dl = dirLightObject.dirlight;
-		dirLightObject.sampleWorldPos = glm::vec3(5.0f, 2.0f, -10.0f);
-		dirLightObject.cam_offset = 10.0f;
-		dl.ambientIntensity = 0.05f;
-		dl.diffuseIntensity = 0.4f;
-		dl.specularIntensity = 0.2f;
-		dl.colour = glm::vec3(1.0f, 0.9568f, 0.8392f);
-		dl.enable = true;
-		dl.castShadow = true;
-		dl.direction = glm::vec3(-1.0f, 1.0f, -1.0f);
-
-
-
-		//shadow map
-		dirDepthMap.Generate(2 * 2048, 2 * 2048);
-		dirLightObject.dirLightShadow.config.cam_far = 70.0f;
-
-		//override shadow properites 
-		dirLightObject.sampleWorldPos = glm::vec3(3.0f, 14.0f, -17.0f);
-		dirLightObject.dirLightShadow.config.cam_far = 300.0f;
-		dirLightObject.cam_offset = 64.0f;
-		dirLightObject.dirLightShadow.config.cam_size = 95.0f;
-
-
-		//Point Lights
-		//for now only create one light 
-		m_PtLights[0].colour = glm::vec3(0.0f, 0.4f, 0.8f);
-		m_PtLights[0].position = glm::vec3(0.0f);
-		m_PtLights[0].ambientIntensity = 0.05f;
-		m_PtLights[0].diffuseIntensity = 0.4f;
-		m_PtLights[0].specularIntensity = 0.2f;
-		m_PtLights[0].colour = glm::vec3(1.0f, 0.9568f, 0.8392f);
-		m_PtLights[0].enable = true;
-		m_PtLights[0].castShadow = true;
-		//m_PtLightCount++;
-		m_PtLightCount = 1;  //only one light at the moment
-		//point light shadow map 
-		ShadowCube sc;
-		sc = ShadowCube(1024, 1024);
-		sc.Generate();
-		for (auto& pt : m_PtLights)
-		{
-			//using push_back instead of emplace_back 
-			//to create a copy when storing in vector 
-			m_PtDepthMapCubes.push_back(sc);
-		}
-
-	}
-}
-
-
-void ForwardVsDeferredRenderingScene::DeSerialiseScene()
-{
-	//experiment with loading data
-
 	//--------------------Light--------------------------------/
 	//Dir light
 	auto& dl = dirLightObject.dirlight;
 
 	SceneData scene_data{};
-	SceneSerialiser::Instance().LoadScene("Assets/Scene/experiment.crrtscene", scene_data);
+	if (!SceneSerialiser::Instance().LoadScene("Assets/Scene/experiment.crrtscene", scene_data))
+		printf("[SCENE FILE LOADING]: Failed to retrive all data from file!!!!!!!");
+
 	dl = scene_data.m_Light.dir_Light;
 
 	m_PtLightCount = scene_data.m_Light.m_PtLightCount;
 	//m_PtLights[0] = *s_lt_data.ptLights;
 
-	if(m_PtLightCount > 0)
+	if (m_PtLightCount > 0)
 		std::memcpy(m_PtLights, scene_data.m_Light.ptLights, m_PtLightCount * sizeof(PointLight));
-	
+
 	//shadow map
 	auto& shadow_data = scene_data.m_Shadow;
 	dirDepthMap.Generate(shadow_data.m_DirDepthResQuality);
@@ -364,9 +295,6 @@ void ForwardVsDeferredRenderingScene::DeSerialiseScene()
 
 
 	//point light shadow map 
-	//ShadowCube sc;
-	//sc = ShadowCube(1024, 1024);
-	//sc.Generate();
 	for (auto& pt : m_PtLights)
 	{
 		//using push_back instead of emplace_back 
@@ -374,35 +302,81 @@ void ForwardVsDeferredRenderingScene::DeSerialiseScene()
 		m_PtDepthMapCubes.push_back(ShadowCube(shadow_data.m_PtDepthResQuality));
 		m_PtDepthMapCubes.back().Generate();
 	}
-	
+
 
 
 	//Overwrite Scene camera for now
 	//its better to change the address because other
 	//pointer could be affected 
 	auto cam_load_data = scene_data.m_Camera;
-	m_Camera = new Camera(cam_load_data.m_Position, cam_load_data.m_Up, 
-							cam_load_data.m_Yaw, cam_load_data.m_Pitch, 
-						cam_load_data.m_MoveSpeed, cam_load_data.m_RotSpeed);
+	m_Camera = new Camera(cam_load_data.m_Position, glm::vec3(0.0f, 1.0f, 0.0f),
+		cam_load_data.m_Yaw, cam_load_data.m_Pitch,
+		cam_load_data.m_MoveSpeed, cam_load_data.m_RotSpeed);
 
+
+	//force set Fov, near and far
+	*m_Camera->Ptr_FOV() = cam_load_data.m_Fov;
+	*m_Camera->Ptr_Near() = cam_load_data.m_Near;
+	*m_Camera->Ptr_Far() = cam_load_data.m_Far;
+
+
+	//Load entities
+	CreateEntities(scene_data);
 }
-
 
 void ForwardVsDeferredRenderingScene::SerialiseScene()
 {
 	//experiment with loading data
 	SceneData scene_info_data
 	{
-		"Forward Vs Deferred Scene......",
-		true,
+		"Forward Vs Deferred Scene",
+		true,	//m_HasLight;
+		true,	//m_HasShadow = true;
+		true,	//m_HasEnivornmentMap = true;
 		//camera 
 		{
 			m_Camera->GetPosition(),
-			m_Camera->GetUp(),
 			m_Camera->Ptr_Yaw(),
 			m_Camera->Ptr_Pitch(),
+			*m_Camera->Ptr_FOV(),
+			*m_Camera->Ptr_Near(),
+			*m_Camera->Ptr_Far(),
 			*m_Camera->Ptr_MoveSpeed(),
 			*m_Camera->Ptr_RotSpeed(),
+		},
+		//Rendering config
+		{
+			//forward rendering shader
+			{
+				m_ForwardShader.GetName(),
+				//REALLY BAD,
+				(m_ForwardShader.GetShaderFilePath(GL_VERTEX_SHADER)),
+				(m_ForwardShader.GetShaderFilePath(GL_FRAGMENT_SHADER)),
+				(m_ForwardShader.GetShaderFilePath(GL_GEOMETRY_SHADER)),
+			},
+		},
+		//environment data
+		{
+			m_EnableSkybox,
+			m_SkyboxInfluencity,
+			m_SkyboxReflectivity,
+			//skybox textures
+			{
+				m_Skybox.GetFacePaths()[0],
+				m_Skybox.GetFacePaths()[1],
+				m_Skybox.GetFacePaths()[2],
+				m_Skybox.GetFacePaths()[3],
+				m_Skybox.GetFacePaths()[4],
+				m_Skybox.GetFacePaths()[5],
+			},
+			//skybox shader
+			{
+				m_SkyboxShader.GetName(),
+				//REALLY BAD,
+				(m_SkyboxShader.GetShaderFilePath(GL_VERTEX_SHADER)),
+				(m_SkyboxShader.GetShaderFilePath(GL_FRAGMENT_SHADER)),
+				(m_SkyboxShader.GetShaderFilePath(GL_GEOMETRY_SHADER)),
+			},
 		},
 		//lights 
 		{
@@ -432,7 +406,7 @@ void ForwardVsDeferredRenderingScene::SerialiseScene()
 	};
 	SceneSerialiser::Instance().SerialiseScene("Assets/Scene/experiment.crrtscene", scene_info_data);
 	
-	SceneSerialiser::Instance().SerialiseShader("Assets/Scene/shadowdepth.crrtshader", m_ShadowDepthShader);
+	//SceneSerialiser::Instance().SerialiseShader("Assets/Scene/shadowdepth.crrtshader", m_ShadowDepthShader);
 }
 
 
@@ -490,7 +464,7 @@ void ForwardVsDeferredRenderingScene::ShadowPass(Shader& depth_shader, const std
 
 	for (unsigned int i = 0; i < m_PtLightCount; i++)
 	{
-		if (m_PtLightCount > MAX_POINT_LIGHT)
+		if (i > MAX_POINT_LIGHT)
 			break;
 
 		depth_shader.SetUniformVec3("u_LightPos", m_PtLights[i].position);
@@ -551,7 +525,7 @@ void ForwardVsDeferredRenderingScene::PostUpdateGPUUniformBuffers()
 	//if only one light is available, we only update the available light 
 	//and perform directional light before keeps the Light uniform buffer integrity 
 	for (int i = 0; i < m_PtLightCount; i++)
-		if (m_PtLightCount < MAX_POINT_LIGHT)
+		if (i < MAX_POINT_LIGHT)
 			m_PtLights[i].UpdateUniformBufferData(m_LightDataUBO, offset_pointer);
 
 
@@ -805,7 +779,7 @@ void ForwardVsDeferredRenderingScene::ExternalMainUI_LightTreeNode()
 
 			for (int i = 0; i < m_PtLightCount; i++)
 			{
-				if (m_PtLightCount > MAX_POINT_LIGHT)
+				if (i > MAX_POINT_LIGHT)
 					break;
 
 				std::string label = "point light: " + std::to_string(i);

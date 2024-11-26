@@ -32,13 +32,12 @@ public:
 private:
 	//Scene Construction
 	void InitRenderer();
-	void CreateEntities();  // Or Load from file
+	void CreateEntities(const struct SceneData& scene_data);  // Loads (Environment, Entities, materials 
 	void CreateGPUDatas();
-	void CreateLightDatas(); //might need to move this 
 
 	//experimenting 
+	void LoadSceneFromFile(); //Loads (Lights, shadows, 
 	void SerialiseScene();
-	void DeSerialiseScene();
 
 
 	//Scene Properties 
@@ -107,6 +106,7 @@ private:
 	//void ResizeBuffers(unsigned int width, unsigned int height);
 
 	void MaterialShaderBindHelper(Material& mat, Shader& shader);
+
 
 	//UIs
 	void MainUI();

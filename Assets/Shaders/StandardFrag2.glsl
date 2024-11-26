@@ -183,7 +183,10 @@ vec3 CalculatePointLights(vec3 base_colour, vec3 N, vec3 V)
 {
 	vec3 accumulated_point_light = vec3(0.0f);
 	
-	for(int i = 0; i < u_PtLightCount; i++)
+	//to pervent overflow 
+	int light_count = (u_PtLightCount < MAX_POINT_LIGHTS) ? u_PtLightCount : MAX_POINT_LIGHTS;
+
+	for(int i = 0; i < light_count; i++)
 	{
 		if(!pointLights[i].enable)
 		continue;

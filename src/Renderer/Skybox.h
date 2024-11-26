@@ -30,6 +30,8 @@ public:
 	inline TextureCube* const GetTextureMap() { return &m_TextureMap; }
 	inline Mesh* const GetMesh() { return &m_Mesh; }
 
+	inline std::vector<std::string> GetFacePaths() { return m_FacePath; }
+
 	void Destroy();
 private:
 	std::vector<std::string> m_FacePath;

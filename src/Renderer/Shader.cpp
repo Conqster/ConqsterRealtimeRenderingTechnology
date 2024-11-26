@@ -17,13 +17,22 @@
 	}
 
 
-	bool Shader::Create(const char* name, const ShaderFilePath& file_paths)
+	bool Shader::Create(const std::string& name, const ShaderFilePath& file_paths)
 	{
 		m_Name = name;
 		m_FragFilePath = file_paths.fragmentPath;
 		m_VertexFilePath = file_paths.vertexPath;
 		m_GeometryFilePath = file_paths.geometryPath;
 		return CreateFromFile(file_paths);
+	}
+
+	bool Shader::Create(const std::string& name, const std::string& ver, const std::string& frag, const std::string& geo)
+	{
+		m_Name = name;
+		m_VertexFilePath = ver;
+		m_FragFilePath = frag;
+		m_GeometryFilePath = geo;
+		return CreateFromFile({ver, frag, geo});
 	}
 
 	bool Shader::CreateFromFile(const ShaderFilePath& file_paths)
