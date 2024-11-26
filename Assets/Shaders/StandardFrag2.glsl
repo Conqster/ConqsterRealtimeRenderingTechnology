@@ -68,6 +68,7 @@ const int MAX_POINT_LIGHTS = 10;
 //Model specify 
 uniform Material u_Material;
 uniform vec3 u_ViewPos;
+uniform bool u_SceneAsShadow = false;
 //Hack 
 uniform int u_PtLightCount = 0;
 
@@ -135,7 +136,7 @@ void main()
 	//directional Light 
 	if(dirLight.enable)
 	{
-		float dir_shadow = CalculateDirectionalShadow(fs_in.fragPosLightSpace);
+		float dir_shadow = (u_SceneAsShadow) ? CalculateDirectionalShadow(fs_in.fragPosLightSpace) : 0.0f;
 		commulated_light += CalculateDirectionalLight(dirLight, base_colour, N, V, dir_shadow);
 	}
 	//point light contribtion 
@@ -206,8 +207,12 @@ vec3 CalculatePointLights(vec3 base_colour, vec3 N, vec3 V)
 		
 		//Shadow calculation 
 		float shadow = 0.0f;
-		float pixel_view_dist = length(u_ViewPos - fs_in.fragPos);
-		shadow = CalculatePointShadow(u_PointShadowCubes[i], pointLights[i], pixel_view_dist);
+		if(u_SceneAsShadow)
+		{
+			float pixel_view_dist = length(u_ViewPos - fs_in.fragPos);
+			shadow = CalculatePointShadow(u_PointShadowCubes[i], pointLights[i], pixel_view_dist);
+		}
+
 		
 		//attenuation
 		float distance = length(pointLights[i].position - fs_in.fragPos);

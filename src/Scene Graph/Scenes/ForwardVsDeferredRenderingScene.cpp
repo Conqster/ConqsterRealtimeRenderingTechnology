@@ -15,6 +15,11 @@
 
 #include "Renderer/DebugGizmos.h"
 
+//for serialisering & deseralising scene data
+#include "Util/SceneSerialiser.h"
+#include <iostream>
+#include <fstream>
+
 
 void ForwardVsDeferredRenderingScene::SetWindow(Window* window)
 {
@@ -97,6 +102,8 @@ void ForwardVsDeferredRenderingScene::OnRenderUI()
 
 void ForwardVsDeferredRenderingScene::OnDestroy()
 {
+	if (m_PtLightCount > 0)
+		SerialiseScene();
 }
 
 void ForwardVsDeferredRenderingScene::InitRenderer()
@@ -266,54 +273,169 @@ void ForwardVsDeferredRenderingScene::CreateGPUDatas()
 
 void ForwardVsDeferredRenderingScene::CreateLightDatas()
 {
+	//experiment with loading data
+	bool load_light_from_file = true;
+
+	if (load_light_from_file)
+	{
+		DeSerialiseScene();
+	}
+	else
+	{
+		//--------------------Light--------------------------------/
+		//Dir light
+		auto& dl = dirLightObject.dirlight;
+		dirLightObject.sampleWorldPos = glm::vec3(5.0f, 2.0f, -10.0f);
+		dirLightObject.cam_offset = 10.0f;
+		dl.ambientIntensity = 0.05f;
+		dl.diffuseIntensity = 0.4f;
+		dl.specularIntensity = 0.2f;
+		dl.colour = glm::vec3(1.0f, 0.9568f, 0.8392f);
+		dl.enable = true;
+		dl.castShadow = true;
+		dl.direction = glm::vec3(-1.0f, 1.0f, -1.0f);
+
+
+
+		//shadow map
+		dirDepthMap.Generate(2 * 2048, 2 * 2048);
+		dirLightObject.dirLightShadow.config.cam_far = 70.0f;
+
+		//override shadow properites 
+		dirLightObject.sampleWorldPos = glm::vec3(3.0f, 14.0f, -17.0f);
+		dirLightObject.dirLightShadow.config.cam_far = 300.0f;
+		dirLightObject.cam_offset = 64.0f;
+		dirLightObject.dirLightShadow.config.cam_size = 95.0f;
+
+
+		//Point Lights
+		//for now only create one light 
+		m_PtLights[0].colour = glm::vec3(0.0f, 0.4f, 0.8f);
+		m_PtLights[0].position = glm::vec3(0.0f);
+		m_PtLights[0].ambientIntensity = 0.05f;
+		m_PtLights[0].diffuseIntensity = 0.4f;
+		m_PtLights[0].specularIntensity = 0.2f;
+		m_PtLights[0].colour = glm::vec3(1.0f, 0.9568f, 0.8392f);
+		m_PtLights[0].enable = true;
+		m_PtLights[0].castShadow = true;
+		//m_PtLightCount++;
+		m_PtLightCount = 1;  //only one light at the moment
+		//point light shadow map 
+		ShadowCube sc;
+		sc = ShadowCube(1024, 1024);
+		sc.Generate();
+		for (auto& pt : m_PtLights)
+		{
+			//using push_back instead of emplace_back 
+			//to create a copy when storing in vector 
+			m_PtDepthMapCubes.push_back(sc);
+		}
+
+	}
+}
+
+
+void ForwardVsDeferredRenderingScene::DeSerialiseScene()
+{
+	//experiment with loading data
+
 	//--------------------Light--------------------------------/
 	//Dir light
 	auto& dl = dirLightObject.dirlight;
-	dirLightObject.sampleWorldPos = glm::vec3(5.0f, 2.0f, -10.0f);
-	dirLightObject.cam_offset = 10.0f;
-	dl.ambientIntensity = 0.05f;
-	dl.diffuseIntensity = 0.4f;
-	dl.specularIntensity = 0.2f;
-	dl.colour = glm::vec3(1.0f, 0.9568f, 0.8392f);
-	dl.enable = true;
-	dl.castShadow = true;
-	dl.direction = glm::vec3(-1.0f, 1.0f, -1.0f);
 
+	SceneData scene_data{};
+	SceneSerialiser::Instance().LoadScene("Assets/Scene/experiment.crrtscene", scene_data);
+	dl = scene_data.m_Light.dir_Light;
 
+	m_PtLightCount = scene_data.m_Light.m_PtLightCount;
+	//m_PtLights[0] = *s_lt_data.ptLights;
+
+	if(m_PtLightCount > 0)
+		std::memcpy(m_PtLights, scene_data.m_Light.ptLights, m_PtLightCount * sizeof(PointLight));
+	
 	//shadow map
-	dirDepthMap.Generate(2 * 2048, 2 * 2048);
-	dirLightObject.dirLightShadow.config.cam_far = 70.0f;
+	auto& shadow_data = scene_data.m_Shadow;
+	dirDepthMap.Generate(shadow_data.m_DirDepthResQuality);
+	dirLightObject.dirLightShadow.config.cam_far = shadow_data.m_DirZFar;
+	dirLightObject.sampleWorldPos = shadow_data.m_DirSamplePos;
+	dirLightObject.dirLightShadow.config.cam_far = shadow_data.m_DirZFar;
+	dirLightObject.cam_offset = shadow_data.m_DirSampleOffset;
+	dirLightObject.dirLightShadow.config.cam_size = shadow_data.m_DirOrthoSize;
 
-	//override shadow properites 
-	dirLightObject.sampleWorldPos = glm::vec3(3.0f, 14.0f, -17.0f);
-	dirLightObject.dirLightShadow.config.cam_far = 300.0f;
-	dirLightObject.cam_offset = 64.0f;
-	dirLightObject.dirLightShadow.config.cam_size = 95.0f;
 
-
-	//Point Lights
-	//for now only create one light 
-	m_PtLights[0].colour = glm::vec3(0.0f, 0.4f, 0.8f);
-	m_PtLights[0].position = glm::vec3(0.0f);
-	m_PtLights[0].ambientIntensity = 0.05f;
-	m_PtLights[0].diffuseIntensity = 0.4f;
-	m_PtLights[0].specularIntensity = 0.2f;
-	m_PtLights[0].colour = glm::vec3(1.0f, 0.9568f, 0.8392f);
-	m_PtLights[0].enable = true;
-	m_PtLights[0].castShadow = true;
-	//m_PtLightCount++;
-	m_PtLightCount = 1;  //only one light at the moment
 	//point light shadow map 
-	ShadowCube sc;
-	sc = ShadowCube(1024, 1024);
-	sc.Generate();
+	//ShadowCube sc;
+	//sc = ShadowCube(1024, 1024);
+	//sc.Generate();
 	for (auto& pt : m_PtLights)
 	{
 		//using push_back instead of emplace_back 
 		//to create a copy when storing in vector 
-		m_PtDepthMapCubes.push_back(sc);
+		m_PtDepthMapCubes.push_back(ShadowCube(shadow_data.m_PtDepthResQuality));
+		m_PtDepthMapCubes.back().Generate();
 	}
+	
+
+
+	//Overwrite Scene camera for now
+	//its better to change the address because other
+	//pointer could be affected 
+	auto cam_load_data = scene_data.m_Camera;
+	m_Camera = new Camera(cam_load_data.m_Position, cam_load_data.m_Up, 
+							cam_load_data.m_Yaw, cam_load_data.m_Pitch, 
+						cam_load_data.m_MoveSpeed, cam_load_data.m_RotSpeed);
+
 }
+
+
+void ForwardVsDeferredRenderingScene::SerialiseScene()
+{
+	//experiment with loading data
+	SceneData scene_info_data
+	{
+		"Forward Vs Deferred Scene......",
+		true,
+		//camera 
+		{
+			m_Camera->GetPosition(),
+			m_Camera->GetUp(),
+			m_Camera->Ptr_Yaw(),
+			m_Camera->Ptr_Pitch(),
+			*m_Camera->Ptr_MoveSpeed(),
+			*m_Camera->Ptr_RotSpeed(),
+		},
+		//lights 
+		{
+			dirLightObject.dirlight, //directional Light
+			m_PtLights,
+			m_PtLightCount,
+		},
+		//shadow quality
+		{
+			//dir shadow 
+			dirDepthMap.GetSize(),
+			dirLightObject.sampleWorldPos,
+			dirLightObject.dirLightShadow.config.cam_far,
+			dirLightObject.dirLightShadow.config.cam_near,
+			dirLightObject.cam_offset,
+			dirLightObject.dirLightShadow.config.cam_size,
+			//omni shadow
+			//in might for generate value for all shadow
+			m_PtDepthMapCubes[0].GetSize(),
+			m_PtShadowConfig.cam_near,
+			m_PtShadowConfig.cam_far,
+			//REALLY BAD,
+			(m_ShadowDepthShader.GetShaderFilePath(GL_VERTEX_SHADER)),
+			(m_ShadowDepthShader.GetShaderFilePath(GL_FRAGMENT_SHADER)),
+			(m_ShadowDepthShader.GetShaderFilePath(GL_GEOMETRY_SHADER)),
+		},
+	};
+	SceneSerialiser::Instance().SerialiseScene("Assets/Scene/experiment.crrtscene", scene_info_data);
+	
+	SceneSerialiser::Instance().SerialiseShader("Assets/Scene/shadowdepth.crrtshader", m_ShadowDepthShader);
+}
+
+
 
 void ForwardVsDeferredRenderingScene::BeginRenderScene()
 {
@@ -330,6 +452,7 @@ void ForwardVsDeferredRenderingScene::PreUpdateGPUUniformBuffers(Camera& cam)
 
 void ForwardVsDeferredRenderingScene::ShadowPass(Shader& depth_shader, const std::vector<std::weak_ptr<Entity>> renderable_meshes)
 {
+	m_FrameAsShadow = true;
 	//need sorted data
 	//material is not need only mesh geometry 
 	dirDepthMap.Write();
@@ -436,7 +559,7 @@ void ForwardVsDeferredRenderingScene::PostUpdateGPUUniformBuffers()
 	m_ForwardShader.SetUniformVec3("u_ViewPos", m_Camera->GetPosition());
 
 	//m_ForwardShader.SetUniform1i("u_EnableSceneShadow", m_EnableShadows);
-	if (m_EnableShadows)
+	if (m_EnableShadows && m_FrameAsShadow)
 	{
 		m_ForwardShader.SetUniformMat4f("u_DirLightSpaceMatrix", dirLightObject.dirLightShadow.GetLightSpaceMatrix());
 		//tex unit 0 >> texture (base map)
@@ -458,6 +581,7 @@ void ForwardVsDeferredRenderingScene::PostUpdateGPUUniformBuffers()
 
 
 	m_ForwardShader.SetUniform1i("u_PtLightCount", m_PtLightCount);
+	m_ForwardShader.SetUniform1i("u_SceneAsShadow", m_FrameAsShadow);
 	//environment
 	offset_pointer = 0;
 	m_EnviUBO.SetSubDataByID(&m_EnableSkybox, sizeof(bool), offset_pointer);
@@ -522,12 +646,11 @@ void ForwardVsDeferredRenderingScene::SceneDebugger()
 	}
 
 
+}
 
-
-
-	//Extra debugging
-	DebugGizmos::DrawSphere(glm::vec3(0.0f));
-	DebugGizmos::DrawLine(glm::vec3(0.0f), m_PtLights[0].position);
+void ForwardVsDeferredRenderingScene::ResetSceneFrame()
+{
+	m_FrameAsShadow = false;
 }
 
 void ForwardVsDeferredRenderingScene::MaterialShaderBindHelper(Material& mat, Shader& shader)

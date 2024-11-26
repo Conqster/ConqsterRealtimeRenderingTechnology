@@ -61,4 +61,6 @@ private:
 	bool CreateFromCode(const char* vCode, const char* fCode, const std::string& gCode); //fix later, passing geometry as string to check .empty
 
 	int GetUniformLocation(const char* name);
+
+	friend struct SceneSerialiser;
 };

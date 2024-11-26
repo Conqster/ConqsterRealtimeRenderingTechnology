@@ -33,6 +33,7 @@ The primary aim of this project is to deepen my understanding of:
 
 ### Utilities
 - Multiscene management
+- Scene serialization and deserialization (for easy edit/modification).
 - AABB Construction 
 - Dyanmic AABB - Parent-children generation (~600ums for 500 hierarchy level).
 - Frustum Culling (Dyanmic AABB intersection against Geometry planes).
@@ -112,7 +113,7 @@ The primary aim of this project is to deepen my understanding of:
 <!--For more detailed information, please refer to the [Detailed Documentation.](Docs/Documentation.md)-->
 
 ## Dependencies
-Current libaries in use: GLM, GLEW, GLFW, stb-image, Assimp.
+Current libaries in use: GLM, GLEW, GLFW, stb-image, Assimp, YAML-CPP.
 
 ## Learning Resources
 - [learnopengl.com.](https://learnopengl.com/Getting-started)

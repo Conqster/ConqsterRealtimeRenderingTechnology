@@ -1,0 +1,3 @@
+[submodule "External Libs/yaml-cpp"]
+	path = External Libs/yaml-cpp
+	url = https://github.com/Conqster/yaml-cpp

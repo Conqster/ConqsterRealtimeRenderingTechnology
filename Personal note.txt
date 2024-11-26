@@ -90,3 +90,5 @@ SHADER: gl versions 400 >> 420
 		layout(binding = 3) uniform sampler2D u_DirShadowMap;<-----------------3
 		layout(binding = 4) uniform samplerCube u_SkyboxMap;<-----------------4
 		layout(binding = 5) uniform samplerCube u_PointShadowCubes[MAX_POINT_LIGHTS];<-----------------5
+
+Later delete yaml-cpp/build when cmake build list is included 

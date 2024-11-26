@@ -1,0 +1,53 @@
+m_Name: Forward Vs Deferred Scene......
+m_HasLights: true
+Main Camera:
+  m_Position: [8.363895, 38.393753, -50.903137]
+  m_Up: [-0.06158551, 0.73648626, 0.67364335]
+  m_Yaw: 95.22355
+  m_Pitch: -42.56705
+  m_MoveSpeed: 20
+  m_RotSpeed: 1
+Shadow Setting:
+  Directional Shadow:
+    m_ResolutionQuality: 2048
+    m_OrthoSize: 95
+    m_SamplePos: [0, 0, 0]
+    m_zFar: 300
+    m_zNear: 0.1
+    m_SampleOffset: 64
+  OmniDirectional Shadow:
+    m_ResolutionQuality: 1024
+    m_zFar: 0.1
+    m_zNear: 25
+  Utilities:
+    m_VertexShader: Assets/Shaders/ShadowMapping/ShadowDepthVertex.glsl
+    m_FragmentShader: Assets/Shaders/ShadowMapping/ShadowDepthFrag.glsl
+    m_GeometryShader: Assets/Shaders/ShadowMapping/ShadowDepthGeometry.glsl
+Dir light:
+  m_Direction: [0, 1.15, -0.45]
+  m_Colour: [0.17647028, 0, 1]
+  m_CastShadow: true
+  m_Enable: true
+  m_AmbinentIntensity: 0.19
+  m_DiffuseIntensity: 0.481
+  m_SpecularIntensity: 0.58
+Point Lights:
+  m_Counts: 2
+  0:
+    m_Position: [-2.6, 4.8, 3.4]
+    m_Colour: [0.9362745, 0.33503944, 0.33503944]
+    m_Attenuation: [0.039, 0.039, 0.02]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.562
+    m_DiffuseIntensity: 0.685
+    m_SpecularIntensity: 0.188
+  1:
+    m_Position: [9.2, 10.1, 0.8]
+    m_Colour: [0.66224927, 0.004589567, 0.9362745]
+    m_Attenuation: [0.663, 0.063, 0.001]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.8
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5

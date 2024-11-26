@@ -1,0 +1,5 @@
+Name: point_shadow_depth
+Paths:
+  vertex: Assets/Shaders/ShadowMapping/ShadowDepthVertex.glsl
+  fragment: Assets/Shaders/ShadowMapping/ShadowDepthFrag.glsl
+  geometry: Assets/Shaders/ShadowMapping/ShadowDepthGeometry.glsl

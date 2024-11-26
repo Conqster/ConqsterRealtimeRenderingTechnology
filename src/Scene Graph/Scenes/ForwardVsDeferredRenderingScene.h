@@ -36,6 +36,10 @@ private:
 	void CreateGPUDatas();
 	void CreateLightDatas(); //might need to move this 
 
+	//experimenting 
+	void SerialiseScene();
+	void DeSerialiseScene();
+
 
 	//Scene Properties 
 	bool m_EnableShadows = true;
@@ -73,6 +77,8 @@ private:
 	void OpaquePass(Shader& main_shader, const std::vector<std::weak_ptr<Entity>> opaque_entities);
 	void SceneDebugger();
 
+	void ResetSceneFrame();
+
 	////////////////////////////////
 	// HAVE TO REMOVE THIS LATER 
 	////////////////////////////////
@@ -93,7 +99,7 @@ private:
 	ShadowConfig m_PtShadowConfig;
 	std::vector<ShadowCube> m_PtDepthMapCubes;
 
-	float orbit_range = 2.0f;
+	bool m_FrameAsShadow = false;
 
 
 	//------------------------------Utility functions------------------------/
