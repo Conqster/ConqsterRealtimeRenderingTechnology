@@ -21,7 +21,7 @@
 #include "Scene Graph/Scenes/ForwardVsDeferredRenderingScene.h"
 
 //FOR TESTING: Remove later
-#include "External Libs/imgui/imgui.h"
+#include "libs/imgui/imgui.h"
 #include "Util/FilePaths.h"
 
 

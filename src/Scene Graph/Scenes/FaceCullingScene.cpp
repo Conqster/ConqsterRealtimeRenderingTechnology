@@ -1,6 +1,6 @@
 #include "FaceCullingScene.h"
 
-#include "External Libs/imgui/imgui.h"
+#include "libs/imgui/imgui.h"
 #include <iostream>
 
 void FaceCullingScene::OnInit(Window* window)

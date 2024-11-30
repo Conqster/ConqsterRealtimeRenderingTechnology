@@ -1,0 +1,88 @@
+cmake_minimum_required(VERSION 3.15)
+
+#generate project
+project(CRRT)
+
+
+#the C++ use standard 
+#add_library(crrt_compiler_flags INTERFACE)
+#ISO c++ 17 standard required for features like (std::hash, std::unorderedmap, std::filesystem, etc)
+#target_compile_features(crrt_compiler_flags INTERFACE cxx_std_17) 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+
+include_directories(${PROJECT_SOURCE_DIR})
+
+#find all source files
+file(GLOB_RECURSE source_files "src/*.h" "src/*.cpp")
+file(GLOB_RECURSE library_files "libs*.h" "libs*.c" "libs*.cpp")
+file(GLOB imgui_source "libs/imgui/*.h" "libs/imgui/*.cpp")
+file(GLOB_RECURSE yaml_src "libs/yaml-cpp-installed/include/yaml-cpp/*.h" "libs/yaml-cpp-installed/include/yaml-cpp/*.cpp")
+set(ALL_SRC_FILES ${source_files} ${library_files} ${imgui_source} ${yaml_src})
+add_executable(CRRT ${ALL_SRC_FILES})
+
+#group files by directory recursively
+macro(GroupSource curr_dir)
+	file(GLOB children RELATIVE ${PROJECT_SOURCE_DIR}/${curr_dir} ${PROJECT_SOURCE_DIR}/${curr_dir}/*)
+		foreach(child ${children})
+			if(IS_DIRECTORY ${PROJECT_SOURCE_DIR}/${curr_dir}/${child})
+				GroupSource(${curr_dir}/${child})
+			else()
+				string(REPLACE "/" "\\" group_name ${curr_dir})
+				source_group(${group_name} FILES ${PROJECT_SOURCE_DIR}/${curr_dir}/${child})
+			endif()
+		endforeach()
+endmacro()
+
+
+#group source files & library files by directory
+GroupSource(source_files)
+GroupSource(library_files)
+
+#add binary I think ??
+target_include_directories(CRRT PUBLIC ${PROJECT_BINARY_DIR})
+
+#Additional Include Directories (Properties > C/C++ > General > this)
+target_include_directories(CRRT PUBLIC ${PROJECT_SOURCE_DIR}/src)
+target_include_directories(CRRT PUBLIC ${PROJECT_SOURCE_DIR})#/libs)
+target_include_directories(CRRT PUBLIC ${PROJECT_SOURCE_DIR}/src/Core)
+target_include_directories(CRRT PUBLIC ${PROJECT_SOURCE_DIR}/libs/glfw/include)
+target_include_directories(CRRT PUBLIC ${PROJECT_SOURCE_DIR}/libs/glew/include)
+target_include_directories(CRRT PUBLIC ${PROJECT_SOURCE_DIR}/libs/GLM)
+target_include_directories(CRRT PUBLIC ${PROJECT_SOURCE_DIR}/libs/Assimp/include)
+#yaml 
+target_include_directories(CRRT PUBLIC ${PROJECT_SOURCE_DIR}/libs/yaml-cpp-installed/include)
+
+target_include_directories(CRRT PUBLIC ${PROJECT_BINARY_DIR})
+
+#Additional Library Directories (Properties > Linker > General > this)
+#Later use command to find cmake for glew add build if x86 or x64 
+target_link_directories(CRRT PUBLIC ${PROJECT_SOURCE_DIR}/libs/glew/lib/Release/Win32)
+target_link_directories(CRRT PUBLIC ${PROJECT_SOURCE_DIR}/libs/glfw/lib-vc2022)
+target_link_directories(CRRT PUBLIC ${PROJECT_SOURCE_DIR}/libs/Assimp/lib/Release)
+#yaml 
+target_link_directories(CRRT PUBLIC ${PROJECT_SOURCE_DIR}/libs/yaml-cpp-installed/lib)
+
+
+#Link Dependencies
+target_link_libraries(CRRT opengl32.lib glew32.lib glfw3.lib assimp-vc143-mt.lib yaml-cppd.lib)
+
+#Preprocessor definations
+target_compile_definitions(CRRT PRIVATE YAML_CPP_STATIC_DEFINE)
+
+#set project working directory
+set_target_properties(CRRT PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+
+#set CRRT as the startup project
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT CRRT)
+
+
+#Copy require dll files to output directory (glew32.dll, assimp-vc143-mt.dll)
+add_custom_command(TARGET CRRT POST_BUILD 
+				   COMMAND ${CMAKE_COMMAND} -E copy_if_different
+						   #copy glew dll file
+						   ${PROJECT_SOURCE_DIR}/libs/glew/bin/Release/Win32/glew32.dll  
+						   #copy assimp dll file
+						   ${PROJECT_SOURCE_DIR}/libs/Assimp/bin/assimp-vc143-mt.dll
+						   $<TARGET_FILE_DIR:CRRT>)
+

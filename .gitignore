@@ -1,7 +1,7 @@
 #user file specific
 *.user
 
-#Bulid result
+#Build result
 Debug/
 Release/
 x64/
@@ -27,5 +27,16 @@ x64/
 *.log
 
 
-#Visual studio temorary files
+#VS community temorary files
 .vs/
+
+
+#cmake generated files
+CMakeFiles/
+*.vcxproj
+*.vcxproj.filters
+*.sln
+*CMakeCache.txt
+*.cmake
+#build folder
+build/

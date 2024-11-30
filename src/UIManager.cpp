@@ -1,9 +1,9 @@
 #pragma once
 #include "UIManager.h"
 
-#include "External Libs/imgui/imgui.h"
-#include "External Libs/imgui/imgui_impl_glfw.h"
-#include "External Libs/imgui/imgui_impl_opengl3.h"
+#include "libs/imgui/imgui.h"
+#include "libs/imgui/imgui_impl_glfw.h"
+#include "libs/imgui/imgui_impl_opengl3.h"
 
 #include "Window.h"
 

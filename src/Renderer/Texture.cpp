@@ -1,7 +1,7 @@
 #include "Texture.h"
 #include "RendererErrorAssertion.h"
 
-#include "External Libs/stb_image/stb_image.h"
+#include "libs/stb_image/stb_image.h"
 #include <iostream>
 
 

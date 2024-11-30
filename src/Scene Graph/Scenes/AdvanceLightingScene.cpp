@@ -3,7 +3,7 @@
 #include "Scene Graph/Deprecated/Model.h"
 #include "Util/Deprecated/OldModelLoader.h"
 
-#include "External Libs/imgui/imgui.h"
+#include "libs/imgui/imgui.h"
 #include "Util/FilePaths.h"
 
 #include "EventHandle.h"

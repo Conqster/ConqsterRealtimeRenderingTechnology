@@ -4,7 +4,7 @@
 #include "Renderer/Meshes/PrimitiveMeshFactory.h"
 
 #include "EventHandle.h"
-#include "External Libs/imgui/imgui.h"
+#include "libs/imgui/imgui.h"
 
 void MainScene::SetWindow(Window* window)
 {
