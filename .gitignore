@@ -37,6 +37,6 @@ CMakeFiles/
 *.vcxproj.filters
 *.sln
 *CMakeCache.txt
-*.cmake
+.cmake
 #build folder
 build/
