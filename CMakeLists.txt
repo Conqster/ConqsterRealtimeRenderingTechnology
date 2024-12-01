@@ -36,23 +36,6 @@ file(GLOB_RECURSE yaml_src "libs/yaml-cpp-installed/include/yaml-cpp/*.h" "libs/
 set(ALL_SRC_FILES ${source_files} ${library_files} ${imgui_source} ${yaml_src})
 add_executable(${PROJECT_NAME} ${ALL_SRC_FILES})
 
-#group files by directory recursively
-macro(GroupSource curr_dir)
-	file(GLOB children RELATIVE ${PROJECT_SOURCE_DIR}/${curr_dir} ${PROJECT_SOURCE_DIR}/${curr_dir}/*)
-		foreach(child ${children})
-			if(IS_DIRECTORY ${PROJECT_SOURCE_DIR}/${curr_dir}/${child})
-				GroupSource(${curr_dir}/${child})
-			else()
-				string(REPLACE "/" "\\" group_name ${curr_dir})
-				source_group(${group_name} FILES ${PROJECT_SOURCE_DIR}/${curr_dir}/${child})
-			endif()
-		endforeach()
-endmacro()
-
-
-#group source files & library files by directory
-GroupSource(source_files)
-GroupSource(library_files)
 
 #add binary I think ??
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_BINARY_DIR})
