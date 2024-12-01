@@ -10,7 +10,7 @@
 
 #include "Renderer/DebugGizmos.h"
 
-#include "External Libs/imgui/imgui.h"
+#include "libs/imgui/imgui.h"
 #include "Util/MathsHelpers.h"
 #include <glm/gtx/quaternion.hpp>
 

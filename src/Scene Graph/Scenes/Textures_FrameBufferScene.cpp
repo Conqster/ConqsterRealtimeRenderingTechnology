@@ -1,9 +1,9 @@
 #include "Textures_FrameBufferScene.h"
 
-#include "External Libs/imgui/imgui.h"
+#include "libs/imgui/imgui.h"
 #include <iostream>
 
-#include "External Libs/stb_image/stb_image.h"
+#include "libs/stb_image/stb_image.h"
 
 #include "EventHandle.h"
 #include "SceneManager.h"

@@ -3,9 +3,9 @@ m_HasLights: true
 m_HasShadow: true
 m_HasEnvironmentMap: true
 Main Camera:
-  m_Position: [-18.26403, 23.491219, -47.564037]
-  m_Yaw: 92.46009
-  m_Pitch: -8.042501
+  m_Position: [-18.12696, 23.942442, -50.754536]
+  m_Yaw: 89.20284
+  m_Pitch: -17.286716
   m_Fov: 62.4
   m_Near: 0.1
   m_Far: 1500

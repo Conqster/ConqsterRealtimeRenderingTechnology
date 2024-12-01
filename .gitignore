@@ -1,9 +1,10 @@
 #user file specific
 *.user
 
-#Bulid result
-Debug/
-Release/
+#Build result
+#specify for root dir (Debug Release because need libs././folder)
+/Debug/
+/Release/
 x64/
 
 #C++ outputs
@@ -11,7 +12,8 @@ x64/
 //might be dangerous because of external files i am using
 //*.dll 
 //*.obj  
-*.lib
+#specify for root dir (.libs .dll because need libs././lib)
+/*.lib
 *.pdb
 *.idb
 *.x86
@@ -27,5 +29,17 @@ x64/
 *.log
 
 
-#Visual studio temorary files
+#VS community temorary files
 .vs/
+
+
+#cmake generated files
+CMakeFiles/
+*.vcxproj
+*.vcxproj.filters
+*.sln
+*CMakeCache.txt
+.cmake
+#build folder
+build/
+libs/yaml-cpp-installed-experiment

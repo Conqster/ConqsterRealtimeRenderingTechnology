@@ -1,6 +1,6 @@
 #include "GeometryScene.h"
 
-#include "External Libs/imgui/imgui.h"
+#include "libs/imgui/imgui.h"
 
 #include "Renderer/Meshes/PrimitiveMeshFactory.h"
 

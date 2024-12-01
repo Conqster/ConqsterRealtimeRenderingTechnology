@@ -1,6 +1,6 @@
 #include "ParallaxExperimentalScene.h"
 
-#include "External Libs/imgui/imgui.h"
+#include "libs/imgui/imgui.h"
 #include "Util/FilePaths.h"
 #include "Util/MathsHelpers.h"
 
