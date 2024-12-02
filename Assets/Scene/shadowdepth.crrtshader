@@ -3,3 +3,4 @@ Paths:
   vertex: Assets/Shaders/StandardVertex.glsl
   fragment: Assets/Shaders/StandardFrag2.glsl
   geometry: ""
+

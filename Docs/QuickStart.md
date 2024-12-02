@@ -6,12 +6,36 @@ Visual Studio 2022 was used for the development, with an x86/Debug and Windows b
 
 Start by downloading a Zip from the "<> Code" option.
 
+Or with git clone: `git clone --recursive https://github.com/Conqster/ConqsterRealtimeRenderingTechnology`.
+If cloned non-recursively use `git submodule --init` to clone necessary submodules if needed.
+
+#### Modules
+`YAML - Data Serialisation (not compulsory)`
+
 ### 2. Building the Project
 
-A build script is not included. You can build the project directly in Visual Studio Community Edition (Press F5): 
+CMake is required.
+Current supported config:
+- Build config: Debug.
+- Platform: x86.
 
-- Build Configuration: Choose either Release or Debug.
-- Supported Platform: x86.
+**Navigate into source directory and run CMake:**
+```
+cmake -A Win32 .
+
+(for YAML)
+cmake [-DUSE_YAML=ON]
+
+optional (create a build folder)
+mkdir build
+cd build 
+cmake -A Win32 ..
+```
+
+**Build:**
+
+You can build the project directly in Visual Studio Community Edition (Press F5) or via CMake `cmake -build .`
+
 ### 3. Using Scene Manager
 The project uses a `SceneManager` to handle multiple scene, each abstracted into separate classes. 
 
