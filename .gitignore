@@ -39,7 +39,11 @@ CMakeFiles/
 *.vcxproj.filters
 *.sln
 *CMakeCache.txt
-.cmake
+/*.cmake
 #build folder
 build/
 libs/yaml-cpp-installed-experiment
+
+#extra
+/*.dir/
+/Win32/

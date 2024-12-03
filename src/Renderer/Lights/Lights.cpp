@@ -82,7 +82,9 @@
 		ubo.SetSubDataByID(&colour[0], vec3_size, offset_pointer);
 		offset_pointer += vec3_size;
 		//enable
-		ubo.SetSubDataByID(&enable, sizeof(int), offset_pointer); //first needs to be 60 bytes
+		//gpu renderdoc as 3452764160 (false) -- 3452764161 (true) 
+		//try fixing with boolean 0 - 1
+		ubo.SetSubDataByID(&enable, sizeof(bool), offset_pointer); //first needs to be 60 bytes
 		offset_pointer += sizeof(int);
 		//position
 		ubo.SetSubDataByID(&position[0], vec3_size, offset_pointer);

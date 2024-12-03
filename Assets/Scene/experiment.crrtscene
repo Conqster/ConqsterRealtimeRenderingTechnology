@@ -1,11 +1,11 @@
 m_Name: Forward Vs Deferred Scene
 m_HasLights: true
-m_HasShadow: true
+m_HasShadow: false
 m_HasEnvironmentMap: true
 Main Camera:
-  m_Position: [-18.12696, 23.942442, -50.754536]
-  m_Yaw: 89.20284
-  m_Pitch: -17.286716
+  m_Position: [-2.0542629, 18.089806, -43.972553]
+  m_Yaw: 299.27707
+  m_Pitch: 77.70414
   m_Fov: 62.4
   m_Near: 0.1
   m_Far: 1500
@@ -60,11 +60,11 @@ Dir light:
 Point Lights:
   m_Counts: 10
   0:
-    m_Position: [30.6, 10.4, 3.4]
+    m_Position: [28.1, 10.5, 42.5]
     m_Colour: [0.9362745, 0.33503944, 0.33503944]
     m_Attenuation: [0.032, 0.051, 0.024]
     m_CastShadow: false
-    m_Enable: true
+    m_Enable: false
     m_AmbinentIntensity: 0.488
     m_DiffuseIntensity: 0.566
     m_SpecularIntensity: 0.595
@@ -73,7 +73,7 @@ Point Lights:
     m_Colour: [1, 1, 1]
     m_Attenuation: [1, 0.2, 0.03]
     m_CastShadow: false
-    m_Enable: false
+    m_Enable: true
     m_AmbinentIntensity: 0.5
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
@@ -82,7 +82,7 @@ Point Lights:
     m_Colour: [0.90686274, 0, 0.88019025]
     m_Attenuation: [0.961, 0.139, 0.018]
     m_CastShadow: false
-    m_Enable: false
+    m_Enable: true
     m_AmbinentIntensity: 1
     m_DiffuseIntensity: 1
     m_SpecularIntensity: 1
@@ -91,7 +91,7 @@ Point Lights:
     m_Colour: [0.17647028, 0, 1]
     m_Attenuation: [1, 0.2, 0.03]
     m_CastShadow: false
-    m_Enable: false
+    m_Enable: true
     m_AmbinentIntensity: 0.5
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
@@ -100,7 +100,7 @@ Point Lights:
     m_Colour: [1, 1, 1]
     m_Attenuation: [1, 0.2, 0.03]
     m_CastShadow: false
-    m_Enable: false
+    m_Enable: true
     m_AmbinentIntensity: 0.5
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
@@ -109,7 +109,7 @@ Point Lights:
     m_Colour: [1, 1, 1]
     m_Attenuation: [1, 0.2, 0.03]
     m_CastShadow: false
-    m_Enable: false
+    m_Enable: true
     m_AmbinentIntensity: 0.5
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
@@ -118,7 +118,7 @@ Point Lights:
     m_Colour: [1, 1, 1]
     m_Attenuation: [1, 0.2, 0.03]
     m_CastShadow: false
-    m_Enable: false
+    m_Enable: true
     m_AmbinentIntensity: 0.5
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
@@ -127,7 +127,7 @@ Point Lights:
     m_Colour: [1, 1, 1]
     m_Attenuation: [1, 0.2, 0.03]
     m_CastShadow: false
-    m_Enable: false
+    m_Enable: true
     m_AmbinentIntensity: 0.5
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
@@ -136,7 +136,7 @@ Point Lights:
     m_Colour: [1, 1, 1]
     m_Attenuation: [1, 0.2, 0.03]
     m_CastShadow: false
-    m_Enable: false
+    m_Enable: true
     m_AmbinentIntensity: 0.5
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
@@ -145,7 +145,7 @@ Point Lights:
     m_Colour: [1, 1, 1]
     m_Attenuation: [1, 0.2, 0.03]
     m_CastShadow: false
-    m_Enable: false
+    m_Enable: true
     m_AmbinentIntensity: 0.5
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5

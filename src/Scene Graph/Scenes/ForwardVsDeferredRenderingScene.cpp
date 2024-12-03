@@ -60,7 +60,16 @@ void ForwardVsDeferredRenderingScene::OnUpdate(float delta_time)
 		m_PtLights[i].shadow_far = shfar;
 
 
+	//debug point light is enable or not 
+	//printf("Debugging Point Light in Frame : %d\n", frames_count);
+	//for (int i = 0; i < m_PtLightCount; i++)
+	//{
+	//	printf("Point Light idx: %d, is %s\n", i, (m_PtLights[i].enable) ? "enabled" : "disabled");
+	//}
+
+
 	OnRender();
+	ResetSceneFrame();
 }
 
 void ForwardVsDeferredRenderingScene::OnRender()
@@ -76,8 +85,9 @@ void ForwardVsDeferredRenderingScene::OnRender()
 			BuildRenderableMeshes(e);
 	}
 
-	//shadow data retrival 
-	ShadowPass(m_ShadowDepthShader, m_RenderableEntities); //<----- important for storing shadow data in texture 2D & texture cube map probab;y move to renderer and data is sent back 
+	//shadow data retrival
+	if(m_EnableShadows)
+		ShadowPass(m_ShadowDepthShader, m_RenderableEntities); //<----- important for storing shadow data in texture 2D & texture cube map probab;y move to renderer and data is sent back 
 
 	//Start Rendering
 	RenderCommand::Clear();
@@ -90,8 +100,10 @@ void ForwardVsDeferredRenderingScene::OnRender()
 	OpaquePass(m_ForwardShader, m_RenderableEntities);
 	frames_count++;
 
-	//return;
+	return;
 	SceneDebugger();
+
+	
 }
 
 void ForwardVsDeferredRenderingScene::OnRenderUI()
@@ -276,6 +288,9 @@ void ForwardVsDeferredRenderingScene::LoadSceneFromFile()
 	if (!SceneSerialiser::Instance().LoadScene("Assets/Scene/experiment.crrtscene", scene_data))
 		printf("[SCENE FILE LOADING]: Failed to retrive all data from file!!!!!!!");
 
+
+	m_EnableShadows = scene_data.m_HasShadow;
+
 	dl = scene_data.m_Light.dir_Light;
 
 	m_PtLightCount = scene_data.m_Light.m_PtLightCount;
@@ -331,7 +346,7 @@ void ForwardVsDeferredRenderingScene::SerialiseScene()
 	{
 		"Forward Vs Deferred Scene",
 		true,	//m_HasLight;
-		true,	//m_HasShadow = true;
+		m_EnableShadows, //true,	//m_HasShadow = true;
 		true,	//m_HasEnivornmentMap = true;
 		//camera 
 		{
