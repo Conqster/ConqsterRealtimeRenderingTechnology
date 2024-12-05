@@ -51,11 +51,16 @@ bool SceneSerialiser::RetrieveLights(const YAML::Node data, SceneLightData& scen
 	if (data["Point Lights"]["m_Counts"])
 		scene_light.m_PtLightCount = data["Point Lights"]["m_Counts"].as<int>();
 
-	scene_light.ptLights = new PointLight[scene_light.m_PtLightCount];
+	//scene_light.ptLights = new PointLight[scene_light.m_PtLightCount];
+	scene_light.ptLights.reserve(scene_light.m_PtLightCount);
 	for (int i = 0; i < scene_light.m_PtLightCount; i++)
 	{
+		//if (data["Point Lights"][i])
+		//	scene_light.ptLights[i] = data["Point Lights"][i].as<PointLight>();
+
+		//since its loaded in idx order 
 		if (data["Point Lights"][i])
-			scene_light.ptLights[i] = data["Point Lights"][i].as<PointLight>();
+			scene_light.ptLights.emplace_back(data["Point Lights"][i].as<PointLight>());
 	}
 
 	return !failed;
@@ -63,9 +68,10 @@ bool SceneSerialiser::RetrieveLights(const YAML::Node data, SceneLightData& scen
 
 bool SceneSerialiser::RetrieveRenderConfig(const YAML::Node data, SceneRenderingConfig& render_config)
 {
-	if (!data.IsMap() || data.size() != 1)
+	if (!data.IsMap() || data.size() != 2)
 	{
-		printf("FAILED TO RETRIEVE RENDER CONFIG\n");
+		printf("FAILED TO RETRIEVE RENDER CONFIG");
+		printf((data.size() != 2) ? ", DUE TO MAP DATA DOESNT MATCH\n" : "\n");
 		return false;
 	}
 
@@ -74,6 +80,17 @@ bool SceneSerialiser::RetrieveRenderConfig(const YAML::Node data, SceneRendering
 	else
 		printf("[NODE ERROR]: m_Forward Shader node does not exist!!!!\n");
 
+	auto& deferred_node = data["Deferred Rendering"];
+	if (deferred_node)
+	{
+		if (deferred_node["m_GBufferShader"])
+			RetrieveShader(deferred_node["m_GBufferShader"], render_config.m_GBufferShader);
+		else
+			printf("[NODE ERROR]: m_GBuffer Shader node does not exist!!!!\n");
+	}
+	else
+		printf("[NODE ERROR]: Deferred Rendering node does not exist in save file!!!!!\n");
+
 	return true;
 }
 
@@ -81,7 +98,8 @@ bool SceneSerialiser::RetrieveEnvironmentData(const YAML::Node data, SceneEnviro
 {
 	if (!data.IsMap() || data.size() != 5)
 	{
-		printf("FAILED TO RETRIEVE ENVIRONMENT DATA\n");
+		printf("FAILED TO RETRIEVE ENVIRONMENT DATA");
+		printf((data.size() != 5) ? ", DUE TO MAP DATA DOESNT MATCH\n" : "\n");
 		return false;
 	}
 
@@ -115,7 +133,8 @@ bool SceneSerialiser::RetrieveCameraData(const YAML::Node cam_node, SceneCameraD
 {
 	if (!cam_node.IsMap() || cam_node.size() != 8)
 	{
-		printf("FAILED TO RETRIEVE CAMERA DATA\n");
+		printf("FAILED TO RETRIEVE CAMERA DATA");
+		printf((cam_node.size() != 8) ? ", DUE TO MAP DATA DOESNT MATCH\n" : "\n");
 		return false;
 	}
 
@@ -135,7 +154,8 @@ bool SceneSerialiser::RetrieveShadowSetting(const YAML::Node sh_data, SceneShado
 {
 	if (!sh_data.IsMap() || sh_data.size() != 3)
 	{
-		printf("FAILED TO RETRIEVE SHADOW SETTINGS\n");
+		printf("FAILED TO RETRIEVE SHADOW SETTINGS");
+		printf((sh_data.size() != 3) ? ", DUE TO MAP DATA DOESNT MATCH\n" : "\n");
 		return false;
 	}
 
@@ -178,7 +198,8 @@ bool SceneSerialiser::RetrieveShader(const YAML::Node data, ShaderData& shader_d
 {
 	if (!data.IsMap() || data.size() != 4)
 	{
-		printf("FAILED TO RETRIEVE SHADER\n");
+		printf("FAILED TO RETRIEVE SHADER");
+		printf((data.size() != 4) ? ", DUE TO MAP DATA DOESNT MATCH\n" : "\n");
 		return false;
 	}
 
@@ -265,12 +286,12 @@ void SceneSerialiser::SerialiseRenderingConfig(YAML::Emitter& out, SceneRenderin
 	out << YAML::Key << "Rendering Config";
 	out << YAML::BeginMap;
 		out << YAML::Key << "m_ForwardShader";
-		out << YAML::BeginMap;
-			out << YAML::Key << "name" << YAML::Key << rendering_config.m_ForwardShader.m_Name;
-			out << YAML::Key << "vertex" << YAML::Key << rendering_config.m_ForwardShader.m_Vertex;
-			out << YAML::Key << "fragment" << YAML::Key << rendering_config.m_ForwardShader.m_Fragment;
-			out << YAML::Key << "geometry" << YAML::Key << rendering_config.m_ForwardShader.m_Geometry;
-		out << YAML::EndMap;
+			SerialiseShader(out, rendering_config.m_ForwardShader);
+		out << YAML::Key << "Deferred Rendering";
+			out << YAML::BeginMap;
+			out << YAML::Key << "m_GBufferShader";
+				SerialiseShader(out, rendering_config.m_GBufferShader);
+			out << YAML::EndMap;
 	out << YAML::EndMap;
 }
 

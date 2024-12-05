@@ -227,6 +227,8 @@ namespace CRRT
 				new_mat->normalMap = std::make_shared<Texture>(normal_map[0]);
 			if (parallax_map.size() > 0)
 				new_mat->parallaxMap = std::make_shared<Texture>(parallax_map[0]);
+			if(specular_map.size() > 0)
+				new_mat->specularMap = std::make_shared<Texture>(specular_map[0]);
 		}
 
 
@@ -417,7 +419,7 @@ namespace CRRT
 
 			//if any material is retrived 
 			if (diffuse_map.size() + specular_map.size() + emission_map.size() +
-				normal_map.size() + parallax_map.size() > 0)
+				specular_map.size() + normal_map.size() + parallax_map.size() > 0)
 			{
 				gen_mat = std::make_shared<Material>();
 
@@ -425,6 +427,8 @@ namespace CRRT
 					gen_mat->baseMap = std::make_shared<Texture>(diffuse_map[0]);
 				if (normal_map.size() > 0)
 					gen_mat->normalMap = std::make_shared<Texture>(normal_map[0]);
+				if (specular_map.size() > 0)
+					gen_mat->specularMap = std::make_shared<Texture>(specular_map[0]);
 				if (parallax_map.size() > 0)
 					gen_mat->parallaxMap = std::make_shared<Texture>(parallax_map[0]);
 			}

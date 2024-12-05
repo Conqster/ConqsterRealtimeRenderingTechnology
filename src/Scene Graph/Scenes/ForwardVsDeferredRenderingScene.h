@@ -12,6 +12,8 @@
 
 #include "Renderer/Skybox.h"
 
+#include "Renderer/ObjectBuffer/Framebuffer.h"
+
 class Material;
 class Entity;
 class ForwardVsDeferredRenderingScene : public Scene
@@ -36,7 +38,7 @@ private:
 	void CreateGPUDatas();
 
 	//experimenting 
-	void LoadSceneFromFile(); //Loads (Lights, shadows, 
+	SceneData LoadSceneFromFile(); //Loads (Lights, shadows, 
 	void SerialiseScene();
 
 
@@ -58,9 +60,23 @@ private:
 	UniformBuffer m_CamMatUBO;
 	UniformBuffer m_LightDataUBO;
 	UniformBuffer m_EnviUBO;
+	//GBuffer (Light accumulation, Diffuse, Specular, Normal) 
+	//Using (Base Colour, Normal, Position, Depth)
+	MRTFramebuffer m_GBuffer;
+	Shader m_GBufferShader;
+	int m_PrevViewWidth;
+	int m_PrevViewHeight;
 
 	//Utilities
 	CRRT::ModelLoader m_NewModelLoader;
+	glm::vec3 m_PtOrbitOrigin = glm::vec3(0.0f, 44.0f, 0.0f);
+	float m_SpawnZoneRadius = 54.0f;
+	float m_DesiredDistance = 20.0f;
+	float m_OrbitSpeed = 20.0f;
+
+
+	//Shading
+	void ForwardShading();
 
 	//Begin Scene Render
 	void BeginRenderScene();
@@ -73,7 +89,11 @@ private:
 
 	//Scene Render
 	void PostUpdateGPUUniformBuffers(); //light ubo after scene is sorted & light pass
+
+	//Passes
 	void OpaquePass(Shader& main_shader, const std::vector<std::weak_ptr<Entity>> opaque_entities);
+	//Deferred Pass
+	void GBufferPass();
 	void SceneDebugger();
 
 	void ResetSceneFrame();
@@ -92,8 +112,9 @@ private:
 	}dirLightObject;
 	ShadowMap dirDepthMap;
 	//Point Light data
-	static const int MAX_POINT_LIGHT = 10;
-	PointLight m_PtLights[MAX_POINT_LIGHT];
+	static const int MAX_POINT_LIGHT = 1000;
+	static const int MAX_POINT_LIGHT_SHADOW = 10;
+	std::vector<PointLight> m_PtLights;
 	unsigned int m_PtLightCount = 0;
 	ShadowConfig m_PtShadowConfig;
 	std::vector<ShadowCube> m_PtDepthMapCubes;
@@ -103,9 +124,10 @@ private:
 
 	//------------------------------Utility functions------------------------/
 	//need to take this out later
-	//void ResizeBuffers(unsigned int width, unsigned int height);
+	void ResizeBuffers(unsigned int width, unsigned int height);
 
 	void MaterialShaderBindHelper(Material& mat, Shader& shader);
+	bool AddPointLight(glm::vec3 location, glm::vec3 colour);
 
 
 	//UIs
@@ -115,4 +137,6 @@ private:
 	void EntityDebugUI(Entity& entity);
 	void MaterialsUI();
 	void EntityModelMaterial(const Entity& entity);
+
+	void GBufferDisplayUI();
 };

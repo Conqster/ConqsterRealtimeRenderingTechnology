@@ -1,6 +1,8 @@
 #pragma once
 
 #include <vector>
+#include <cstdlib>
+#include <ctime>
 
 struct MathsHelper
 {
@@ -76,4 +78,40 @@ struct MathsHelper
 		};
 	} 
 
+
+	//quick random value between two value, min & max
+	static inline float RandomFloat(float min, float max)
+	{
+		return min + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (max - min)));
+	}
+
+
+	//quick random point but not fully uniform 
+	static inline glm::vec3 RandomPointInSphere(float radius)
+	{
+		if (radius <= 0.0f)
+			return glm::vec3(0.0f);
+
+		while (true)
+		{
+			float x = RandomFloat(-radius, radius);
+			float y = RandomFloat(-radius, radius);
+			float z = RandomFloat(-radius, radius);
+
+			printf("Random point in sphere x: %f, y: %f, z: %f\n", x, y, z);
+
+			if (x * x + y * y + z * z <= radius * radius)
+				return glm::vec3(x, y, z);
+		}
+	}
+
+
+	static inline glm::vec3 RandomColour()
+	{
+		float r = RandomFloat(0, 1);
+		float g = RandomFloat(0, 1);
+		float b = RandomFloat(0, 1);
+
+		return glm::vec3(r, g, b);
+	}
 };

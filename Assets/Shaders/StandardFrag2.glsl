@@ -50,6 +50,9 @@ struct Material
 	bool useParallax;
 	float parallax;
 	
+	sampler2D specularMap;
+	bool hasSpecularMap;
+	
 	int shinness;
 };
 
@@ -63,7 +66,8 @@ in VS_OUT
 	vec3 normal;
 }fs_in;
 
-const int MAX_POINT_LIGHTS = 10;
+const int MAX_POINT_LIGHTS = 1000;
+const int MAX_POINT_LIGHT_SHADOW = 10;
 //--------------uniform--------------/
 //Model specify 
 uniform Material u_Material;
@@ -82,7 +86,7 @@ layout (std140) uniform u_LightBuffer
 uniform bool u_EnableSceneShadow;
 layout(binding = 3) uniform sampler2D u_DirShadowMap;
 layout(binding = 4) uniform samplerCube u_SkyboxMap;
-layout(binding = 5) uniform samplerCube u_PointShadowCubes[MAX_POINT_LIGHTS];
+layout(binding = 5) uniform samplerCube u_PointShadowCubes[MAX_POINT_LIGHT_SHADOW];
 
 //--------------------Environment-----------------------------------------
 //struct Environment only called once if changed

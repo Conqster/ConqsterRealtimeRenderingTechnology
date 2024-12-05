@@ -172,8 +172,8 @@ bool MRTFramebuffer::Generate(unsigned int count, FBO_Format i_format)
 	{
 		glBindTexture(GL_TEXTURE_2D, colourAttachments[i]);
 		glTexImage2D(GL_TEXTURE_2D, 0, OpenGLFormat(i_format), m_Width, m_Height, 0, GL_RGBA, GL_FLOAT, NULL);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, /*GL_LINEAR*/GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, /*GL_LINEAR*/GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
@@ -197,6 +197,75 @@ bool MRTFramebuffer::Generate(unsigned int count, FBO_Format i_format)
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, m_Width, m_Height);
 
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_RenderbufferID);
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	{
+		std::cout << "[FRAMEBUFFER ERROR]: Framebuffer did not complete!!!!\n";
+		glBindRenderbuffer(GL_RENDERBUFFER, 0);
+		return false;
+	}
+
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+	return true;
+}
+
+bool MRTFramebuffer::Generate(unsigned int width, unsigned int height, std::vector<FBO_ImageConfig> img_config)
+{
+	//for now 
+	if (img_config.size() <= 0)
+	{
+		printf("[MRT FRAMEBUFFER ERROR]:img_config is empty, img_config is used to determine buffer count!!!!\n");
+		return false;
+	}
+
+
+	m_InternalFormat = img_config[0].format;
+	unsigned int count = img_config.size();
+	m_ColourAttachmentCount = count;
+	glGenFramebuffers(1, &m_ID);
+	glBindFramebuffer(GL_FRAMEBUFFER, m_ID);
+
+	///////////////////////////////////////////////////////////////////////
+	// create colour attachment texture for frame buffer
+	///////////////////////////////////////////////////////////////////////
+	colourAttachments.reserve(count);
+	//Quick hack 
+	for (unsigned int i = 0; i < count; i++)
+		colourAttachments.emplace_back(i);
+	glGenTextures(count, &colourAttachments[0]);
+
+	for (unsigned int i = 0; i < count; i++)
+	{
+		glBindTexture(GL_TEXTURE_2D, colourAttachments[i]);
+		if(i < img_config.size())
+			glTexImage2D(GL_TEXTURE_2D, 0, OpenGLFormat(img_config[i].format), m_Width, m_Height, 0, GL_RGBA, img_config[i].imgDataType, NULL);
+		else
+			glTexImage2D(GL_TEXTURE_2D, 0, OpenGLFormat(img_config[0].format), m_Width, m_Height, 0, GL_RGBA, img_config[0].imgDataType, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, /*GL_LINEAR*/GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, /*GL_LINEAR*/GL_NEAREST);
+
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, colourAttachments[i], 0);
+	}
+
+
+	std::vector<unsigned int> attachment;
+	attachment.reserve(count);
+	for (unsigned int i = 0; i < count; i++)
+	{
+		attachment.emplace_back(GL_COLOR_ATTACHMENT0 + i);
+	}
+	glDrawBuffers(count, &attachment[0]);
+
+	///////////////////////////////////////////////////////////////////////
+	// create a render buffer object for depth and stencil 
+	///////////////////////////////////////////////////////////////////////
+	glGenRenderbuffers(1, &m_RenderbufferID);
+	glBindRenderbuffer(GL_RENDERBUFFER, m_RenderbufferID);
+	//glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, m_Width, m_Height);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, m_Width, m_Height);
+
+	//glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_RenderbufferID);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_RenderbufferID);
 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 	{

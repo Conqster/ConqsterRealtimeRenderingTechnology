@@ -59,7 +59,7 @@
 
 		if (!fileStream.is_open())
 		{
-			printf("[Reading Shader File (for %s)]: Failed to read %s, file doesn't exist.\n", m_Name, shader_file.c_str());
+			printf("[Reading Shader File (for %s)]: Failed to read %s, file doesn't exist.\n", m_Name.c_str(), shader_file.c_str());
 			return "";
 		}
 
@@ -78,7 +78,7 @@
 	bool Shader::CreateFromCode(const char* vCode, const char* fCode, const std::string& gCode)
 	{
 		m_ProgramID = glCreateProgram();
-		printf("The shader program '%s' ID: %d\n", m_Name, m_ProgramID);
+		printf("The shader program '%s' ID: %d\n", m_Name.c_str(), m_ProgramID);
 
 		GLuint vshader = CompileShader(GL_VERTEX_SHADER, vCode);
 		GLuint fshader = CompileShader(GL_FRAGMENT_SHADER, fCode);
@@ -105,7 +105,7 @@
 		if (!result)
 		{
 			glGetProgramInfoLog(m_ProgramID, sizeof(eLog), NULL, eLog);
-			printf("[ERROR VALIDATING PROGRAM (for %s)]: '%s'\n", m_Name, eLog);
+			printf("[ERROR VALIDATING PROGRAM (for %s)]: '%s'\n", m_Name.c_str(), eLog);
 			exit(-1);
 			return false;
 		}
@@ -178,7 +178,7 @@
 		GLCall(int location = glGetUniformLocation(m_ProgramID, name));
 
 		if (location == -1)
-			printf("[SHADER UNIFORM (WARNING) program: %s]: uniform '%s' doesn't exist!!!!!\n", m_Name, name);
+			printf("[SHADER UNIFORM (WARNING) program: %s]: uniform '%s' doesn't exist!!!!!\n", m_Name.c_str(), name);
 		else
 			cacheUniformLocations[name] = location;
 

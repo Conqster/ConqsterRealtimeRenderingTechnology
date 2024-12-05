@@ -92,7 +92,7 @@ namespace YAML
 				return false;
 			}
 
-			printf("SUCCESSFULLY DECODE DIRECTIONAL LIGHT\n");
+			//printf("SUCCESSFULLY DECODE DIRECTIONAL LIGHT\n");
 			rhs.direction = node["m_Direction"].as<glm::vec3>();
 			rhs.colour = node["m_Colour"].as<glm::vec3>();
 			rhs.castShadow = node["m_CastShadow"].as<bool>();
@@ -130,7 +130,7 @@ namespace YAML
 				return false;
 			}
 
-			printf("SUCCESSFULLY DECODE POINT LIGHT\n");
+			//printf("SUCCESSFULLY DECODE POINT LIGHT\n");
 			rhs.position = node["m_Position"].as<glm::vec3>();
 			rhs.colour = node["m_Colour"].as<glm::vec3>();
 			glm::vec3 att_vec = node["m_Attenuation"].as<glm::vec3>();

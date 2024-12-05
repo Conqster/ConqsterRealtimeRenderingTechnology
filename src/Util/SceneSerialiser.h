@@ -19,7 +19,8 @@ struct SceneCameraData
 struct SceneLightData
 {
 	DirectionalLight dir_Light;
-	PointLight *ptLights;
+	//PointLight *ptLights;
+	std::vector<PointLight> ptLights;
 	unsigned m_PtLightCount = 0;
 };
 
@@ -57,6 +58,8 @@ struct SceneRenderingConfig
 {
 	ShaderData m_ForwardShader;
 	//ResolutionSetting m_ResQuality;
+	//have render options: Forward shadering/deffered shading
+	ShaderData m_GBufferShader;
 };
 
 struct SkyboxTextures

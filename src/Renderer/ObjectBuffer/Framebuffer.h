@@ -5,8 +5,11 @@
 enum class FBO_Format
 {
 	RGB,
+	RGBA,
 	RGBA16F
 };
+
+
 
 
 class Framebuffer
@@ -46,6 +49,13 @@ private:
 
 //----------------------------------------------Multiple Render Targets MRT----------------------/
 
+struct FBO_ImageConfig
+{
+	FBO_Format format = FBO_Format::RGBA16F;
+	//change this later
+	unsigned int imgDataType = 0x1406; //GL_FLOAT
+};
+
 class MRTFramebuffer
 {
 public:
@@ -54,6 +64,7 @@ public:
 	~MRTFramebuffer();
 
 	bool Generate(unsigned int count = 2, FBO_Format i_format = FBO_Format::RGB);
+	bool Generate(unsigned int width, unsigned int height, std::vector<FBO_ImageConfig> img_config);
 	bool Generate(unsigned int width, unsigned int height, unsigned int count = 2, FBO_Format i_format = FBO_Format::RGB);
 
 	bool ResizeBuffer(unsigned int width, unsigned int height);
