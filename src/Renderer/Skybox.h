@@ -1,7 +1,6 @@
 #pragma once
-
 #include "TextureCube.h";
-#include "Meshes/CubeMesh.h"
+#include "Meshes/Mesh.h"
 #include "Shader.h"
 
 #include "SceneRenderer.h"
@@ -22,6 +21,7 @@ public:
 	//Doesnt work because i am modifing the shader indirect if i call setUniforms
 	//as i would cache the uniform is it exist but not been cached
 	void Draw(class Camera& camera, class Window& window);
+	void Draw(Shader& shader, class CRRT::SceneRenderer& renderer);
 
 	void ActivateMap(uint16_t slot = 0);
 	void DisActivate();
@@ -30,12 +30,14 @@ public:
 	inline TextureCube* const GetTextureMap() { return &m_TextureMap; }
 	inline Mesh* const GetMesh() { return &m_Mesh; }
 
+	inline std::vector<std::string> GetFacePaths() { return m_FacePath; }
+
 	void Destroy();
 private:
 	std::vector<std::string> m_FacePath;
 
 	TextureCube m_TextureMap;
-	CubeMesh m_Mesh;
+	Mesh m_Mesh;
 	Shader m_Shader;
 
 	CRRT::SceneRenderer m_SceneRenderer;

@@ -12,18 +12,27 @@
 			case GL_FRAGMENT_SHADER: return "Fragmant Shader";
 			case GL_GEOMETRY_SHADER: return "Geometry Shader";
 
-			return "Not registed shader type";
 		}
+		return "Not registed shader type";
 	}
 
 
-	bool Shader::Create(const char* name, const ShaderFilePath& file_paths)
+	bool Shader::Create(const std::string& name, const ShaderFilePath& file_paths)
 	{
 		m_Name = name;
 		m_FragFilePath = file_paths.fragmentPath;
 		m_VertexFilePath = file_paths.vertexPath;
 		m_GeometryFilePath = file_paths.geometryPath;
 		return CreateFromFile(file_paths);
+	}
+
+	bool Shader::Create(const std::string& name, const std::string& ver, const std::string& frag, const std::string& geo)
+	{
+		m_Name = name;
+		m_VertexFilePath = ver;
+		m_FragFilePath = frag;
+		m_GeometryFilePath = geo;
+		return CreateFromFile({ver, frag, geo});
 	}
 
 	bool Shader::CreateFromFile(const ShaderFilePath& file_paths)
@@ -50,7 +59,7 @@
 
 		if (!fileStream.is_open())
 		{
-			printf("[Reading Shader File (for %s)]: Failed to read %s, file doesn't exist.\n", m_Name, shader_file.c_str());
+			printf("[Reading Shader File (for %s)]: Failed to read %s, file doesn't exist.\n", m_Name.c_str(), shader_file.c_str());
 			return "";
 		}
 
@@ -69,7 +78,7 @@
 	bool Shader::CreateFromCode(const char* vCode, const char* fCode, const std::string& gCode)
 	{
 		m_ProgramID = glCreateProgram();
-		printf("Thge shader program Id is %d\n", m_ProgramID);
+		printf("The shader program '%s' ID: %d\n", m_Name.c_str(), m_ProgramID);
 
 		GLuint vshader = CompileShader(GL_VERTEX_SHADER, vCode);
 		GLuint fshader = CompileShader(GL_FRAGMENT_SHADER, fCode);
@@ -96,7 +105,7 @@
 		if (!result)
 		{
 			glGetProgramInfoLog(m_ProgramID, sizeof(eLog), NULL, eLog);
-			printf("[ERROR VALIDATING PROGRAM (for %s)]: '%s'\n", m_Name, eLog);
+			printf("[ERROR VALIDATING PROGRAM (for %s)]: '%s'\n", m_Name.c_str(), eLog);
 			exit(-1);
 			return false;
 		}
@@ -149,8 +158,8 @@
 
 	void Shader::Bind() const
 	{
-		//GLCall(glUseProgram(m_ProgramID));
-		glUseProgram(m_ProgramID);
+		GLCall(glUseProgram(m_ProgramID));
+		//glUseProgram(m_ProgramID);
 	}
 
 	void Shader::UnBind() const
@@ -169,7 +178,7 @@
 		GLCall(int location = glGetUniformLocation(m_ProgramID, name));
 
 		if (location == -1)
-			printf("[SHADER UNIFORM (WARNING)]: uniform '%s' doesn't exist!!!!!\n", name);
+			printf("[SHADER UNIFORM (WARNING) program: %s]: uniform '%s' doesn't exist!!!!!\n", m_Name.c_str(), name);
 		else
 			cacheUniformLocations[name] = location;
 
@@ -204,8 +213,8 @@
 			case GL_FRAGMENT_SHADER: return m_FragFilePath.c_str();
 			case GL_GEOMETRY_SHADER: return m_GeometryFilePath.c_str();
 
-			return "Not a registered shader";
 		}
+		return "Not a registered shader";
 	}
 
 	void Shader::SetUniformBlockIdx(const char* name, int blockBindingIdx) const

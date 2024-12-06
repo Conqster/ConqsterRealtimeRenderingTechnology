@@ -13,7 +13,7 @@
 #include "Renderer/Shader.h"
 
 #include "Renderer/Skybox.h"  //update when Skybox is update
-#include "Util/ModelLoaderN.h"   //new model loader 
+#include "Util/ModelLoader.h"   //new model loader 
 
 #include "Renderer/ObjectBuffer/Framebuffer.h"
 
@@ -56,7 +56,9 @@ private:
 
 	//Pre-Rendering
 	void BuildSceneEntities();
+	std::vector<std::weak_ptr<Entity>> BuildVisibleEntities(const std::vector<std::shared_ptr<Entity>>& parent_entity);
 	void BuildEntitiesWithRenderMesh(const std::shared_ptr<Entity>& parent_entity);
+	void BuildEntitiesWithRenderMesh(const std::weak_ptr<Entity>& parent_entity);
 	void BuildOpacityTransparencyFromRenderMesh(const std::vector<std::weak_ptr<Entity>>& renderable_list);
 	void BuildSceneEntitiesViaOpacityTransparency(const std::shared_ptr<Entity>& parent_entity);
 	void SortByViewDistance(std::vector<std::weak_ptr<Entity>>& sorting_list);
@@ -64,7 +66,7 @@ private:
 
 	//Scene Render
 	void PostUpdateGPUUniformBuffers(); //light ubo after scene is sorted & light pass
-	void DrawScene();
+	void DrawScene(Shader& main_shader);
 
 	//Scene Post Render
 	void PostProcess();
@@ -87,6 +89,9 @@ private:
 
 	//Resource
 	Framebuffer m_SceneScreenFBO;
+	//Testing Test MRT (multi render target for GBuffer)
+	MRTFramebuffer m_TestGBuffer;
+	Shader m_TestGBufferShader;
 	Shader m_PostImgShader;
 	std::shared_ptr<Mesh> m_QuadMesh;
 	//Later store entities as enitity but sorted list should be a rendering data list (Mesh,Material,World Transform)
@@ -96,19 +101,14 @@ private:
 	std::vector<std::weak_ptr<Entity>> m_TransparentEntites;
 
 	Shader m_SceneShader;//std::vector<std::shared_ptr<Shader>> m_SceneShaders;
-	Shader shadowDepthShader;  //this is not scene deoth shader
+	Shader m_ShadowDepthShader;  //this is not scene deoth shader
+	Shader m_SkyboxShader;
 	std::vector<std::shared_ptr<Material>> m_SceneMaterials;
 	Skybox m_Skybox;
 
 	Camera m_TopDownCamera;
 	Framebuffer m_TopDownFBO;
 
-	Plane nearPlane = Plane(glm::vec3(0.0f, 0.0f, 1.0f), 5.0f);
-	Plane rightPlane = Plane(glm::vec3(-1.0f, 0.0f, 0.0f), 5.0f);
-	Plane topPlane = Plane(glm::vec3(0.0f, -1.0f, 0.0f), 2.5f);
-	Plane leftPlane = Plane(glm::vec3(1.0f, 0.0f, 0.0f), 5.0f);
-	Plane bottomPlane = Plane(glm::vec3(0.0f, 1.0f, 0.0f), 2.5f);
-	glm::vec2 testPlaneSize = glm::vec2(20.0f, 20.0f);
 	////Later have a structure for RenderData
 	//struct MeshRenderer
 	//{
@@ -125,7 +125,7 @@ private:
 
 	//Utilities
 	CRRT::ModelLoader m_NewModelLoader;
-	unsigned int m_PrevViewWidth, m_PrevViewHeight;
+	unsigned int m_PrevViewWidth = 0, m_PrevViewHeight = 0;
 
 
 	//UniformBuffers
@@ -165,7 +165,7 @@ private:
 	void EntityDebugUI(Entity& entity);
 	void MaterialsUI();
 	void EditTopViewUI();
-	//void FrameBufferUI();
+	void TestMRT_GBufferUI();
 
 
 	void EntityModelMaterial(const Entity& entity);

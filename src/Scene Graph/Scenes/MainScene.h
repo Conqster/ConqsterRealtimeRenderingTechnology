@@ -1,7 +1,7 @@
 #pragma once
 #include "Scene.h"
 
-#include "Scene Graph/GameObject.h"
+#include "Scene Graph/Deprecated/GameObject.h"
 #include "Renderer/Lights/LightManager.h"
 #include "Renderer/Renderer.h"
 

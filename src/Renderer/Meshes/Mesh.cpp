@@ -10,11 +10,6 @@
 
 #include "Util/MathsHelpers.h"
 
-#include "../Texture.h"
-#include "../Shader.h"
-
-#include "../Material.h"
-
 void Mesh::CacheVertices(const float vertices[], size_t size)
 {
 	//unsigned int size = sizeof(vertices);
@@ -128,20 +123,6 @@ void Mesh::ReCalcNormalsWcIndices(float* vertices, unsigned int* indices, unsign
 
 
 
-
-
-Mesh::Mesh()
-{
-	//Create();
-	m_RefCount = 0;
-}
-
-Mesh::Mesh(const VertexArray vao, VertexBuffer vbo)
-{
-	VAO = vao;
-	VBO = vbo;
-}
-
 void Mesh::Generate(std::vector<Vertex> vertices, std::vector<unsigned int> indices)
 {
 	m_Vertices = vertices;
@@ -180,12 +161,6 @@ Mesh::~Mesh()
 	//Clear();
 }
 
-void Mesh::Create()
-{
-	DefaultMesh();
-}
-
-
 void Mesh::Clear()
 {
 	VBO.DeleteBuffer();
@@ -205,56 +180,6 @@ void Mesh::UnRegisterUse()
 	m_RefCount--;
 	if(m_RefCount <= 0)
 		Clear();
-}
-
-
-
-/// <summary>
-/// Use to default mesh to triangle
-/// </summary>
-void Mesh::DefaultMesh()
-{
-	//triangle
-	std::cout << "Default mesh called!!!!!!!" << std::endl;
-	//50.0f >> 1.0f
-	float vertices[] =
-	{//			  x		 y	   z	 w      	 r      g    b     a		u     v
-		/*0*/	-1.0f, -1.0f, 0.0f, 1.0f,		1.0f, 0.0f, 0.0f, 1.0f,    0.0f, 1.0f,
-		/*1*/	0.0f, 1.0f, 0.0f, 1.0f,			0.0f, 1.0f, 0.0f, 1.0f,    0.5f, 0.0f,
-		/*2*/	1.0f, -1.0f, 0.0f, 1.0f,		0.0f, 0.0f, 1.0f, 1.0f,    1.0f, 1.0f,
-
-		//EXTRA POS
-		/*3*/	1.0f, 1.0f, 0.0f, 1.0f,			0.2f, 0.8f, 0.0f, 1.0f,	   1.0f, 0.0f, //top-right
-		/*4*/	-1.0f, 1.0f, 0.0f, 1.0f,		0.0f, 0.2f, 0.8f, 1.0f,    0.0f, 0.0f,  //top-left
-
-	};
-
-	CacheVertices(vertices, sizeof(vertices));
-
-	 unsigned int indices[] =
-	{
-
-		0, 3, 2
-		//0, 3, 4,
-		//0, 1, 2,
-	};
-
-
-	GLCall(glEnable(GL_BLEND));
-	GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-
-	VAO.Generate();
-
-	VBO = VertexBuffer(vertices, sizeof(vertices));
-	IBO = IndexBuffer(indices, /*6*/3);
-	VertexBufferLayout vbLayout;
-	//layout 0 position 4 floats x, y, z, w
-	vbLayout.Push<float>(4);
-	//layout 1 colour 4 floats r, g, b, a
-	vbLayout.Push<float>(4);
-	//texture coord floats u v
-	vbLayout.Push<float>(2);
-	VAO.AddBufferLayout(VBO, vbLayout);
 }
 
 void Mesh::UpdateAABB(glm::vec3 v)

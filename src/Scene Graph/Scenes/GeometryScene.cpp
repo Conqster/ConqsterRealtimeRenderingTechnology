@@ -1,6 +1,8 @@
 #include "GeometryScene.h"
 
-#include "External Libs/imgui/imgui.h"
+#include "libs/imgui/imgui.h"
+
+#include "Renderer/Meshes/PrimitiveMeshFactory.h"
 
 
 void GeometryScene::OnInit(Window* window)
@@ -77,7 +79,7 @@ void GeometryScene::OnRender()
 	m_GroundShader.SetUniformMat4f("u_projection", proj);
 	m_GroundShader.SetUniformMat4f("u_view", view);
 	m_GroundShader.SetUniformMat4f("u_model", model);
-	m_GroundShader.SetUniform1i("u_DoDepthTest", 0.0f);
+	m_GroundShader.SetUniform1i("u_DoDepthTest", 0);
 	m_GroundShader.SetUniform1f("u_Intensity", 1.0f);
 	//m_SquareMesh.Render();
 	m_SceneRenderer.DrawMesh(m_SquareMesh);
@@ -147,15 +149,15 @@ void GeometryScene::OnRenderUI()
 		ImGui::SliderFloat("Move Speed", m_Camera->Ptr_MoveSpeed(), 5.0f, 50.0f);
 		ImGui::SliderFloat("Rot Speed", m_Camera->Ptr_RotSpeed(), 0.0f, 2.0f);
 
-		float window_width = window->GetWidth();
-		float window_height = window->GetHeight();
+		float window_width = (float)window->GetWidth();
+		float window_height = (float)window->GetHeight();
 		static glm::mat4 test_proj;
 
 		bool update_camera_proj = false;
 
 		update_camera_proj = ImGui::SliderFloat("FOV", m_Camera->Ptr_FOV(), 0.0f, 179.0f, "%.1f");
-		update_camera_proj += ImGui::DragFloat("Near", m_Camera->Ptr_Near(), 0.1f, 0.1f, 50.0f, "%.1f");
-		update_camera_proj += ImGui::DragFloat("Far", m_Camera->Ptr_Far(), 0.1f, 0.0f, 500.0f, "%.1f");
+		update_camera_proj |= ImGui::DragFloat("Near", m_Camera->Ptr_Near(), 0.1f, 0.1f, 50.0f, "%.1f");
+		update_camera_proj |= ImGui::DragFloat("Far", m_Camera->Ptr_Far(), 0.1f, 0.0f, 500.0f, "%.1f");
 
 		if (update_camera_proj)
 		{
@@ -233,7 +235,7 @@ void GeometryScene::CreateObjects()
 	////////////////////////////////////////
 	// CREATE SQUARE MESH
 	////////////////////////////////////////
-	m_SquareMesh.Create();
+	m_SquareMesh = CRRT::PrimitiveMeshFactory::Instance().CreateAQuad();
 
 
 	////////////////////////////////////////
@@ -263,7 +265,7 @@ void GeometryScene::CreateObjects()
 	////////////////////////////////////////
 	// CREATE SPHERE MESH
 	////////////////////////////////////////
-	sphere.Create();
+	sphere = CRRT::PrimitiveMeshFactory::Instance().CreateASphere();
 	sphereTex = new Texture("Assets/Textures/brick.png");
 
 	//SPHERE NORMAL DEBUG SHADER
@@ -280,5 +282,5 @@ void GeometryScene::CreateObjects()
 	////////////////////////////////////////
 	// CREATE CUBE MESH
 	////////////////////////////////////////
-	testCube.Create();
+	testCube = CRRT::PrimitiveMeshFactory::Instance().CreateACube();
 }

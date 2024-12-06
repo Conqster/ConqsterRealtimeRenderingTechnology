@@ -8,7 +8,7 @@
 
 
 
-enum State
+enum class State
 {
 	INIT,
 	LOADSCENE,

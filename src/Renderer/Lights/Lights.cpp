@@ -5,7 +5,8 @@
 #include "../ObjectBuffer/UniformBuffer.h"
 
 	Light::Light(const glm::vec3& colour, float amb_inten, float diff_inten)
-		: colour(colour), ambientIntensity(amb_inten), diffuseIntensity(diff_inten)
+			    : colour(colour), ambientIntensity(amb_inten), 
+				  diffuseIntensity(diff_inten), specularIntensity(0.5f)
 	{
 	}
 
@@ -13,10 +14,10 @@
 	{
 		switch (type)
 		{
-		case lightType_NONE: return "NONE";
-		case lightType_DIRECTIONAL: return "Directional Light";
-		case lightType_POINT: return "Point Light";
-		case lightType_SPOT: return "Spot Light";
+		case LightType::lightType_NONE: return "NONE";
+		case LightType::lightType_DIRECTIONAL: return "Directional Light";
+		case LightType::lightType_POINT: return "Point Light";
+		case LightType::lightType_SPOT: return "Spot Light";
 		}
 		return "[Error]: Type not configured or null";
 	}
@@ -29,13 +30,13 @@
 	DirectionalLight::DirectionalLight(const glm::vec3& dir, const glm::vec3& col, float amb_inten, float diff_inten)
 						: direction(dir), Light(col, amb_inten, diff_inten)
 	{
-		type = lightType_DIRECTIONAL;
+		type = LightType::lightType_DIRECTIONAL;
 	}
 
-	void DirectionalLight::UpdateUniformBufferData(UniformBuffer& ubo, long long int& offset_pointer)
+	void DirectionalLight::UpdateUniformBufferData(UniformBuffer& ubo, unsigned int& offset_pointer)
 	{
-		long long int vec3_size = sizeof(glm::vec3);
-		long long int float_size = sizeof(float);
+		unsigned int vec3_size = sizeof(glm::vec3);
+		unsigned int float_size = sizeof(float);
 
 
 		//colour
@@ -69,19 +70,21 @@
 	PointLight::PointLight(const glm::vec3& pos, const glm::vec3& col, float amb_inten, float diff_inten)
 		: Light(col, amb_inten, diff_inten), position(pos), attenuation{1.0f, 0.2f, 0.03f}
 	{
-		type = lightType_POINT;
+		type = LightType::lightType_POINT;
 	}
 
-	void PointLight::UpdateUniformBufferData(UniformBuffer& ubo, long long int& offset_pointer)
+	void PointLight::UpdateUniformBufferData(UniformBuffer& ubo, unsigned int& offset_pointer)
 	{
-		long long int vec3_size = sizeof(glm::vec3);
-		long long int float_size = sizeof(float);
+		unsigned int vec3_size = sizeof(glm::vec3);
+		unsigned int float_size = sizeof(float);
 
 		//colour
 		ubo.SetSubDataByID(&colour[0], vec3_size, offset_pointer);
 		offset_pointer += vec3_size;
 		//enable
-		ubo.SetSubDataByID(&enable, sizeof(int), offset_pointer); //first needs to be 60 bytes
+		//gpu renderdoc as 3452764160 (false) -- 3452764161 (true) 
+		//try fixing with boolean 0 - 1
+		ubo.SetSubDataByID(&enable, sizeof(bool), offset_pointer); //first needs to be 60 bytes
 		offset_pointer += sizeof(int);
 		//position
 		ubo.SetSubDataByID(&position[0], vec3_size, offset_pointer);
@@ -116,5 +119,5 @@
 		:direction(dir), outerCutoffAngle(cutoff_angle), PointLight(pos, col, amb_inten, diff_inten)
 	{
 		//innerCutoffAngle = (innerCutoffAngle < 0) ? 0 : innerCutoffAngle;
-		type = lightType_SPOT;
+		type = LightType::lightType_SPOT;
 	}

@@ -1,12 +1,14 @@
 #include "AdvanceLightingScene.h"
 
-#include "Scene Graph/Model.h"
-#include "Util/ModelLoader.h"
+#include "Scene Graph/Deprecated/Model.h"
+#include "Util/Deprecated/OldModelLoader.h"
 
-#include "External Libs/imgui/imgui.h"
+#include "libs/imgui/imgui.h"
 #include "Util/FilePaths.h"
 
 #include "EventHandle.h"
+
+#include "Renderer/Meshes/PrimitiveMeshFactory.h"
 
 void AdvanceLightingScene::SetWindow(Window* window)
 {
@@ -146,7 +148,7 @@ void AdvanceLightingScene::OnRender()
 	// UPDATE UNIFORM BUFFERs
 	////////////////////////////////////////
 	//------------------Update uniform GPU buffer Lights -----------------------------/ 
-	long long int offset_pointer = 0;
+	unsigned int offset_pointer = 0;
 	offset_pointer = 0;
 	dirLightObject.dirlight.UpdateUniformBufferData(m_LightDataUBO, offset_pointer);
 	for (int i = 0; i < MAX_LIGHT; i++)
@@ -173,7 +175,7 @@ void AdvanceLightingScene::OnRender()
 	//general debug parameters for model shader
 	modelShader.Bind();
 	modelShader.SetUniform1i("u_DebugScene", debugScene);
-	modelShader.SetUniform1i("u_DebugWcType", debugModelType);
+	modelShader.SetUniform1i("u_DebugWcType", (int)debugModelType);
 	modelShader.SetUniform1i("u_DisableTex", disableTexture);
 	modelShader.SetUniform1i("u_GammaCorrection", doGammaCorrection);
 	modelShader.SetUniform1f("u_Gamma", gamma);
@@ -227,14 +229,14 @@ void AdvanceLightingScene::OnRender()
 	//////////////////////////
 
 	///////////////////////Shadow Depth View
-	uint16_t win_width = window->GetWidth() * 0.15f; // 0.25f;
-	uint16_t win_height = window->GetHeight() * 0.15f; // 0.25f;
-	uint16_t x_offset = win_width * 0.6f,
+	float win_width = (float)window->GetWidth() * 0.15f; // 0.25f;
+	float win_height = (float)window->GetHeight() * 0.15f; // 0.25f;
+	float x_offset = win_width * 0.6f,
 			 y_offset = win_height * 0.6f;
-	uint16_t x_pos = window->GetWidth() - (win_width * 0.5f) - x_offset;
-	uint16_t y_pos = window->GetHeight() - (win_height * 0.5f) - y_offset;
+	float x_pos = (float)window->GetWidth() - (win_width * 0.5f) - x_offset;
+	float y_pos = (float)window->GetHeight() - (win_height * 0.5f) - y_offset;
 
-	glViewport(x_pos, y_pos, win_width, win_height);
+	glViewport((int)x_pos, (int)y_pos, (uint16_t)win_width, (uint16_t)win_height);
 	//No need to clear screen have it the the cover area
 
 	screenShader.Bind();
@@ -273,7 +275,7 @@ void AdvanceLightingScene::OnRender()
 		if (debug_shadow)
 		{
 			y_pos -= win_height + (win_height * 0.1f);
-			glViewport(x_pos, y_pos, win_width, win_height);
+			glViewport((int)x_pos, (int)y_pos, (uint16_t)win_width, (uint16_t)win_height);
 			debugPtLightMapShader.Bind();
 			debugPtLightMapShader.SetUniform1i("uLightShadowMap", 2 + pLightsha.debugLightIdx);
 			//what face of the cube map to sample
@@ -396,7 +398,7 @@ void AdvanceLightingScene::OnRender()
 			temp.Translate(relative_pos);
 			//temp.Scale(glm::vec3(1.0f) * (bunnysScale[i] - substractScale));
 			//temp.Scale(glm::vec3(0.2f) * (bunnysScale[i] - 1.0f));
-			temp.Scale(glm::vec3(0.1593535) * (bunnysScale[i] - 1.0f));
+			temp.Scale(glm::vec3(0.1593535f) * (bunnysScale[i] - 1.0f));
 			//temp.Scale(glm::vec3(-0.026677, 0.095087, 0.008953) * (bunnysScale[i] - 1.0f));
 			//temp.Scale(glm::vec3(-0.204654, 0.831132, 0.093963) * (bunnysScale[i] - 1.0f));
 			DebugGizmos::DrawBox(temp, glm::vec3(0.0f, 0.0f, 1.0f), 2.0f);
@@ -515,15 +517,15 @@ void AdvanceLightingScene::OnRenderUI()
 		ImGui::SliderFloat("Move Speed", m_Camera->Ptr_MoveSpeed(), 5.0f, 50.0f);
 		ImGui::SliderFloat("Rot Speed", m_Camera->Ptr_RotSpeed(), 0.0f, 2.0f);
 
-		float window_width = window->GetWidth();
-		float window_height = window->GetHeight();
+		float window_width = (float)window->GetWidth();
+		float window_height = (float)window->GetHeight();
 		static glm::mat4 test_proj;
 
 		bool update_camera_proj = false;
 
 		update_camera_proj = ImGui::SliderFloat("FOV", m_Camera->Ptr_FOV(), 0.0f, 179.0f, "%.1f");
-		update_camera_proj += ImGui::DragFloat("Near", m_Camera->Ptr_Near(), 0.1f, 0.1f, 50.0f, "%.1f");
-		update_camera_proj += ImGui::DragFloat("Far", m_Camera->Ptr_Far(), 0.1f, 0.0f, 500.0f, "%.1f");
+		update_camera_proj |= ImGui::DragFloat("Near", m_Camera->Ptr_Near(), 0.1f, 0.1f, 50.0f, "%.1f");
+		update_camera_proj |= ImGui::DragFloat("Far", m_Camera->Ptr_Far(), 0.1f, 0.0f, 500.0f, "%.1f");
 
 		if (update_camera_proj)
 		{
@@ -804,17 +806,17 @@ void AdvanceLightingScene::CreateObjects()
 	////////////////////////////////////////
 	// CREATE SPHERE MESH
 	////////////////////////////////////////
-	sphere.Create();
+	sphere = CRRT::PrimitiveMeshFactory::Instance().CreateASphere();
 
 	//////////////////////////////////////
 	// CREATE GROUND MESH
 	//////////////////////////////////////
-	ground.Create();
+	ground = CRRT::PrimitiveMeshFactory::Instance().CreateAQuad();
 
 	//////////////////////////////////////
 	// CREATE CUBE MESH
 	//////////////////////////////////////
-	cube.Create();
+	cube = CRRT::PrimitiveMeshFactory::Instance().CreateACube();
 
 
 
@@ -1064,7 +1066,7 @@ void AdvanceLightingScene::CreateObjects()
 		availablePtLightCount++;
 	}
 	//debugScene = true;
-	debugModelType = MODEL_NORMAL;
+	debugModelType = DebugModelType::MODEL_NORMAL;
 
 	//Testing value
 	gamma = 1.50f;
@@ -1225,7 +1227,7 @@ void AdvanceLightingScene::InstanceObjectPass(Shader* debug_shader)
 		//Fix with unform buffer to set varible to the GPU 
 		//especially Lights & shadow maps 
 		instancingShader.SetUniform1i("u_DebugScene", debugScene);
-		instancingShader.SetUniform1i("u_DebugWcType", debugModelType);
+		instancingShader.SetUniform1i("u_DebugWcType", (int)debugModelType);
 		instancingShader.SetUniform1i("u_DisableTex", disableTexture);
 		instancingShader.SetUniform1i("u_GammaCorrection", doGammaCorrection);
 		instancingShader.SetUniform1f("u_Gamma", gamma);
@@ -1258,7 +1260,7 @@ void AdvanceLightingScene::InstanceObjectPass(Shader* debug_shader)
 
 	glm::mat4 model = glm::mat4(1.0f);
 	//glm::vec3 origin = sphereInstancePos[0]; //first locatio
-	for (int i = 0; i < sphereInstancePos.size(); i++)
+	for (size_t i = 0; i < sphereInstancePos.size(); i++)
 	{
 		model = glm::mat4(1.0f);
 		model = glm::translate(model, sphereInstancePos[i]);

@@ -2,7 +2,7 @@
 #include "Scene.h"
 
 #include "Renderer/Renderer.h"
-#include "Renderer/Meshes/Meshes.h"
+#include "Renderer/Meshes/Mesh.h"
 
 #include "Renderer/ObjectBuffer/UniformBuffer.h"
 
@@ -25,10 +25,10 @@ private:
 	void CreateObjects();
 
 	Shader m_Shader;
-	SquareMesh m_SquareMesh;
+	Mesh m_SquareMesh;
 
 	
-	bool debugSquare;
+	bool debugSquare = false;
 
 	UniformBuffer m_CameraMatUBO;
 
@@ -36,15 +36,15 @@ private:
 
 	//Ground 
 	Shader m_GroundShader;
-	Texture* m_GroundTex;
+	Texture* m_GroundTex = nullptr;
 	glm::vec3 ground_pos = glm::vec3();
 	float ground_rot = 90.0f;
 	glm::vec3 ground_scale = glm::vec3(1.0);
 
 
 	//sphere
-	SphereMesh sphere;
-	Texture* sphereTex;
+	Mesh sphere;
+	Texture* sphereTex = nullptr;
 	Shader sphereNormDebugShader;
 
 	float normDebugLength = 0.2f;
@@ -52,6 +52,6 @@ private:
 	bool useDebugColour = true;
 
 	//test cube
-	class CubeMesh testCube;
+	class Mesh testCube;
 	
 };

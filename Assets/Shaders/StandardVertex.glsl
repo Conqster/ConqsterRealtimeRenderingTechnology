@@ -20,6 +20,16 @@ out VS_OUT
 }vs_out;
 
 
+out NVS_OUT
+{
+	vec4 posVS;  	//view space position
+	vec2 UVs;    	//Texture coord
+	vec3 tangentVS; //view space tangent
+	vec3 normalVS;	//view space normal
+	vec4 pos;		//clip space position
+}nvs_out;
+
+
 //--------------uniform--------------/
 layout (std140) uniform u_CameraMat
 {
@@ -49,5 +59,15 @@ void main()
 	vs_out.TBN = mat3(t, b, n);
 	
 	vs_out.normal = mat3(transpose(inverse(u_Model))) * nor;
+	
+	
+	
+	nvs_out.posVS = proj * view * u_Model * pos;
+	nvs_out.UVs = uv;
+	mat4 model_view = view * u_Model;
+	nvs_out.tangentVS = mat3(model_view) * tangent;
+	nvs_out.normalVS = mat3(model_view) * nor;
+	//nvs_out.pos = (model_view * pos).xyz;
+	nvs_out.pos = model_view * pos;
 	
 }

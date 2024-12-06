@@ -1,9 +1,10 @@
 #include "MainScene.h"
 
-#include "Renderer/Meshes/Meshes.h"
+#include "Renderer/Meshes/Mesh.h"
+#include "Renderer/Meshes/PrimitiveMeshFactory.h"
 
 #include "EventHandle.h"
-#include "External Libs/imgui/imgui.h"
+#include "libs/imgui/imgui.h"
 
 void MainScene::SetWindow(Window* window)
 {
@@ -156,15 +157,15 @@ void MainScene::OnRenderUI()
 		ImGui::SliderFloat("Move Speed", m_Camera->Ptr_MoveSpeed(), 5.0f, 50.0f);
 		ImGui::SliderFloat("Rot Speed", m_Camera->Ptr_RotSpeed(), 0.0f, 2.0f);
 
-		float window_width = window->GetWidth();
-		float window_height = window->GetHeight();
+		float window_width = (float)window->GetWidth();
+		float window_height = (float)window->GetHeight();
 		static glm::mat4 test_proj;
 
 		bool update_camera_proj = false;
 
 		update_camera_proj = ImGui::SliderFloat("FOV", m_Camera->Ptr_FOV(), 0.0f, 179.0f, "%.1f");
-		update_camera_proj += ImGui::DragFloat("Near", m_Camera->Ptr_Near(), 0.1f, 0.1f, 50.0f, "%.1f");
-		update_camera_proj += ImGui::DragFloat("Far", m_Camera->Ptr_Far(), 0.1f, 0.0f, 500.0f, "%.1f");
+		update_camera_proj |= ImGui::DragFloat("Near", m_Camera->Ptr_Near(), 0.1f, 0.1f, 50.0f, "%.1f");
+		update_camera_proj |= ImGui::DragFloat("Far", m_Camera->Ptr_Far(), 0.1f, 0.0f, 500.0f, "%.1f");
 
 		if (update_camera_proj)
 		{
@@ -292,27 +293,26 @@ void MainScene::OnRenderUI()
 	//	}
 	//}
 
-	SphereMesh* gameobject_mesh = dynamic_cast<SphereMesh*>(gameobject->GetMesh());
-	if (gameobject_mesh)
-	{
-		if (ImGui::TreeNode("GameObject Mesh"))
-		{
-			bool update_sector_count = ImGui::SliderInt("Sector Count", &gameobject_mesh->SectorCount, 8, 72);
-			bool update_span_count = ImGui::SliderInt("Span Count", &gameobject_mesh->SpanCount, 4, 24);
-			ImGui::SeparatorText("Info");
-			ImGui::Text("Vertex Count: %d\nIndex Count: %d",
-				gameobject_mesh->GetVerticesCount(),
-				gameobject_mesh->GetIndicesCount());
+	//if (gameobject->aSphere)
+	//{
+	//	if (ImGui::TreeNode("GameObject Mesh"))
+	//	{
+	//		bool update_sector_count = ImGui::SliderInt("Sector Count", &gameobject_mesh->SectorCount, 8, 72);
+	//		bool update_span_count = ImGui::SliderInt("Span Count", &gameobject_mesh->SpanCount, 4, 24);
+	//		ImGui::SeparatorText("Info");
+	//		ImGui::Text("Vertex Count: %d\nIndex Count: %d",
+	//			gameobject_mesh->GetVerticesCount(),
+	//			gameobject_mesh->GetIndicesCount());
 
-			//ImGui::Text("Index counts: %d", )
+	//		//ImGui::Text("Index counts: %d", )
 
-			if (update_sector_count || update_span_count)
-				gameobject_mesh->Update();
+	//		if (update_sector_count || update_span_count)
+	//			gameobject_mesh->Update();
 
-			ImGui::TreePop();
-		}
+	//		ImGui::TreePop();
+	//	}
 
-	}
+	//}
 
 
 
@@ -386,12 +386,9 @@ void MainScene::CreateObjects()
 		//////////////////////////////////////////////////////////////////////////////////
 		////////////////////////////////SHARED MESHES/////////////////////////////////////
 		//////////////////////////////////////////////////////////////////////////////////
-	static SphereMesh sphere_mesh;
-	static CubeMesh cube_mesh;
-	static SquareMesh square_mesh;
-	sphere_mesh.Create();
-	cube_mesh.Create();
-	square_mesh.Create();
+	static Mesh sphere_mesh = CRRT::PrimitiveMeshFactory::Instance().CreateASphere();
+	static Mesh cube_mesh = CRRT::PrimitiveMeshFactory::Instance().CreateACube();
+	static Mesh square_mesh = CRRT::PrimitiveMeshFactory::Instance().CreateAQuad();
 
 	//////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////TEXTURE///////////////////////////////////////////
@@ -404,7 +401,7 @@ void MainScene::CreateObjects()
 	//////////////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////SPHERE//////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////////////
-	GameObject* obj = new GameObject(&sphere_mesh, &brick_texture);
+	GameObject* obj = new GameObject(&sphere_mesh, &brick_texture, true);
 	//obj->rotation = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
 	obj->worldPos = glm::vec3(0.0f, 5.0f, 0.0f);
 	obj->radius = 1.0f;

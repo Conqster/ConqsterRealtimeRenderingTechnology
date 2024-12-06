@@ -2,7 +2,7 @@
 
 #include "Renderer/Shader.h"
 #include "Renderer/Material.h"
-#include "Renderer/Meshes/Meshes.h"
+#include "Renderer/Meshes/Mesh.h"
 
 void Entity::UpdateWorldTransform()
 {
@@ -35,6 +35,24 @@ const glm::mat4& Entity::GetWorldTransform()
 	return m_WorldTransform;
 }
 
+const AABB Entity::GetEncapsulatedChildrenAABB()
+{
+	AABB bounds = AABB(GetWorldTransform()[3]);
+
+	if (m_Mesh)
+	{
+		//get entity mesh AABB
+		bounds = m_Mesh->GetAABB();
+		//transform aabb, based on entity transformation
+		bounds = bounds.Tranformed(GetWorldTransform());
+	}
+	//Recursive encapsulate children AABB
+	for (const auto& c : m_Children)
+		bounds.Encapsulate(c->GetEncapsulatedChildrenAABB());
+
+	return bounds;
+}
+
 void Entity::AddLocalChild(const Entity& entity)
 {
 	m_Children.emplace_back(std::make_shared<Entity>(entity));
@@ -48,58 +66,6 @@ void Entity::AddWorldChild(const Entity& entity)
 	m_Children.back()->m_Parent = GetRef();
 	m_Children.back()->m_LocalTransform = glm::inverse(m_WorldTransform) * m_Children.back()->m_WorldTransform;
 	m_Children.back()->MarkTransformDirty();
-}
-
-void Entity::Draw(Shader& shader)
-{
-	if (m_Children.size() > 0)
-		for (auto& e : m_Children)
-			e->Draw(shader);
-
-	if (!m_Mesh)
-		return;
-
-
-	shader.Bind();
-	//need to take this out later, because the shader/shaders shader program only needs
-	//to bind the material once per material as multiple entity could use the same material
-	if (m_Material)
-	{
-		unsigned int tex_units = 0;
-		shader.SetUniformVec3("u_Material.baseColour", m_Material->baseColour);
-		if (m_Material->baseMap)
-		{
-			m_Material->baseMap->Activate(tex_units);
-			shader.SetUniform1i("u_Material.baseMap", tex_units++);
-		}
-		if (m_Material->normalMap)
-		{
-			m_Material->normalMap->Activate(tex_units);
-			shader.SetUniform1i("u_Material.normalMap", tex_units++);
-		}
-		if (m_Material->parallaxMap)
-		{
-			m_Material->parallaxMap->Activate(tex_units);
-			shader.SetUniform1i("u_Material.parallaxMap", tex_units++);
-		}
-		shader.SetUniform1i("u_Material.useNormal", m_Material->useNormal && m_Material->normalMap);
-		shader.SetUniform1i("u_Material.shinness", m_Material->shinness);
-		shader.SetUniform1i("u_Material.useParallax", m_Material->useParallax);
-		shader.SetUniform1f("u_Material.parallax", m_Material->heightScale);
-	}
-
-
-	//shader.SetUniformMat4f("u_Model", m_Transform);
-	//use GetWorldTransform as it might have a parent
-	shader.SetUniformMat4f("u_Model", GetWorldTransform());//expensive but works for now
-
-	//m_Mesh->Render();
-	//m_SceneRenderer.DrawMesh(*m_Mesh);
-
-	//would have to do this as most model would have a default/
-	//mesh that has no material would be group has no shading but debug pink
-	//if (m_Material)
-		//m_Material->baseMap->DisActivate();
 }
 
 void Entity::Destroy()

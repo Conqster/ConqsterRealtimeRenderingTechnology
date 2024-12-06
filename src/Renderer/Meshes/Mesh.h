@@ -33,33 +33,31 @@ struct Vertex
 /// </summary>
 class Mesh
 {
-protected:
+private:
 	std::vector<Vertex> m_Vertices;
 
 	VertexArray VAO;
 	VertexBuffer VBO;
 	IndexBuffer IBO;
 
-	int m_RefCount = 0;
-	void CacheVertices(const float vertices[], size_t size);
-	void ReCalcNormalsWcIndices(float* vertices, unsigned int* indices, unsigned int vertices_count,unsigned int indices_count, 
-								unsigned int vertex_stride, unsigned int normal_offset, bool reset_normals = true);
-
 	AABB aabb;
-	void UpdateAABB(glm::vec3 v);
 public:
-	Mesh();
-	Mesh(const VertexArray vao, VertexBuffer vbo);
+	Mesh() = default;
 	Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices) 
 		{ 
 			Generate(vertices, indices); 
 		}
+
 	void Generate(std::vector<Vertex> vertices, std::vector<unsigned int> indices);
 	~Mesh();
 
-	virtual void Create();
-	void Clear();
+	//remove when ModelMesh class is removed 
+	virtual void Create()
+	{
 
+	}
+
+	void Clear();
 	void RegisterUse();
 	void UnRegisterUse();
 	inline int const RefCount() const { return m_RefCount; }
@@ -73,6 +71,13 @@ public:
 	inline unsigned int const GetVerticesCount() const { return m_Vertices.size();}
 
 	inline AABB GetAABB() { return aabb; }
-private: 
-	void DefaultMesh();
+
+private:
+	int m_RefCount = 0;
+	void CacheVertices(const float vertices[], size_t size);
+	void ReCalcNormalsWcIndices(float* vertices, unsigned int* indices, unsigned int vertices_count, unsigned int indices_count,
+		unsigned int vertex_stride, unsigned int normal_offset, bool reset_normals = true);
+
+	void UpdateAABB(glm::vec3 v);
+
 };

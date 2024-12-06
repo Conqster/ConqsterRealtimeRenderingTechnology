@@ -20,6 +20,8 @@ namespace CRRT_Mat
 		static const char* rendering_mode[] = { "Opaque", "Transparent" };
 		return rendering_mode;
 	}
+
+	//inline unsigned int TextureCount() { return 4; }
 }
 
 
@@ -39,11 +41,12 @@ struct Material
 
 	glm::vec4 baseColour = glm::vec4(1.0f); //base coour contributes to base map (* multply as a mask)
 
-	std::shared_ptr<Texture> baseMap = nullptr;
+	std::shared_ptr<Texture> baseMap = nullptr; //0
 	bool useNormal = true;
-	std::shared_ptr<Texture> normalMap = nullptr;
+	std::shared_ptr<Texture> normalMap = nullptr; //1
 	bool useParallax = false;
-	std::shared_ptr<Texture> parallaxMap = nullptr;
+	std::shared_ptr<Texture> parallaxMap = nullptr; //2
+	std::shared_ptr<Texture> specularMap = nullptr; //3
 	float heightScale = 0.0f; //parallax scale
 	int shinness = 64;
 };

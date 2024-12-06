@@ -8,6 +8,15 @@
 
 #include "../Material.h"
 
+void ModelMesh::Clear()
+{
+	VBO.DeleteBuffer();
+	IBO.DeleteBuffer();
+
+	VAO.Clean();
+	printf("Cleared model mesh\n");
+}
+
 void ModelMesh::Create()
 {
 }
@@ -154,5 +163,10 @@ void ModelMesh::Generate(std::vector<Vertex> vertices, std::vector<unsigned int>
 	VAO.AddBufferLayout(VBO, vbLayout);
 }
 
+
+void ModelMesh::UpdateAABB(glm::vec3 v)
+{
+	aabb.Encapsulate(v);
+}
 
 

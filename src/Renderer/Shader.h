@@ -25,19 +25,20 @@ private:
 	std::string m_VertexFilePath = "";
 	std::string m_FragFilePath = "";
 	std::string m_GeometryFilePath = "";
-	const char* m_Name = "";
+	std::string m_Name = "";
 
 	std::unordered_map<std::string, int> cacheUniformLocations = std::unordered_map<std::string, int>();
 public:
 	Shader() = default;
 
-	bool Create(const char* name, const ShaderFilePath& file_paths);
+	bool Create(const std::string& name, const ShaderFilePath& file_paths);
+	bool Create(const std::string& name,  const std::string& ver, const std::string& frag, const std::string& geo);
 	bool CreateFromFile(const ShaderFilePath& file_paths);
 
 	void Bind() const;
 	void UnBind() const;
 
-	inline const char* GetName() const { return m_Name; }
+	inline const std::string GetName() const { return m_Name; }
 	
 	const char* GetShaderFilePath(GLenum shader_type);
 
@@ -61,4 +62,6 @@ private:
 	bool CreateFromCode(const char* vCode, const char* fCode, const std::string& gCode); //fix later, passing geometry as string to check .empty
 
 	int GetUniformLocation(const char* name);
+
+	friend struct SceneSerialiser;
 };

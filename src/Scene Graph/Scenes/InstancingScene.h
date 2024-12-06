@@ -3,12 +3,12 @@
 
 #include "Renderer/Renderer.h"
 #include "Renderer/Skybox.h"
-#include "Renderer/Meshes/Meshes.h"
+#include "Renderer/Meshes/Mesh.h"
 
 #include "Renderer/ObjectBuffer/UniformBuffer.h"
 
-#include "Util/ModelLoader.h"
-#include "Scene Graph/Model.h"
+#include "Util/Deprecated/OldModelLoader.h"
+#include "Scene Graph/Deprecated/Model.h"
 
 class InstancingScene : public Scene
 {
@@ -29,7 +29,7 @@ private:
 	void CreateObjects();
 
 	Shader m_Shader;
-	SquareMesh m_SquareMesh;
+	Mesh m_SquareMesh;
 
 	UniformBuffer m_CameraMatUBO;
 
@@ -44,7 +44,7 @@ private:
 	Skybox m_Skybox;
 
 	//Sphere
-	SphereMesh sphereMesh;
+	Mesh sphereMesh;
 
 
 	//Load Model 

@@ -22,8 +22,8 @@ public:
 
 
 private:
-	LearnVertex m_Cube;
-	class Texture* crateTex;
+	LearnVertex m_Cube = {};
+	class Texture* crateTex = nullptr;
 
 	Shader m_DefaultShader;
 	Shader m_Obj1Shader;

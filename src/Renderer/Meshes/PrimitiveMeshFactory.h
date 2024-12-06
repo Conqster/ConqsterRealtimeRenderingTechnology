@@ -23,6 +23,12 @@ namespace CRRT
 		std::shared_ptr<Mesh> CreateSphere(unsigned int sector_count = 36, unsigned int span_count = 18);
 		std::shared_ptr<Mesh> CreateCube();
 
+		Mesh CreateACube();
+		Mesh CreateASphere(unsigned int sector_count = 36, unsigned int span_count = 18);
+	/*	template<class T>
+		T CreateAQuad();*/
+		Mesh CreateAQuad();
+
 	private:
 		PrimitiveMeshFactory() = default;
 
@@ -33,4 +39,6 @@ namespace CRRT
 		//Helper 
 		void ConvertVerticesArrayToVector(float* data, unsigned int size, unsigned int offset, std::vector<Vertex>& vertices);
 	};
+
+
 }

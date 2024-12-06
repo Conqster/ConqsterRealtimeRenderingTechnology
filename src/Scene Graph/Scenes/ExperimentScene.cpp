@@ -5,12 +5,12 @@
 #include "Renderer/Material.h"
 #include "Util/FilePaths.h"
 
-#include "Renderer/Meshes/Meshes.h"
+#include "Renderer/Meshes/Mesh.h"
 #include "Scene Graph/Entity.h"
 
 #include "Renderer/DebugGizmos.h"
 
-#include "External Libs/imgui/imgui.h"
+#include "libs/imgui/imgui.h"
 #include "Util/MathsHelpers.h"
 #include <glm/gtx/quaternion.hpp>
 
@@ -20,6 +20,8 @@
 
 #include "Util/GameTime.h"
 #include <iostream>
+
+#include "Geometry/Frustum.h"
 
 /// <summary>
 /// Need to remove this later
@@ -68,7 +70,7 @@ void ExperimentScene::OnRender()
 	BeginRenderScene();
 	PreUpdateGPUUniformBuffers(*m_Camera);
 	BuildSceneEntities(); //<------Not implemented yet
-	ShadowPass(shadowDepthShader); //<----- important for storing shadow data in texture 2D & texture cube map probab;y move to renderer and data is sent back 
+	ShadowPass(m_ShadowDepthShader); //<----- important for storing shadow data in texture 2D & texture cube map probab;y move to renderer and data is sent back 
 
 	//Start Rendering
 	RenderCommand::Clear();
@@ -79,17 +81,23 @@ void ExperimentScene::OnRender()
 	/////////////////////////////
 	m_SceneScreenFBO.Bind();
 	RenderCommand::Clear();
-	DrawScene();
+	DrawScene(m_SceneShader);
 	SceneDebugger();
 	m_SceneScreenFBO.UnBind();
-
-	//////////////////////////////
-	// Render To Top View Buffer
-	//////////////////////////////
 
 
 	//Post Rendering (post Process) 
 	PostProcess();
+
+	//////////////////////////////
+	// EXPERIMENT WC MRT GBUFFER
+	//////////////////////////////
+	m_TestGBuffer.Bind();
+	RenderCommand::Clear();
+	DrawScene(m_TestGBufferShader);
+	m_TestGBuffer.UnBind();
+
+
 
 	//After Rendering (Clean-up/Miscellenous)
 	//Change the camera buffer with top down cam
@@ -97,7 +105,7 @@ void ExperimentScene::OnRender()
 	m_TopDownFBO.Bind();						//bind fbo
 	RenderCommand::Clear();						
 	//draw scene in buffer
-	DrawScene();
+	DrawScene(m_SceneShader);
 	SceneDebugger();
 	m_TopDownFBO.UnBind();
 
@@ -112,11 +120,46 @@ void ExperimentScene::OnRenderUI()
 	EnititiesUI();
 	MaterialsUI();
 	EditTopViewUI();
+	TestMRT_GBufferUI();
 }
 
 void ExperimentScene::OnDestroy()
 {
 	//Perform all required clean up here
+	m_QuadMesh->Clear();
+	m_QuadMesh = nullptr;
+
+	m_SceneEntities.clear();
+
+	//the following should be nullptr, is there are weak_ptr
+	m_SceneEntitiesWcRenderableMesh.clear();
+	m_OpaqueEntites.clear();
+	m_TransparentEntites.clear();
+
+
+	m_SceneMaterials.clear();
+
+
+	//FBOs;
+	m_SceneScreenFBO.Delete();
+	m_TestGBuffer.Delete();
+	m_TopDownFBO.Delete();
+
+	//Shaders 
+	m_TestGBufferShader.Clear();
+	m_PostImgShader.Clear();
+	m_SceneShader.Clear();
+	m_ShadowDepthShader.Clear();
+	m_SkyboxShader.Clear();
+
+	//UBO
+	m_CamMatUBO.Delete();
+	m_LightDataUBO.Delete();
+	m_EnviUBO.Delete();
+
+	//other Resources
+	m_Skybox.Destroy();
+	dirDepthMap.Clear();
 }
 
 void ExperimentScene::InitRenderer()
@@ -186,7 +229,14 @@ void ExperimentScene::CreateEntities()
 		"Assets/Shaders/ShadowMapping/ShadowDepthGeometry.glsl", //geometry shader
 	};
 
-	shadowDepthShader.Create("point_shadow_depth", point_shadow_shader_file_path);
+	m_ShadowDepthShader.Create("point_shadow_depth", point_shadow_shader_file_path);
+
+	ShaderFilePath skybox_shader_file_path{
+	"Assets/Shaders/Utilities/Skybox/SkyboxVertex.glsl",
+	"Assets/Shaders/Utilities/Skybox/SkyboxFragment.glsl" };
+
+	m_SkyboxShader.Create("skybox_shader", skybox_shader_file_path);
+
 
 	////////////////////////////////////////
 	// CREATE TEXTURES 
@@ -210,8 +260,8 @@ void ExperimentScene::CreateEntities()
 	glass2Mat->baseMap = std::make_shared<Texture>(FilePaths::Instance().GetPath("glass"));
 
 
-	m_SceneMaterials.emplace_back(floorMat);
 	m_SceneMaterials.emplace_back(plainMat);
+	m_SceneMaterials.emplace_back(floorMat);
 
 
 	////////////////////////////////////////
@@ -231,77 +281,110 @@ void ExperimentScene::CreateEntities()
 	int id_idx = 0;
 	//id_idx = newModel->GetID() + 1;
 
-	Entity transparent_1 = Entity(id_idx++, "transparent_1_entity", temp_trans, cube_mesh, glassMat);
-	m_SceneEntities.emplace_back(std::make_shared<Entity>(transparent_1));
-	temp_trans = glm::translate(temp_trans, glm::vec3(0.0f, 0.0f, 10.0f));
-	Entity transparent_2 = Entity(id_idx++, "transparent_2_entity", temp_trans, cube_mesh, glass2Mat);
-	m_SceneEntities.emplace_back(std::make_shared<Entity>(transparent_2));
-	temp_trans = glm::translate(temp_trans, glm::vec3(0.0f, 0.5f, -5.0f)) * 
-				 glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 0.1f, 10.0f));
-	Entity transparent_3 = Entity(id_idx++, "transparent_3_entity", temp_trans, cube_mesh, glassMat);
-	m_SceneEntities.emplace_back(std::make_shared<Entity>(transparent_3));
+	bool load_primitives = false;
+	if (load_primitives)
+	{
+		Entity transparent_1 = Entity(id_idx++, "transparent_1_entity", temp_trans, cube_mesh, glassMat);
+		m_SceneEntities.emplace_back(std::make_shared<Entity>(transparent_1));
+		temp_trans = glm::translate(temp_trans, glm::vec3(0.0f, 0.0f, 10.0f));
+		Entity transparent_2 = Entity(id_idx++, "transparent_2_entity", temp_trans, cube_mesh, glass2Mat);
+		m_SceneEntities.emplace_back(std::make_shared<Entity>(transparent_2));
+		temp_trans = glm::translate(temp_trans, glm::vec3(0.0f, 0.5f, -5.0f)) *
+			glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 0.1f, 10.0f));
+		Entity transparent_3 = Entity(id_idx++, "transparent_3_entity", temp_trans, cube_mesh, glassMat);
+		m_SceneEntities.emplace_back(std::make_shared<Entity>(transparent_3));
+
+		//move up 
+		temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 1.6f, 0.0f));
+		Entity cube_entity = Entity(id_idx++, "cube-entity", temp_trans, cube_mesh, plainMat);
+		m_SceneEntities.emplace_back(std::make_shared<Entity>(cube_entity));
+		//move right
+		temp_trans = glm::translate(temp_trans, glm::vec3(5.0f, 0.0f, 0.0f)) *
+			glm::scale(temp_trans, glm::vec3(2.0f));
+		Entity cube1_entity = Entity(id_idx++, "cube1-entity", temp_trans, cube_mesh, plainMat);
+		m_SceneEntities.emplace_back(std::make_shared<Entity>(cube1_entity));
+		//move up & add to previous as world child & scale down
+		temp_trans = glm::translate(temp_trans, glm::vec3(0.0f, 2.0f, 0.0f)) *
+			glm::scale(glm::mat4(1.0f), glm::vec3(0.5f));
+		Entity cube1child_entity = Entity(id_idx++, "cube1child-entity", temp_trans, cube_mesh, plainMat);
+		m_SceneEntities.back()->AddWorldChild(cube1child_entity);
+
+		//create  a sphere with world pos an center
+		//then add as cube1child_entity child
+		Mesh sphere_mesh;
+		sphere_mesh = CRRT::PrimitiveMeshFactory::Instance().CreateASphere();
+		temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 3.5f, 0.0f));// *
+					// glm::scale(glm::mat4(1.0f), glm::vec3(0.5f));
+		Entity sphere_entity = Entity(id_idx++, "sphere-entity", temp_trans, CRRT::PrimitiveMeshFactory::Instance().CreateSphere(), plainMat);
+		//cube1child_entity.AddWorldChild(sphere_entity);
+		//Quick Hack
+		m_SceneEntities.back()->GetChildren()[0]->AddWorldChild(sphere_entity);
+
+		unsigned int hierarchy_count = 0; // 500;
+		std::string name = "child_cube";
+		temp_trans = glm::translate(glm::mat4(1.0), glm::vec3(0.0, 5.0f, 5.0f));
+		std::shared_ptr<Entity> prev = m_SceneEntities.back()->GetChildren()[0];
+		for (unsigned int i = 0; i < hierarchy_count; i++)
+		{
+			std::shared_ptr<Entity> child_cube = std::make_shared<Entity>(id_idx++, (name + std::to_string(i)), temp_trans, cube_mesh, plainMat);
+			prev->AddLocalChild(child_cube);
+			prev = child_cube;
+		}
+	}
 	
 	temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f)) *
-				 glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) *
-				 glm::scale(glm::mat4(1.0f), glm::vec3(50)); 
+		glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+		glm::scale(glm::mat4(1.0f), glm::vec3(50));
 
 	//floor 
 	Entity floor_plane_entity = Entity(id_idx++, "floor-plane-entity", temp_trans, m_QuadMesh, floorMat);
 	m_SceneEntities.emplace_back(std::make_shared<Entity>(floor_plane_entity));
 
-	//move up 
-	temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 1.6f, 0.0f));
-	Entity cube_entity = Entity(id_idx++, "cube-entity", temp_trans, cube_mesh, plainMat);
-	m_SceneEntities.emplace_back(std::make_shared<Entity>(cube_entity));
-	//move right
-	temp_trans = glm::translate(temp_trans, glm::vec3(5.0f, 0.0f, 0.0f)) * 
-				 glm::scale(temp_trans, glm::vec3(2.0f));
-	Entity cube1_entity = Entity(id_idx++, "cube1-entity", temp_trans, cube_mesh, plainMat);
-	m_SceneEntities.emplace_back(std::make_shared<Entity>(cube1_entity));
-	//move up & add to previous as world child & scale down
-	temp_trans = glm::translate(temp_trans, glm::vec3(0.0f, 2.0f, 0.0f)) *
-				 glm::scale(glm::mat4(1.0f), glm::vec3(0.5f));
-	Entity cube1child_entity = Entity(id_idx++, "cube1child-entity", temp_trans, cube_mesh, plainMat);
-	m_SceneEntities.back()->AddWorldChild(cube1child_entity);
-
-	//create  a sphere with world pos an center
-	//then add as cube1child_entity child
-	SphereMesh sphere_mesh;
-	sphere_mesh.Create();
-	temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 3.5f, 0.0f));// *
-				// glm::scale(glm::mat4(1.0f), glm::vec3(0.5f));
-	Entity sphere_entity = Entity(id_idx++, "sphere-entity", temp_trans, CRRT::PrimitiveMeshFactory::Instance().CreateSphere(), plainMat);
-	//cube1child_entity.AddWorldChild(sphere_entity);
-	//Quick Hack
-	m_SceneEntities.back()->GetChildren()[0]->AddWorldChild(sphere_entity);
-
-	unsigned int hierarchy_count = 0; // 500;
-	std::string name = "child_cube";
-	temp_trans = glm::translate(glm::mat4(1.0), glm::vec3(0.0, 5.0f, 5.0f));
-	std::shared_ptr<Entity> prev = m_SceneEntities.back()->GetChildren()[0];
-	for (unsigned int i = 0; i < hierarchy_count; i++)
-	{
-		std::shared_ptr<Entity> child_cube = std::make_shared<Entity>(id_idx++, (name + std::to_string(i)), temp_trans, cube_mesh, plainMat);
-		prev->AddLocalChild(child_cube);
-		prev = child_cube;
-	}
-
 
 	temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(-14.0f, 13.0f, -20.0f)) * 
 							glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) *
 							glm::scale(glm::mat4(1.0f), glm::vec3(0.1f));
-	//model 1
-	std::shared_ptr<Entity> newModel2 = m_NewModelLoader.LoadAsEntity(FilePaths::Instance().GetPath("electrical-charger"), true);
-	newModel2->SetLocalTransform(temp_trans);
-	m_SceneEntities.emplace_back(newModel2);
 
-	temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(-10.0f, 2.0f, 0.0f)) * 
-						   glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) *
-						   glm::scale(glm::mat4(1.0f), glm::vec3(0.5f));
-	//model 2 
-	std::shared_ptr<Entity> newModel = m_NewModelLoader.LoadAsEntity(FilePaths::Instance().GetPath("shapes"), true);
-	newModel->SetLocalTransform(temp_trans);
-	m_SceneEntities.emplace_back(newModel);
+	bool load_models = false;
+	if (load_models)
+	{
+		//model 1
+		std::shared_ptr<Entity> newModel2 = m_NewModelLoader.LoadAsEntity(FilePaths::Instance().GetPath("electrical-charger"), true);
+		newModel2->SetLocalTransform(temp_trans);
+		m_SceneEntities.emplace_back(newModel2);
+
+		temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(-10.0f, 2.0f, 0.0f)) *
+			glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) *
+			glm::scale(glm::mat4(1.0f), glm::vec3(0.5f));
+		//model 2 
+		std::shared_ptr<Entity> newModel = m_NewModelLoader.LoadAsEntity(FilePaths::Instance().GetPath("shapes"), true);
+		newModel->SetLocalTransform(temp_trans);
+		m_SceneEntities.emplace_back(newModel);
+
+
+		std::shared_ptr<Entity> bunny = m_NewModelLoader.LoadAsEntity(FilePaths::Instance().GetPath("bunny"), true);
+		temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.2f, 0.8f, -17.6f)) *
+			glm::scale(glm::mat4(1.0f), glm::vec3(10.0f));
+		bunny->SetLocalTransform(temp_trans);
+		m_SceneEntities.emplace_back(bunny);
+	}
+
+	//testing sponza
+	temp_trans = glm::scale(glm::mat4(1.0f), glm::vec3(0.1f));
+	std::shared_ptr<Entity> sponza_model = m_NewModelLoader.LoadAsEntity(FilePaths::Instance().GetPath("sponza"), true);
+	sponza_model->SetLocalTransform(temp_trans);
+	m_SceneEntities.emplace_back(sponza_model);
+
+	///////////////////////////////////////
+	// EXPERIMENTING FOR GBUFFER
+	///////////////////////////////////////
+	m_TestGBuffer.Generate(window->GetWidth(), window->GetHeight(), 4, FBO_Format::RGBA16F);
+	ShaderFilePath test_shader_file_path
+	{
+		"Assets/Shaders/Experimental/BasicVertexPos.glsl", //vertex shader
+		"Assets/Shaders/Experimental/ExperimentGBuffer.glsl", //fragment shader
+	};
+	m_TestGBufferShader.Create("experiment_GBuffer_shader", test_shader_file_path);
 }
 
 /// <summary>
@@ -339,7 +422,8 @@ void ExperimentScene::CreateGPUDatas()
 	m_SceneShader.SetUniformBlockIdx("u_LightBuffer", 1);
 	m_SceneShader.SetUniformBlockIdx("u_EnvironmentBuffer", 2);
 
-
+	m_SkyboxShader.Bind();
+	m_SkyboxShader.SetUniformBlockIdx("u_CameraMat", 0);
 }
 
 void ExperimentScene::CreateLightDatas()
@@ -403,8 +487,55 @@ void ExperimentScene::BuildSceneEntities()
 	// 
 	//	by mesh data
 	// 
-	for (auto& e : m_SceneEntities)
+	bool build_only_visible = true;
+	std::vector<std::weak_ptr<Entity>> temp_entities;
+	temp_entities.reserve(m_SceneEntities.size());
+	if (build_only_visible)
+	{
+		temp_entities = BuildVisibleEntities(m_SceneEntities);
+	}
+	else
+	{
+		for (const auto& e : m_SceneEntities)
+			temp_entities.emplace_back(e);
+	}
+
+	//for (auto& e : m_SceneEntities)
+	for (auto& e : temp_entities)
 		BuildEntitiesWithRenderMesh(e);
+
+
+
+	bool brute_force_fix = false;
+	//Quick extra visiblity test for renderable mesh
+	//create a frustum for the current camera state 
+	if (brute_force_fix)
+	{
+		for (auto& e : m_SceneEntities)
+			BuildEntitiesWithRenderMesh(e);
+		const auto& cam = m_Camera;
+		Frustum frustum = Frustum(cam->GetPosition(), cam->GetForward(), cam->GetUp(), *cam->Ptr_Near(),
+			*cam->Ptr_Far(), *cam->Ptr_FOV(), window->GetAspectRatio());
+		AABB bounds;
+		//quick override 
+		temp_entities = m_SceneEntitiesWcRenderableMesh;
+		m_SceneEntitiesWcRenderableMesh.clear();
+		for (auto& e : temp_entities)
+		{
+			if (!e.expired())
+			{
+				//get entity mesh AABB
+				bounds = e.lock()->GetMesh()->GetAABB();
+				//transform aabb, based on enitity transformation
+				bounds = bounds.Tranformed(e.lock()->GetWorldTransform());
+
+				//check if aabb bounds is in frustum 
+				if (frustum.IsAABBVisible(bounds))
+					m_SceneEntitiesWcRenderableMesh.emplace_back(e); //store if entity is visible
+			}
+		}
+	}
+	
 
 	//	by material
 	//	by transparency / opacity
@@ -422,13 +553,60 @@ void ExperimentScene::BuildSceneEntities()
 	//	by shadowcast
 }
 
+
+
+std::vector<std::weak_ptr<Entity>> ExperimentScene::BuildVisibleEntities(const std::vector<std::shared_ptr<Entity>>& entity_collection)
+{
+	//return std::vector<std::weak_ptr<Entity>> instead of std::vector<std::weak_ptr<Entity>>& 
+	// because by return a ref the visible_entity is create within the function on stack and as soon as the function goes out of scope
+	// the variable gets deleted and returns an empty vector. but by returning a copy this ensures a returned data.
+	//loop through all entities 
+	//and create an aabb for entities
+	//then check aabb visiblity, if not remove entity
+
+	//create a frustum for the current camera state 
+	const auto& cam = m_Camera;
+	Frustum frustum = Frustum(cam->GetPosition(), cam->GetForward(),cam->GetUp(), *cam->Ptr_Near(), 
+							 *cam->Ptr_Far(), *cam->Ptr_FOV(), window->GetAspectRatio());
+
+	std::vector<std::weak_ptr<Entity>> visible_entity;
+	visible_entity.reserve(entity_collection.size());
+
+	//loop all entities
+	for (const auto& e : entity_collection)
+	{
+		AABB bounds;
+		if (e->GetMesh())
+		{
+			//get entity mesh AABB
+			bounds = e->GetMesh()->GetAABB();
+			//transform aabb, based on enitity transformation
+			bounds = bounds.Tranformed(e->GetWorldTransform());
+		}
+		//if e entity has children encapsulate their AABB
+		if (e->GetChildren().size() > 0)
+			bounds = e->GetEncapsulatedChildrenAABB(); //already computed
+
+		//check if aabb bounds is in frustum 
+		//if (frustum.PointsInFrustum(bounds))
+		if (frustum.IsAABBVisible(bounds))
+			visible_entity.emplace_back(e); //store if entity is visible
+	}
+
+	//return all visiblities
+	return visible_entity;
+}
+
 /// <summary>
 /// Recursively build scene with renderable mesh as only enitities with mesh could be rendered.
 /// </summary>
 /// <param name="parent_entity"></param>
 void ExperimentScene::BuildEntitiesWithRenderMesh(const std::shared_ptr<Entity>& parent_entity)
 {
-	auto& render_mesh = parent_entity->GetMaterial();
+	//this is wrong
+	//auto& render_mesh = parent_entity.lock()->GetMaterial();
+	//need to be GetMesh
+	auto& render_mesh = parent_entity->GetMesh();
 
 	if (render_mesh)
 		m_SceneEntitiesWcRenderableMesh.emplace_back(parent_entity);
@@ -438,13 +616,39 @@ void ExperimentScene::BuildEntitiesWithRenderMesh(const std::shared_ptr<Entity>&
 		BuildEntitiesWithRenderMesh(*c);
 }
 
+void ExperimentScene::BuildEntitiesWithRenderMesh(const std::weak_ptr<Entity>& parent_entity)
+{
+
+	if (!parent_entity.expired())
+	{
+		//this is wrong
+		//auto& render_mesh = parent_entity.lock()->GetMaterial();
+		//need to be GetMesh
+		auto& render_mesh = parent_entity.lock()->GetMesh();
+
+		if (render_mesh)
+			m_SceneEntitiesWcRenderableMesh.emplace_back(parent_entity);
+
+		auto& children = parent_entity.lock()->GetChildren();
+		for (auto c = children.begin(); c != children.end(); ++c)
+			BuildEntitiesWithRenderMesh(*c);
+	}
+}
+
 void ExperimentScene::BuildOpacityTransparencyFromRenderMesh(const std::vector<std::weak_ptr<Entity>>& renderable_list)
 {
 	for (const auto& e : renderable_list)
 	{
 		if (!e.expired())
 		{
-			auto& mat = e.lock()->GetMaterial();
+			//auto& mat = e.lock()->GetMaterial();
+			std::shared_ptr<Material> mat = e.lock()->GetMaterial();
+
+			//if mesh, does not have a material use default
+			if (!mat)
+				mat = m_SceneMaterials[0];
+
+
 			switch (mat->renderMode)
 			{
 				case CRRT_Mat::RenderingMode::Transparent:
@@ -498,12 +702,7 @@ void ExperimentScene::SortByViewDistance(std::vector<std::weak_ptr<Entity>>& sor
 	for (const auto& e : sorting_list)
 		e.lock()->UpdateViewSqrDist(m_Camera->GetPosition());
 
-
-	if (sorting_list.size() < 2)
-		return; 
-
 	std::sort(sorting_list.begin(), sorting_list.end(), Entity::CompareDistanceToView);
-
 }
 
 
@@ -516,8 +715,8 @@ void ExperimentScene::ShadowPass(Shader& depth_shader)
 	RenderCommand::ClearDepthOnly();//clear the depth buffer 
 	//directional light
 	depth_shader.Bind();
-	shadowDepthShader.SetUniform1i("u_IsOmnidir", 0);
-	shadowDepthShader.SetUniformMat4f("u_LightSpaceMat", dirLightObject.dirLightShadow.GetLightSpaceMatrix());
+	m_ShadowDepthShader.SetUniform1i("u_IsOmnidir", 0);
+	m_ShadowDepthShader.SetUniformMat4f("u_LightSpaceMat", dirLightObject.dirLightShadow.GetLightSpaceMatrix());
 	//Draw Objects with material 
 	//Renderer::DrawMesh(Mesh)
 
@@ -550,7 +749,7 @@ void ExperimentScene::ShadowPass(Shader& depth_shader)
 /// </summary>
 void ExperimentScene::PostUpdateGPUUniformBuffers()
 {
-	long long int offset_pointer = 0;
+	unsigned int offset_pointer = 0;
 	offset_pointer = 0;
 	dirLightObject.dirlight.UpdateUniformBufferData(m_LightDataUBO, offset_pointer);
 	//for (int i = 0; i < MAX_POINT_LIGHT; i++)
@@ -588,7 +787,7 @@ void ExperimentScene::PostUpdateGPUUniformBuffers()
 	//m_SceneShader.SetUniform1i("u_SkyboxMap", 5);
 }
 
-void ExperimentScene::DrawScene()
+void ExperimentScene::DrawScene(Shader& main_shader)
 {
 	//Draw built scene 
 	//what it might look like 
@@ -621,11 +820,16 @@ void ExperimentScene::DrawScene()
 
 
 	//Move this up here has to render transparent object last 
-		//Render Sky box
-	m_Skybox.Draw(*m_Camera, *window);
+	//Render Sky box
+	//m_Skybox.Draw(*m_Camera, *window);
 
+	//check if i could a normal shader to render skybox
+	//but that would be useless as main model shader program as light etc 
+	//things skybox does not require. 
+	m_Skybox.Draw(m_SkyboxShader, m_SceneRenderer);
+	
 
-	m_SceneShader.Bind();
+	main_shader.Bind();
 	/////////////////////////////////////
 	// DRAW OPAQUE ENTITIES FIRST
 	///////////////////////////////////
@@ -640,16 +844,19 @@ void ExperimentScene::DrawScene()
 			if (mesh)
 			{
 				if (mat)
-					MaterialShaderBindHelper(*mat, m_SceneShader);
+					MaterialShaderBindHelper(*mat, main_shader);
+				else//if no material, use first scene mat as default
+					MaterialShaderBindHelper(*m_SceneMaterials[0], main_shader);
 
 
-				m_SceneShader.SetUniformMat4f("u_Model", e.lock()->GetWorldTransform());
+				main_shader.SetUniformMat4f("u_Model", e.lock()->GetWorldTransform());
 				m_SceneRenderer.DrawMesh(mesh);
 			}
 
 			//Dont need recursive childrens are already lay flat in the list during soring 
 		}
 	}
+	
 
 	/////////////////////////////////////
 	// DRAW TRANSPARENT ENTITIES NEXT
@@ -672,10 +879,12 @@ void ExperimentScene::DrawScene()
 				if (mesh)
 				{
 					if (mat)
-						MaterialShaderBindHelper(*mat, m_SceneShader);
+						MaterialShaderBindHelper(*mat, main_shader);
+					else//if no material, use first scene mat as default
+						MaterialShaderBindHelper(*m_SceneMaterials[0], main_shader);
 
 
-					m_SceneShader.SetUniformMat4f("u_Model", e.lock()->GetWorldTransform());
+					main_shader.SetUniformMat4f("u_Model", e.lock()->GetWorldTransform());
 					m_SceneRenderer.DrawMesh(mesh);
 				}
 
@@ -703,137 +912,6 @@ void ExperimentScene::PostProcess()
 
 void ExperimentScene::SceneDebugger()
 {
-	const auto& cam = m_Camera;
-	DebugGizmos::DrawPerspectiveCameraFrustum(cam->GetPosition(), -cam->GetForward(), *cam->Ptr_FOV(),
-											  window->GetAspectRatio(), *cam->Ptr_Near(), *cam->Ptr_Far(), 
-											  glm::vec3(0.0f, 0.0f, 1.0f), 2.0f);
-
-
-
-	//return;
-	//TEST PLANE CODE
-	//RenderCommand::DisableDepthTest();
-	//DebugGizmos::DrawPlane(nearPlane, testPlaneSize, glm::vec3(1.0f, 0.0f, 0.0f));
-	//DebugGizmos::DrawPlane(rightPlane, testPlaneSize, glm::vec3(0.0f, 1.0f, 0.0f));
-	//DebugGizmos::DrawPlane(topPlane, testPlaneSize, glm::vec3(0.0f, 0.0f, 1.0f));
-
-	//DebugGizmos::DrawPlane(bottomPlane, testPlaneSize, glm::vec3(0.0f, 0.0f, 1.0f));
-	//DebugGizmos::DrawPlane(leftPlane, testPlaneSize, glm::vec3(0.0f, 0.0f, 1.0f));
-
-
-	glm::vec3 pt = m_Camera->GetPosition() +  (*m_Camera->Ptr_Near() + 1.5f) * m_Camera->GetForward();
-	Plane f = Plane::CreateFromPointAndNormal(pt, m_Camera->GetForward());
-	//DebugGizmos::DrawPlane(f,testPlaneSize);
-	//debug near plane normal
-	//DebugGizmos::DrawWireCone(pt + m_Camera->GetForward() * 2.0f, f.GetNormal(), m_Camera->GetRight());
-
-	float half_fov_y = glm::radians(*m_Camera->Ptr_FOV()) * 0.5f;
-	float half_fov_x = glm::atan(glm::tan(half_fov_y) * window->GetAspectRatio());
-
-	glm::vec3 right = m_Camera->GetRight();
-	glm::vec3 up = m_Camera->GetUp();
-
-	right = glm::cross(m_Camera->GetForward(), m_Camera->GetUp());
-	right = glm::normalize(right);
-	up = glm::cross(right, m_Camera->GetForward());
-	up = glm::normalize(up);
-
-	glm::vec3 left_plane_nor = glm::rotate(glm::mat4(1.0f), -half_fov_x, up) * glm::vec4(-right, 0.0f);
-	glm::vec3 right_plane_nor = glm::rotate(glm::mat4(1.0f), half_fov_x, up) * glm::vec4(right, 0.0f);
-	Plane left_f = Plane::CreateFromPointAndNormal(m_Camera->GetPosition(), left_plane_nor);
-	Plane right_f = Plane::CreateFromPointAndNormal(m_Camera->GetPosition(), right_plane_nor);
-	//DebugGizmos::DrawPlane(left_f, testPlaneSize, glm::vec3(0.0f, 0.0f, 1.0f));
-	DebugGizmos::DrawPlane(right_f, testPlaneSize, glm::vec3(1.0f, 0.0f, 0.0f));
-	//debug right plane normal
-	glm::vec3 N = right_f.GetNormal();
-	N = glm::normalize(N);
-
-	glm::vec3 arbitrary_vec;
-	if (std::fabs(N.x) > std::fabs(N.z))
-		arbitrary_vec = glm::vec3(-N.y, N.x, 0.0f);
-	else
-		arbitrary_vec = glm::vec3(0.0f, -N.z, N.y);
-	glm::vec3 u = glm::cross(N, arbitrary_vec);
-	glm::vec3 v = glm::cross(N, u);
-	DebugGizmos::DrawWireCone(pt + m_Camera->GetForward() * 15.0f, N, u, 1.0f, 2.0f, glm::vec3(0.0f, 0.0f, 1.0f));
-
-
-
-	///////////////////////////////////////////////
-	// EXPERIMENTING IN VIEW WITH AABB
-	///////////////////////////////////////////////
-	glm::vec3 col_blue = glm::vec3(0.0f, 0.0f, 1.0f);
-	glm::vec3 col_red = glm::vec3(1.0f, 0.0f, 0.0f);
-
-
-	//Draw a unit AABB at coord
-	glm::vec3 pos = glm::vec3(0.0f, 20.0f, 0.0f); //its start location 
-	AABB aabb = AABB(glm::vec3(pos));
-	aabb.Scale(glm::vec3(0.5f));
-	//DebugGizmos::DrawBox(aabb, col_blue);
-	//Debug its center 
-	//DebugGizmos::DrawSphere(pos, 0.2f, col_blue);
-
-	glm::vec3 aabb_dir = glm::normalize(pos);
-	glm::vec3 plane_nor = N;
-	float _dot = glm::dot(plane_nor, aabb_dir);
-	glm::vec3 use_col = (_dot < 1) ? col_blue : col_red;
-	DebugGizmos::DrawSphere(pos, 0.2f, use_col);
-	DebugGizmos::DrawBox(aabb, use_col);
-
-
-
-
-
-
-
-
-	//top and bottom
-	glm::vec3 top_plane_nor = glm::rotate(glm::mat4(1.0f), half_fov_y, right) * glm::vec4(-up, 0.0f);
-	glm::vec3 bottom_plane_nor = glm::rotate(glm::mat4(1.0f), -half_fov_y, right) * glm::vec4(up, 0.0f);
-	Plane top_f = Plane::CreateFromPointAndNormal(m_Camera->GetPosition(), top_plane_nor);
-	Plane bottom_f = Plane::CreateFromPointAndNormal(m_Camera->GetPosition(), bottom_plane_nor);
-	//DebugGizmos::DrawPlane(top_f, testPlaneSize, glm::vec3(0.0f, 1.0f, 0.0f));
-	//DebugGizmos::DrawPlane(bottom_f, testPlaneSize, glm::vec3(1.0f, 1.0f, 0.0f));
-	//debug top plane normal
-	N = bottom_f.GetNormal();
-	N = glm::normalize(N);
-
-	
-	if (std::fabs(N.x) > std::fabs(N.z))
-		arbitrary_vec = glm::vec3(-N.y, N.x, 0.0f);
-	else
-		arbitrary_vec = glm::vec3(0.0f, -N.z, N.y);
-	u = glm::cross(N, arbitrary_vec);
-	//DebugGizmos::DrawWireCone(pt + m_Camera->GetForward() * 15.0f, N, u, 1.0f, 2.0f, glm::vec3(0.0f, 1.0f, 0.0f));
-
-
-
-	//glm::vec3 pt = glm::vec3(0.0f);
-	//DebugGizmos::DrawWireSphere(pt, 0.5f, glm::vec3(1.0f, 0.0f, 0.0f));
-	//bool intersection = Plane::IntersectThreePlanes(nearPlane, rightPlane, topPlane, pt);
-	//DebugGizmos::DrawSphere(pt, 0.5f);
-	//RenderCommand::EnableDepthTest();
-
-
-	glm::vec3 pt_top_left = glm::vec3(0.0f), pt_top_right = glm::vec3(0.0f), 
-			  pt_bottom_left = glm::vec3(0.0f), pt_bottom_right = glm::vec3(0.0f);
-
-	Plane::IntersectThreePlanes(leftPlane, nearPlane, topPlane, pt_top_left);
-	Plane::IntersectThreePlanes(leftPlane, nearPlane, bottomPlane, pt_bottom_left);
-
-	Plane::IntersectThreePlanes(rightPlane, nearPlane, topPlane, pt_top_right);
-	Plane::IntersectThreePlanes(rightPlane, nearPlane, bottomPlane, pt_bottom_right);
-
-	DebugGizmos::DrawSphere(pt_top_left, 0.5f, glm::vec3(1.0f, 1.0f, 0.0f));
-	DebugGizmos::DrawSphere(pt_bottom_left, 0.5f, glm::vec3(0.0f, 1.0f, 1.0f));
-
-	DebugGizmos::DrawSphere(pt_top_right, 0.5f, glm::vec3(1.0f, 0.0f, 0.0f));
-	DebugGizmos::DrawSphere(pt_bottom_right, 0.5f, glm::vec3(0.0f, 0.0f, 1.0f));
-
-
-	return;
-
 	//test directional Shadow info 
 	if (dirLightObject.dirLightShadow.debugPara)
 	{
@@ -849,44 +927,51 @@ void ExperimentScene::SceneDebugger()
 		//Shadow Camera Sample Position 
 		DebugGizmos::DrawCross(dirLightObject.sampleWorldPos);
 	}
+	return;
+	const auto& cam = m_Camera;
+	Frustum frustum = Frustum(cam->GetPosition(), cam->GetForward(),cam->GetUp(), *cam->Ptr_Near(), 
+							 *cam->Ptr_Far(), *cam->Ptr_FOV(), window->GetAspectRatio());
 
-	AABB temp;
-	glm::vec3 translate, euler, scale;
+
+	AABB a_aabb = AABB(glm::vec3(0.0f, 20.0f, 0.0f));
+	a_aabb.Scale(glm::vec3(5.0f));
+	glm::vec3 a_blue_col(0.0f, 0.0f, 1.0f);
+	glm::vec3 a_red_col(1.0f, 0.0f, 0.0f);
+	bool isInView = frustum.PointsInFrustum(a_aabb);
+	glm::vec3 a_use_col = (isInView) ? a_blue_col : a_red_col;
+	DebugGizmos::DrawBox(a_aabb, a_use_col);
+	DebugGizmos::DrawSphere(a_aabb.GetCenter(), 0.2f, a_use_col);
+	DebugGizmos::DrawFrustum(frustum, glm::vec3(1.0f, 0.0f, 0.0f));
+
+
+
+
 	bool debug_scene_entities = true;
 	if (debug_scene_entities)
 	{
-		TimeTaken("All Root AABB Enities Construction");
+
+		TimeTaken RootAABBConstruction_Time("All Root AABB Enities Construction");
 		for (const auto& e : m_SceneEntities)
 		{
 			std::string func_label = "Generating AABB for entity id: ";
 			func_label += std::to_string(e->GetID());
-			TimeTaken(func_label.c_str());
-			std::vector<glm::vec3> pt_world_space;
-			for (const auto& v : MathsHelper::CubeLocalVertices())
+			TimeTaken AABBConstruction_Time(func_label.c_str());
+
+
+			AABB bounds;
+			if (e->GetMesh())
 			{
-				glm::vec4 local4D = glm::vec4(v, 1.0f);
-				glm::vec4 trans_v = e->GetWorldTransform() * local4D;
-				pt_world_space.emplace_back(glm::vec3(trans_v));
+				//get entity mesh AABB
+				bounds = e->GetMesh()->GetAABB();
+				//transform aabb, based on enitity transformation
+				bounds = bounds.Tranformed(e->GetWorldTransform());
+				DebugGizmos::DrawBox(bounds);
 			}
-
-			//generate an AABB for first vertex pt
-			temp = AABB(pt_world_space[0]);
-			//encapsulated the rest pts 
-			for (const auto& p : pt_world_space)
-			{
-				DebugGizmos::DrawSphere(p, 0.2f);
-				temp.Encapsulate(p);
-			}
-			DebugGizmos::DrawBox(temp);
-
-
-			
-			//draw AABB with children encapsulated
+			//if e entity has children encapsulate their AABB
 			if (e->GetChildren().size() > 0)
 			{
-				//Already be translated & scale 
-				temp = e->GetEncapsulatedChildrenAABB();
-				DebugGizmos::DrawBox(temp, glm::vec3(0.0f, 0.0f, 1.0f), 2.0f);
+				bounds = e->GetEncapsulatedChildrenAABB(); //already computed
+				DebugGizmos::DrawBox(bounds, glm::vec3(0.0f, 0.0f, 1.0f), 2.0f);
 			}
 		}
 	}
@@ -898,19 +983,15 @@ void ExperimentScene::SceneDebugger()
 		{
 			if (!e.expired())
 			{
-				//Debug AABB volume
-				temp = e.lock()->GetAABB();
-				MathsHelper::DecomposeTransform(e.lock()->GetWorldTransform(), translate, euler, scale);
-				temp.Translate(translate);
-				temp.Scale((scale - glm::vec3(1.0f)) * glm::vec3(0.5f));
-				DebugGizmos::DrawBox(temp);
-
-				//if (e.lock()->GetChildren().size() > 0)
-				//{
-				//	//Already be translated & scale 
-				//	temp = e.lock()->GetEncapsulatedChildrenAABB();
-				//	DebugGizmos::DrawBox(temp, glm::vec3(0.0f, 0.0f, 1.0f), 2.0f);
-				//}
+				/////////////////////////////////////
+				// ALRIGHT LETS GO 
+				/////////////////////////////////////
+				//get already cached AABB
+				AABB bounds = e.lock()->GetMesh()->GetAABB();
+				//aabb is located at the origin, lets transform based on entity world transform
+				glm::mat4 e_trans = e.lock()->GetWorldTransform();
+				bounds = bounds.Tranformed(e_trans);
+				DebugGizmos::DrawBox(bounds, glm::vec3(1.0f, 0.0f, 0.0f));
 			}
 		}
 	}
@@ -923,7 +1004,7 @@ void ExperimentScene::SceneDebugger()
 void ExperimentScene::DebugEntitiesPos(Entity& entity)
 {
 	DebugGizmos::DrawCross(entity.GetWorldTransform()[3], 2.5f);
-	for (int i = 0; i < entity.GetChildren().size(); i++)
+	for (size_t i = 0; i < entity.GetChildren().size(); i++)
 		DebugEntitiesPos(*entity.GetChildren()[i]);
 }
 
@@ -933,6 +1014,8 @@ void ExperimentScene::ResizeBuffers(unsigned int width, unsigned int height)
 	m_PrevViewWidth = window->GetWidth();
 	m_PrevViewHeight = window->GetHeight();
 	m_SceneScreenFBO.ResizeBuffer(width, height);
+	m_TopDownFBO.ResizeBuffer(width, height);
+	m_TestGBuffer.ResizeBuffer(width, height);
 }
 
 /// <summary>
@@ -996,15 +1079,15 @@ void ExperimentScene::MainUI()
 		ImGui::SliderFloat("Move Speed", m_Camera->Ptr_MoveSpeed(), 5.0f, 50.0f);
 		ImGui::SliderFloat("Rot Speed", m_Camera->Ptr_RotSpeed(), 0.0f, 2.0f);
 
-		float window_width = window->GetWidth();
-		float window_height = window->GetHeight();
+		float window_width = (float)window->GetWidth();
+		float window_height = (float)window->GetHeight();
 		static glm::mat4 test_proj;
 
 		bool update_camera_proj = false;
 
 		update_camera_proj = ImGui::SliderFloat("FOV", m_Camera->Ptr_FOV(), 0.0f, 179.0f, "%.1f");
-		update_camera_proj += ImGui::DragFloat("Near", m_Camera->Ptr_Near(), 0.1f, 0.1f, 50.0f, "%.1f");
-		update_camera_proj += ImGui::DragFloat("Far", m_Camera->Ptr_Far(), 0.1f, 0.0f, 500.0f, "%.1f");
+		update_camera_proj |= ImGui::DragFloat("Near", m_Camera->Ptr_Near(), 0.1f, 0.1f, 50.0f, "%.1f");
+		update_camera_proj |= ImGui::DragFloat("Far", m_Camera->Ptr_Far(), 0.1f, 0.0f, 500.0f, "%.1f");
 
 		if (update_camera_proj)
 		{
@@ -1016,37 +1099,7 @@ void ExperimentScene::MainUI()
 		ImGui::TreePop();
 	}
 
-	ImGui::Spacing();
-	ImGui::SeparatorText("Test Properties");
-	glm::vec4 a = nearPlane.GetNormalAndConstant(), b = rightPlane.GetNormalAndConstant(), c = topPlane.GetNormalAndConstant(),
-			 d = leftPlane.GetNormalAndConstant(), e = bottomPlane.GetNormalAndConstant();
-	if (ImGui::DragFloat4("Near Plane", &a[0], 0.1))
-	{
-		//testPlane1 = Plane(a, glm::length(a));
-		nearPlane = Plane(a);
-	}
-	if (ImGui::DragFloat4("Right Plane", &b[0], 0.1))
-	{
-		//testPlane2 = Plane(b, glm::length(b));
-		rightPlane = Plane(b);
-	}
-	if (ImGui::DragFloat4("Top plane", &c[0], 0.1))
-	{
-		//testPlane3 = Plane(c, glm::length(c));
-		topPlane = Plane(c);
-	}
-	if (ImGui::DragFloat4("Left plane", &d[0], 0.1))
-	{
-		//testPlane3 = Plane(c, glm::length(c));
-		leftPlane = Plane(d);
-	}
-	if (ImGui::DragFloat4("Bottom plane", &e[0], 0.1))
-	{
-		//testPlane3 = Plane(c, glm::length(c));
-		bottomPlane = Plane(e);
-	}
-;
-	ImGui::DragFloat2("Test Plane Size", &testPlaneSize[0], 0.1);
+
 
 	ImGui::Spacing();
 	ImGui::SeparatorText("Scene Properties");
@@ -1212,10 +1265,8 @@ void ExperimentScene::EntityModelMaterial(const Entity& entity)
 		ImGui::PopID();
 	}
 
-	for (int i = 0; i < entity.GetChildren().size(); i++)
-	{
+	for (size_t i = 0; i < entity.GetChildren().size(); i++)
 		EntityModelMaterial(*entity.GetChildren()[i]);
-	}
 }
 
 void ExperimentScene::MaterialsUI()
@@ -1293,12 +1344,32 @@ void ExperimentScene::EditTopViewUI()
 
 
 	ImGui::SeparatorText("Frame Buffers");
-	static int scale = 3;
+	static int scale = 1;
 	ImGui::SliderInt("Scale", &scale, 1, 5);
 	ImVec2 img_size(500.0f * scale, 500.0f * scale);
 	img_size.y *= (m_TopDownFBO.GetSize().y / m_TopDownFBO.GetSize().x); //invert
 	ImGui::Image((ImTextureID)(intptr_t)m_TopDownFBO.GetColourAttachment(), img_size, ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f));
 
+
+	ImGui::End();
+}
+
+void ExperimentScene::TestMRT_GBufferUI()
+{
+	ImGui::Begin("Experimenting GBuffer");
+	static int scale = 1;
+	ImGui::SliderInt("image scale", &scale, 1, 5);
+	ImVec2 img_size(500.0f * scale, 500.0f * scale);
+	img_size.y *= (m_TestGBuffer.GetSize().y / m_TestGBuffer.GetSize().x); //invert
+	ImGui::Text("Colour Attachment Count: %d", m_TestGBuffer.GetColourAttachmentCount());
+	//render image base on how many avaliable render tragets
+	for (unsigned int i = 0; i < m_TestGBuffer.GetColourAttachmentCount(); i++)
+	{
+		ImGui::PushID(&i);//use this id 
+		ImGui::Separator();
+		ImGui::Image((ImTextureID)(intptr_t)m_TestGBuffer.GetColourAttachment(i), img_size, ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f));
+		ImGui::PopID();
+	}
 
 	ImGui::End();
 }

@@ -39,7 +39,8 @@ private:
 	float outlineThickness = 1.1f;
 	float brightness = 1.0f;
 
-	class SquareMesh* grassMesh = nullptr;
+	class std::shared_ptr<Mesh> grassMesh = nullptr;
+	//class Mesh* grassMesh = nullptr;
 	Texture* grassTexture;
 	Shader grassShader;
 	glm::vec3 grassPos = glm::vec3(0.0f);

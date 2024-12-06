@@ -2,7 +2,7 @@
 #include <glm/glm.hpp>
 
 
-enum LightType
+enum class LightType
 {
 	lightType_NONE,
 	lightType_DIRECTIONAL,
@@ -33,12 +33,12 @@ struct Light
 	bool enable = false;
 	bool castShadow = false;
 
-	LightType type = lightType_NONE;
+	LightType type = LightType::lightType_NONE;
 
 	const char* LightTypeToString();
 
 	Light(const glm::vec3& colour = glm::vec3(1.0f), float amb_inten = 0.5f, float diff_inten = 0.6f);
-	virtual void UpdateUniformBufferData(class UniformBuffer& ubo, long long int& offset_pointer) {};
+	virtual void UpdateUniformBufferData(class UniformBuffer& ubo, unsigned int& offset_pointer) {};
 	virtual ~Light() = default;
 };
 
@@ -66,7 +66,7 @@ struct DirectionalLight : public Light
 				sizeof(glm::vec2));
 	}
 
-	virtual void UpdateUniformBufferData(class UniformBuffer& ubo, long long int& offset_pointer) override;
+	virtual void UpdateUniformBufferData(class UniformBuffer& ubo, unsigned int& offset_pointer) override;
 };
 
 
@@ -90,7 +90,7 @@ struct PointLight : public Light
 	//linear
 	//quardratic
 	float attenuation[3];
-	float shadow_far;
+	float shadow_far = 150.0f;
 	PointLight(const glm::vec3& pos = glm::vec3(0.0f), const glm::vec3& col = glm::vec3(1.0f), float amb_inten = 0.5f, float diff_inten = 0.6f);
 
 	static long long int GetGPUSize()
@@ -101,7 +101,7 @@ struct PointLight : public Light
 				sizeof(glm::vec2));
 	}
 
-	virtual void UpdateUniformBufferData(class UniformBuffer& ubo, long long int& offset_pointer) override;
+	virtual void UpdateUniformBufferData(class UniformBuffer& ubo, unsigned int& offset_pointer) override;
 };
 
 //--------------------------------------SPOT LIGHT----------------------------------------------/
