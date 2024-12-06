@@ -72,7 +72,6 @@ void main()
 	vec3 normal = texture(u_GNormal, vs_TexCoords).rgb;
 	vec3 frag_pos = texture(u_GPosition, vs_TexCoords).rgb;
 	float mat_shinness = texture(u_GDepth_MatShinness, vs_TexCoords).a;
-	//mat_shinness = 0.0f;
 	
 	vec3 commulated_light = vec3(0.0f);
 	vec3 view_dir = normalize(u_ViewPos - frag_pos);

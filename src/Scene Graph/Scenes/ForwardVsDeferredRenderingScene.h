@@ -79,7 +79,13 @@ private:
 
 
 	//Shading
+	enum RenderingPath
+	{
+		Forward,
+		Deferred
+	}m_RenderingPath = Forward;
 	void ForwardShading();
+	void DeferredShading();
 
 	//Begin Scene Render
 	void BeginRenderScene();

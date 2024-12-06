@@ -116,13 +116,17 @@ void ForwardVsDeferredRenderingScene::OnRender()
 			BuildRenderableMeshes(e);
 	}
 
-	ForwardShading();
 
+	switch (m_RenderingPath)
+	{
+	case Forward:
+		ForwardShading();
+		break;
+	case Deferred:
+		DeferredShading();
+		break;
+	}
 
-
-	//Using (Base Colour, Normal, Position, Depth)
-	//Write into the Gbuffer
-	GBufferPass();
 
 	frames_count++;
 
@@ -136,7 +140,7 @@ void ForwardVsDeferredRenderingScene::OnRenderUI()
 	EnititiesUI();
 	MaterialsUI();
 	GBufferDisplayUI();
-	ScreenFBODisplayUI();
+	//ScreenFBODisplayUI();
 }
 
 void ForwardVsDeferredRenderingScene::OnDestroy()
@@ -184,13 +188,14 @@ void ForwardVsDeferredRenderingScene::InitRenderer()
 	///////////////////////////////////////
 	// GBUFFER
 	///////////////////////////////////////
-	std::vector<FBO_ImageConfig> fbo_img_config =
+	std::vector<FBO_TextureImageConfig> fbo_img_config =
 	{
-		{FBO_Format::RGB16F, GL_FLOAT},	//Base colour buffer vec3
-		{FBO_Format::RGB16F, GL_FLOAT},	//Normal buffer
-		{FBO_Format::RGB16F, GL_FLOAT},	//Position buffer 
-		{FBO_Format::RGBA, GL_UNSIGNED_BYTE},	//Depth buffer with alpha as model mat shinness
-		//{FBO_Format::RGBA16F, GL_FLOAT},	//Depth buffer with alpha as model mat shinness
+		{FBO_Format::RGB16F, GL_FLOAT, FBO_Format::RGB},	//Base colour buffer vec3
+		{FBO_Format::RGB16F, GL_FLOAT, FBO_Format::RGB},	//Normal buffer
+		{FBO_Format::RGB16F, GL_FLOAT, FBO_Format::RGB},	//Position buffer 
+		//{FBO_Format::RGBA, GL_UNSIGNED_INT},	//Depth buffer with alpha as model mat shinness
+		//use float for now and fix later
+		{FBO_Format::RGBA32F, GL_FLOAT},	//Depth buffer with alpha as model mat shinness
 	};
 	m_GBuffer.Generate(window->GetWidth(), window->GetHeight(), fbo_img_config);
 
@@ -464,13 +469,21 @@ void ForwardVsDeferredRenderingScene::SerialiseScene()
 				(m_ForwardShader.GetShaderFilePath(GL_FRAGMENT_SHADER)),
 				(m_ForwardShader.GetShaderFilePath(GL_GEOMETRY_SHADER)),
 			},
-			//Deferred Rendering
+			//Deferred Rendering: GBuffer Shader
 			{
 				m_GBufferShader.GetName(),
 				//REALLY BAD,
 				(m_GBufferShader.GetShaderFilePath(GL_VERTEX_SHADER)),
 				(m_GBufferShader.GetShaderFilePath(GL_FRAGMENT_SHADER)),
 				(m_GBufferShader.GetShaderFilePath(GL_GEOMETRY_SHADER)),
+			},
+			//Deferred Rendering: Deferred Shader
+			{
+				m_DeferredShader.GetName(),
+				//REALLY BAD,
+				(m_DeferredShader.GetShaderFilePath(GL_VERTEX_SHADER)),
+				(m_DeferredShader.GetShaderFilePath(GL_FRAGMENT_SHADER)),
+				(m_DeferredShader.GetShaderFilePath(GL_GEOMETRY_SHADER)),
 			},
 		},
 		//environment data
@@ -544,6 +557,80 @@ void ForwardVsDeferredRenderingScene::ForwardShading()
 		m_Skybox.Draw(m_SkyboxShader, m_SceneRenderer);
 	//Render Opaques entities
 	OpaquePass(m_ForwardShader, m_RenderableEntities);
+}
+
+void ForwardVsDeferredRenderingScene::DeferredShading()
+{
+	//Later remove forward shader from the PostUpdate buffer function 
+	//PostUpdateGPUUniformBuffers();
+	unsigned int offset_pointer = 0;
+	offset_pointer = 0;
+	dirLightObject.dirlight.UpdateUniformBufferData(m_LightDataUBO, offset_pointer);
+	//for (int i = 0; i < MAX_POINT_LIGHT; i++)
+		//ptLight[i].UpdateUniformBufferData(m_LightDataUBO, offset_pointer);
+
+	//direction needs to be updated before point light 
+	//has point light is dynamic, but the max light data are updated every frame
+	//if only one light is available, we only update the available light 
+	//and perform directional light before keeps the Light uniform buffer integrity 
+	for (int i = 0; i < m_PtLightCount; i++)
+		if (i < MAX_POINT_LIGHT)
+			m_PtLights[i].UpdateUniformBufferData(m_LightDataUBO, offset_pointer);
+
+
+
+	//Using (Base Colour, Normal, Position, Depth)
+	//Write into the Gbuffer
+	GBufferPass();
+
+
+	//Draw output to Screen buffer
+	//what is required 
+	//uniform sampler2D u_GBaseColour;
+	//uniform sampler2D u_GNormal;
+	//uniform sampler2D u_GPosition;
+	//uniform sampler2D u_GDepth_MatShinness;
+
+
+	//const int MAX_POINT_LIGHTS = 1000;
+	//const int MAX_POINT_LIGHT_SHADOW = 10;
+	////--------------uniform--------------/
+	//uniform vec3 u_ViewPos;
+	//uniform int u_PtLightCount = 0;
+
+	////Light specify
+	//layout(std140) uniform u_LightBuffer
+	//{
+	//	DirectionalLight dirLight;                  //aligned
+	//	PointLight pointLights[MAX_POINT_LIGHTS];   //aligned
+	//};
+
+	bool render_2_Screen_fbo = false;
+	if (render_2_Screen_fbo)
+	{
+		m_ScreenFBO.Bind();
+		RenderCommand::Clear();
+	}
+
+	m_DeferredShader.Bind();
+	m_DeferredShader.SetUniform1i("u_GBaseColour", 0);
+	m_GBuffer.BindTextureIdx(0, 0);
+	m_DeferredShader.SetUniform1i("u_GNormal", 1);
+	m_GBuffer.BindTextureIdx(1, 1);
+	m_DeferredShader.SetUniform1i("u_GPosition", 2);
+	m_GBuffer.BindTextureIdx(2, 2);
+	m_DeferredShader.SetUniform1i("u_GDepth_MatShinness", 3);
+	m_GBuffer.BindTextureIdx(3, 3);
+
+	m_DeferredShader.SetUniformVec3("u_ViewPos", m_Camera->GetPosition());
+	m_DeferredShader.SetUniform1i("u_PtLightCount", m_PtLightCount);
+
+	///m_Scre
+	m_SceneRenderer.DrawMesh(m_QuadMesh);
+
+	m_DeferredShader.UnBind();
+	
+	//m_ScreenFBO.UnBind();
 }
 
 void ForwardVsDeferredRenderingScene::BeginRenderScene()
@@ -744,48 +831,6 @@ void ForwardVsDeferredRenderingScene::GBufferPass()
 	m_GBuffer.UnBind();
 
 
-
-	//Draw output to Screen buffer
-	//what is required 
-	//uniform sampler2D u_GBaseColour;
-	//uniform sampler2D u_GNormal;
-	//uniform sampler2D u_GPosition;
-	//uniform sampler2D u_GDepth_MatShinness;
-
-
-	//const int MAX_POINT_LIGHTS = 1000;
-	//const int MAX_POINT_LIGHT_SHADOW = 10;
-	////--------------uniform--------------/
-	//uniform vec3 u_ViewPos;
-	//uniform int u_PtLightCount = 0;
-
-	////Light specify
-	//layout(std140) uniform u_LightBuffer
-	//{
-	//	DirectionalLight dirLight;                  //aligned
-	//	PointLight pointLights[MAX_POINT_LIGHTS];   //aligned
-	//};
-
-	m_ScreenFBO.Bind();
-	RenderCommand::Clear();
-	m_DeferredShader.Bind();
-	m_DeferredShader.SetUniform1i("u_GBaseColour", 0);
-	m_GBuffer.BindTextureIdx(0, 0);
-	m_DeferredShader.SetUniform1i("u_GNormal", 1);
-	m_GBuffer.BindTextureIdx(1, 1);
-	m_DeferredShader.SetUniform1i("u_GPosition", 2);
-	m_GBuffer.BindTextureIdx(2, 2);
-	m_DeferredShader.SetUniform1i("u_GDepth_MatShinness", 3);
-	m_GBuffer.BindTextureIdx(3, 3);
-
-	m_DeferredShader.SetUniformVec3("u_ViewPos", m_Camera->GetPosition());
-	m_DeferredShader.SetUniform1i("u_PtLightCount", m_PtLightCount);
-
-	///m_Scre
-	m_SceneRenderer.DrawMesh(m_QuadMesh);
-
-	m_DeferredShader.UnBind();
-	m_ScreenFBO.UnBind();
 }
 
 void ForwardVsDeferredRenderingScene::SceneDebugger()
@@ -848,8 +893,6 @@ void ForwardVsDeferredRenderingScene::ResetSceneFrame()
 
 void ForwardVsDeferredRenderingScene::ResizeBuffers(unsigned int width, unsigned int height)
 {
-	return;
-
 	m_PrevViewWidth = width;
 	m_PrevViewHeight = height;
 	m_GBuffer.ResizeBuffer(width, height);
@@ -962,6 +1005,11 @@ void ForwardVsDeferredRenderingScene::MainUI()
 	ImGui::Spacing();
 	ImGui::SeparatorText("Scene Properties");
 	ImGui::ColorEdit3("clear Screen Colour", &m_ClearScreenColour[0]);
+	static int curr_value = 0;
+	const char* render_paths[] = { "Forward", "Deferred" };
+	if (ImGui::Combo("Rendering Path", &curr_value, render_paths, 2))
+		m_RenderingPath = (RenderingPath)curr_value;
+
 	ImGui::Spacing();
 	ExternalMainUI_LightTreeNode();
 
@@ -1100,9 +1148,11 @@ void ForwardVsDeferredRenderingScene::EnititiesUI()
 {
 	if (m_SceneEntities.size() > 0)
 	{
-		ImGui::Begin("Entities Debug UI");
-		for (auto& e : m_SceneEntities)
-			EntityDebugUI(*e);
+		if (ImGui::Begin("Entities Debug UI"))
+		{
+			for (auto& e : m_SceneEntities)
+				EntityDebugUI(*e);
+		}
 		ImGui::End();
 	}
 }
@@ -1201,24 +1251,33 @@ void ForwardVsDeferredRenderingScene::EntityModelMaterial(const Entity& entity)
 
 void ForwardVsDeferredRenderingScene::GBufferDisplayUI()
 {
-	ImGui::Begin("Scene GBuffer");
-	static int scale = 1;
-	ImGui::SliderInt("image scale", &scale, 1, 5);
-	ImVec2 img_size(500.0f * scale, 500.0f * scale);
-	img_size.y *= (m_GBuffer.GetSize().y / m_GBuffer.GetSize().x); //invert
-	ImGui::Text("Colour Attachment Count: %d", m_GBuffer.GetColourAttachmentCount());
-	//render image base on how many avaliable render tragets
-	for (unsigned int i = 0; i < m_GBuffer.GetColourAttachmentCount(); i++)
+	if (ImGui::Begin("Scene GBuffer"))
 	{
-		ImGui::PushID(&i);//use this id 
-		ImGui::Separator();
-		ImGui::Image((ImTextureID)(intptr_t)m_GBuffer.GetColourAttachment(i), img_size, ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f));
-		ImGui::PopID();
-	}
+		printf("Debugging Scene GBuffer\n");
+		static int scale = 1;
+		ImGui::SliderInt("image scale", &scale, 1, 5);
+		ImVec2 img_size(500.0f * scale, 500.0f * scale);
+		img_size.y *= (m_GBuffer.GetSize().y / m_GBuffer.GetSize().x); //invert
+		ImGui::Text("Colour Attachment Count: %d", m_GBuffer.GetColourAttachmentCount());
+		//render image base on how many avaliable render tragets
+		for (unsigned int i = 0; i < m_GBuffer.GetColourAttachmentCount(); i++)
+		{
+			ImGui::PushID(&i);//use this id 
+			ImGui::Separator();
+			ImGui::Image((ImTextureID)(intptr_t)m_GBuffer.GetColourAttachment(i), img_size, ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f));
+			ImGui::PopID();
+		}
 
+	}
 	ImGui::End();
 }
 
+
+
+
+/// <summary>
+/// Just for debugging Screen frame buffer output
+/// </summary>
 void ForwardVsDeferredRenderingScene::ScreenFBODisplayUI()
 {
 	ImGui::Begin("Screen FBO");

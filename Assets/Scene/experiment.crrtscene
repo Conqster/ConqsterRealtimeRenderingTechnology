@@ -3,9 +3,9 @@ m_HasLights: true
 m_HasShadow: false
 m_HasEnvironmentMap: true
 Main Camera:
-  m_Position: [-0.92081684, 7.6924696, 5.9263716]
-  m_Yaw: 96.535095
-  m_Pitch: -34.395344
+  m_Position: [8.316236, 33.06971, -39.60523]
+  m_Yaw: 104.35141
+  m_Pitch: -8.545117
   m_Fov: 62.4
   m_Near: 0.1
   m_Far: 1500
@@ -24,9 +24,9 @@ Rendering Config:
       fragment: Assets/Shaders/GBufferFrag.glsl
       geometry: ""
     m_DeferredShader:
-      name: default/not_set
-      vertex: ""
-      fragment: ""
+      name: deferred_shading
+      vertex: Assets/Shaders/Experimental/DeferredShading.vert
+      fragment: Assets/Shaders/Experimental/DeferredShading.frag
       geometry: ""
 m_Environment Setting:
   m_EnableSkybox: false
@@ -69,9 +69,9 @@ Dir light:
   m_DiffuseIntensity: 0.513
   m_SpecularIntensity: 0.582
 Point Lights:
-  m_Counts: 27
+  m_Counts: 250
   0:
-    m_Position: [16.030487, 15.7, 12.001232]
+    m_Position: [13.584409, 15.7, 14.725753]
     m_Colour: [0.9362745, 0.33503944, 0.33503944]
     m_Attenuation: [0.032, 0.051, 0.024]
     m_CastShadow: false
@@ -80,7 +80,7 @@ Point Lights:
     m_DiffuseIntensity: 0.566
     m_SpecularIntensity: 0.595
   1:
-    m_Position: [7.496317, 5.6, -18.569096]
+    m_Position: [10.756165, 5.6, -16.902336]
     m_Colour: [1, 1, 1]
     m_Attenuation: [1, 0.2, 0.03]
     m_CastShadow: false
@@ -89,7 +89,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   2:
-    m_Position: [-15.82318, 6.7, 12.273264]
+    m_Position: [-17.80129, 6.7, 9.192284]
     m_Colour: [0.90686274, 0, 0.88019025]
     m_Attenuation: [0.961, 0.139, 0.018]
     m_CastShadow: false
@@ -98,7 +98,7 @@ Point Lights:
     m_DiffuseIntensity: 1
     m_SpecularIntensity: 1
   3:
-    m_Position: [18.186062, 9.8, 8.382912]
+    m_Position: [16.364025, 9.8, 11.558663]
     m_Colour: [0.17647028, 0, 1]
     m_Attenuation: [1, 0.2, 0.03]
     m_CastShadow: false
@@ -107,7 +107,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   4:
-    m_Position: [-7.496317, 0, 18.569096]
+    m_Position: [-10.756165, 0, 16.902336]
     m_Colour: [1, 1, 1]
     m_Attenuation: [1, 0.2, 0.03]
     m_CastShadow: false
@@ -116,7 +116,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   5:
-    m_Position: [9.307226, 0, 17.73081]
+    m_Position: [5.927012, 0, 19.137777]
     m_Colour: [1, 1, 1]
     m_Attenuation: [1, 0.2, 0.03]
     m_CastShadow: false
@@ -125,7 +125,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   6:
-    m_Position: [-18.569096, 9, -7.496317]
+    m_Position: [-16.902336, 9, -10.756165]
     m_Colour: [1, 1, 1]
     m_Attenuation: [1, 0.2, 0.03]
     m_CastShadow: false
@@ -134,7 +134,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   7:
-    m_Position: [-18.569096, 9, -7.496317]
+    m_Position: [-16.902336, 9, -10.756165]
     m_Colour: [1, 1, 1]
     m_Attenuation: [1, 0.2, 0.03]
     m_CastShadow: false
@@ -143,7 +143,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   8:
-    m_Position: [-8.819014, 53.181004, -17.978628]
+    m_Position: [-5.4017386, 53.181004, -19.29262]
     m_Colour: [0.35029146, 0.8959624, 0.82284003]
     m_Attenuation: [0.017, 0.022, 0.04]
     m_CastShadow: false
@@ -152,7 +152,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   9:
-    m_Position: [-19.334024, 45.461773, -5.215513]
+    m_Position: [-18.070204, 45.461773, -8.651695]
     m_Colour: [0.014984588, 0.09140293, 0.36445203]
     m_Attenuation: [0.017, 0.022, 0.04]
     m_CastShadow: false
@@ -161,7 +161,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   10:
-    m_Position: [-16.815891, 54.99051, 10.873448]
+    m_Position: [-18.522974, 54.99051, 7.6343617]
     m_Colour: [0.16623431, 0.6630451, 0.45078892]
     m_Attenuation: [0.017, 0.022, 0.04]
     m_CastShadow: false
@@ -170,7 +170,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   11:
-    m_Position: [5.0335984, 53.181004, 19.382181]
+    m_Position: [1.4222664, 53.181004, 19.984022]
     m_Colour: [0.35029146, 0.8959624, 0.82284003]
     m_Attenuation: [0.017, 0.022, 0.04]
     m_CastShadow: false
@@ -179,7 +179,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   12:
-    m_Position: [10.752579, 45.461773, -16.893433]
+    m_Position: [13.654454, 45.461773, -14.660829]
     m_Colour: [0.014984588, 0.09140293, 0.36445203]
     m_Attenuation: [0.017, 0.022, 0.04]
     m_CastShadow: false
@@ -188,7 +188,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   13:
-    m_Position: [16.481178, 54.99051, 11.37439]
+    m_Position: [14.142151, 54.99051, 14.1909685]
     m_Colour: [0.16623431, 0.6630451, 0.45078892]
     m_Attenuation: [0.017, 0.022, 0.04]
     m_CastShadow: false
@@ -197,7 +197,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   14:
-    m_Position: [12.507707, -3.839779, 15.638521]
+    m_Position: [9.456915, -3.839779, 17.66213]
     m_Colour: [0.7833186, 0.8026063, 0.5198828]
     m_Attenuation: [0.017, 0.022, 0.04]
     m_CastShadow: false
@@ -206,7 +206,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   15:
-    m_Position: [19.869673, 84.60506, 2.4904184]
+    m_Position: [19.093382, 84.60506, 6.0685015]
     m_Colour: [0.9559007, 0.92571795, 0.5393536]
     m_Attenuation: [0.017, 0.022, 0.04]
     m_CastShadow: false
@@ -215,7 +215,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   16:
-    m_Position: [7.1519957, 39.90472, 18.70441]
+    m_Position: [3.6294866, 39.90472, 19.703068]
     m_Colour: [0.8622394, 0.20960112, 0.77965635]
     m_Attenuation: [0.017, 0.022, 0.04]
     m_CastShadow: false
@@ -224,7 +224,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   17:
-    m_Position: [-11.381713, 32.38325, 16.476124]
+    m_Position: [-14.197278, 32.38325, 14.135817]
     m_Colour: [0.2972808, 0.84014404, 0.0237434]
     m_Attenuation: [0.017, 0.022, 0.04]
     m_CastShadow: false
@@ -233,7 +233,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   18:
-    m_Position: [7.0769997, 0.0033569336, -18.732914]
+    m_Position: [10.373735, 0.0033569336, -17.13971]
     m_Colour: [0.056215096, 0.008789331, 0.9187902]
     m_Attenuation: [0.017, 0.022, 0.04]
     m_CastShadow: false
@@ -242,7 +242,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   19:
-    m_Position: [10.25449, 19.472822, -17.200335]
+    m_Position: [13.220233, 19.472822, -15.053554]
     m_Colour: [0.6911832, 0.837611, 0.7264931]
     m_Attenuation: [0.017, 0.022, 0.04]
     m_CastShadow: false
@@ -251,7 +251,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   20:
-    m_Position: [-18.229593, 12.178776, -8.287819]
+    m_Position: [-16.424116, 12.178776, -11.473118]
     m_Colour: [0.46845913, 0.45796075, 0.94915617]
     m_Attenuation: [0.017, 0.022, 0.04]
     m_CastShadow: false
@@ -260,7 +260,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   21:
-    m_Position: [6.703184, 1.6942062, 18.869907]
+    m_Position: [3.157893, 1.6942062, 19.78413]
     m_Colour: [0.38523513, 0.73500776, 0.60896635]
     m_Attenuation: [0.017, 0.022, 0.04]
     m_CastShadow: false
@@ -269,7 +269,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   22:
-    m_Position: [9.68815, 29.024628, -17.525576]
+    m_Position: [12.722453, 29.024628, -15.476537]
     m_Colour: [0.22510453, 0.42515334, 0.80288094]
     m_Attenuation: [0.017, 0.022, 0.04]
     m_CastShadow: false
@@ -278,7 +278,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   23:
-    m_Position: [-12.398507, 8.249947, 15.725237]
+    m_Position: [-15.060857, 8.249947, 13.21191]
     m_Colour: [0.49189734, 0.063539535, 0.6997589]
     m_Attenuation: [0.017, 0.022, 0.04]
     m_CastShadow: false
@@ -287,7 +287,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   24:
-    m_Position: [-17.710396, 36.068176, -9.346011]
+    m_Position: [-15.720823, 36.068176, -12.41933]
     m_Colour: [0.96661276, 0.68318737, 0.15323344]
     m_Attenuation: [0.017, 0.022, 0.04]
     m_CastShadow: false
@@ -296,7 +296,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   25:
-    m_Position: [18.684816, 6.7997055, 7.2030354]
+    m_Position: [17.069632, 6.7997055, 10.488649]
     m_Colour: [0.732017, 0.40559098, 0.27958006]
     m_Attenuation: [0.017, 0.022, 0.04]
     m_CastShadow: false
@@ -305,8 +305,2015 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   26:
-    m_Position: [-10.239184, 63.682053, -17.209452]
+    m_Position: [-6.9387546, 63.682053, -18.794619]
     m_Colour: [0.72191536, 0.47529528, 0.12302011]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  27:
+    m_Position: [-19.137142, 53.181004, -5.929066]
+    m_Colour: [0.35029146, 0.8959624, 0.82284003]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  28:
+    m_Position: [-15.782611, 45.461773, 12.340713]
+    m_Colour: [0.014984588, 0.09140293, 0.36445203]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  29:
+    m_Position: [-18.552984, 54.99051, 7.5611362]
+    m_Colour: [0.16623431, 0.6630451, 0.45078892]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  30:
+    m_Position: [11.515422, -3.839779, -16.394482]
+    m_Colour: [0.7833186, 0.8026063, 0.5198828]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  31:
+    m_Position: [3.6756182, 84.60506, -19.694515]
+    m_Colour: [0.9559007, 0.92571795, 0.5393536]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  32:
+    m_Position: [20.005367, 39.90472, -1.0813508]
+    m_Colour: [0.8622394, 0.20960112, 0.77965635]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  33:
+    m_Position: [8.305401, 32.38325, 18.23196]
+    m_Colour: [0.2972808, 0.84014404, 0.0237434]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  34:
+    m_Position: [-8.289193, 0.0033569336, -18.239334]
+    m_Colour: [0.056215096, 0.008789331, 0.9187902]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  35:
+    m_Position: [-0.09588599, 19.472822, -20.03434]
+    m_Colour: [0.6911832, 0.837611, 0.7264931]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  36:
+    m_Position: [-19.381487, 12.178776, -5.07365]
+    m_Colour: [0.46845913, 0.45796075, 0.94915617]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  37:
+    m_Position: [-7.641488, 1.6942062, 18.520035]
+    m_Colour: [0.38523513, 0.73500776, 0.60896635]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  38:
+    m_Position: [20.030233, 29.024628, 0.4168309]
+    m_Colour: [0.22510453, 0.42515334, 0.80288094]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  39:
+    m_Position: [-18.264336, 8.249947, -8.233953]
+    m_Colour: [0.49189734, 0.063539535, 0.6997589]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  40:
+    m_Position: [11.812527, 36.068176, -16.181725]
+    m_Colour: [0.96661276, 0.68318737, 0.15323344]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  41:
+    m_Position: [4.6663756, 6.7997055, -19.483557]
+    m_Colour: [0.732017, 0.40559098, 0.27958006]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  42:
+    m_Position: [-8.533033, 63.682053, 18.12654]
+    m_Colour: [0.72191536, 0.47529528, 0.12302011]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  43:
+    m_Position: [-7.162185, 61.60228, -18.710615]
+    m_Colour: [0.10467849, 0.9493393, 0.92138433]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  44:
+    m_Position: [10.237588, 27.366737, -17.221375]
+    m_Colour: [0.37498093, 0.8469802, 0.31687367]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  45:
+    m_Position: [-19.800097, 69.83239, 3.0561752]
+    m_Colour: [0.19598986, 0.76131475, 0.83944213]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  46:
+    m_Position: [-5.502143, 44.09723, 19.264225]
+    m_Colour: [0.027466659, 0.9946287, 0.57258826]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  47:
+    m_Position: [19.267641, 57.689926, 5.490178]
+    m_Colour: [0.1978515, 0.84215826, 0.123325296]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  48:
+    m_Position: [-19.884373, 70.257576, -2.448624]
+    m_Colour: [0.94106877, 0.2860805, 0.33631396]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  49:
+    m_Position: [18.62562, 54.825706, 7.380398]
+    m_Colour: [0.25272378, 0.14447463, 0.001617481]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  50:
+    m_Position: [-13.312308, 2.4852448, 14.972191]
+    m_Colour: [0.014252144, 0.113773, 0.45451215]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  51:
+    m_Position: [15.551469, 64.10394, -12.630748]
+    m_Colour: [0.073885314, 0.43671986, 0.20194098]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  52:
+    m_Position: [4.133357, 21.358133, -19.603554]
+    m_Colour: [0.23242897, 0.577868, 0.5325785]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  53:
+    m_Position: [-19.344624, 7.3006973, -5.212446]
+    m_Colour: [0.9630421, 0.69576097, 0.92480236]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  54:
+    m_Position: [-16.339476, 26.282356, 11.593342]
+    m_Colour: [0.9951781, 0.45744193, 0.9980163]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  55:
+    m_Position: [-15.260114, 34.35755, -12.981256]
+    m_Colour: [0.62807095, 0.6041444, 0.4516129]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  56:
+    m_Position: [-20.031637, 54.565323, -0.342969]
+    m_Colour: [0.85479295, 0.82879114, 0.62477493]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  57:
+    m_Position: [-15.376308, 51.101227, -12.84341]
+    m_Colour: [0.18427075, 0.73790705, 0.5551317]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  58:
+    m_Position: [-12.679777, 65.43882, 15.511521]
+    m_Colour: [0.35129857, 0.49446088, 0.08038575]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  59:
+    m_Position: [-5.1584373, 56.101257, -19.359097]
+    m_Colour: [0.6911222, 0.80452895, 0.14911343]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  60:
+    m_Position: [-15.51668, 23.029205, 12.673463]
+    m_Colour: [0.10855434, 0.8690451, 0.8512223]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  61:
+    m_Position: [-19.925695, 6.7271957, 2.085827]
+    m_Colour: [0.079348125, 0.07660146, 0.64098024]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  62:
+    m_Position: [-19.61386, 48.869835, -4.0841837]
+    m_Colour: [0.40897855, 0.2987457, 0.46555987]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  63:
+    m_Position: [19.854984, 6.4865875, 2.6764936]
+    m_Colour: [0.7379986, 0.31388286, 0.82668537]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  64:
+    m_Position: [11.424196, 60.616776, 16.458181]
+    m_Colour: [0.10480056, 0.50505084, 0.22708823]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  65:
+    m_Position: [-10.692871, 89.35789, -16.942448]
+    m_Colour: [0.66280097, 0.114535965, 0.4925382]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  66:
+    m_Position: [-19.845177, 43.655567, 2.7482584]
+    m_Colour: [0.5092624, 0.38236642, 0.68816185]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  67:
+    m_Position: [2.13034, 55.47831, 19.920986]
+    m_Colour: [0.0058900723, 0.7078768, 0.100619525]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  68:
+    m_Position: [19.72439, 83.23062, -3.5117571]
+    m_Colour: [0.7473373, 0.49690238, 0.38010803]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  69:
+    m_Position: [19.937458, 49.703724, 1.9702142]
+    m_Colour: [0.9557176, 0.6308481, 0.1765801]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  70:
+    m_Position: [-15.250811, 4.215645, 12.992183]
+    m_Colour: [0.9517197, 0.61198765, 0.02783288]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  71:
+    m_Position: [-17.828295, -3.961731, 9.139798]
+    m_Colour: [0.13162634, 0.84707177, 0.86431473]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  72:
+    m_Position: [4.194313, 67.93719, 19.590603]
+    m_Colour: [0.014679403, 0.1264687, 0.7079073]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  73:
+    m_Position: [-18.911612, 57.403175, -6.6132407]
+    m_Colour: [0.31940672, 0.36756492, 0.6610004]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  74:
+    m_Position: [19.65666, 77.142914, -3.8729436]
+    m_Colour: [0.61110264, 0.7981811, 0.9006012]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  75:
+    m_Position: [-19.647293, 58.059082, 3.9201884]
+    m_Colour: [0.25370038, 0.13653982, 0.8551897]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  76:
+    m_Position: [-14.457845, 36.203312, 13.869202]
+    m_Colour: [0.30228585, 0.5480514, 0.2255623]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  77:
+    m_Position: [17.825611, 29.001556, 9.145032]
+    m_Colour: [0.22849208, 0.86358225, 0.22943816]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  78:
+    m_Position: [-18.967844, 0.22418976, -6.450189]
+    m_Colour: [0.8915372, 0.23276468, 0.14654988]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  79:
+    m_Position: [5.497938, 33.04904, -19.265427]
+    m_Colour: [0.9461653, 0.8371838, 0.53422654]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  80:
+    m_Position: [-0.8189626, 64.90157, -20.017824]
+    m_Colour: [0.25916317, 0.0043336283, 0.52558976]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  81:
+    m_Position: [18.688276, 17.55455, -7.220272]
+    m_Colour: [0.9452803, 0.43549913, 0.89022493]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  82:
+    m_Position: [-18.46085, 52.281193, -7.7833815]
+    m_Colour: [0.22232734, 0.3830073, 0.0042725913]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  83:
+    m_Position: [19.982426, -1.1172829, 1.4445474]
+    m_Colour: [0.8550981, 0.064851835, 0.8110599]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  84:
+    m_Position: [7.815254, 64.68074, -18.44738]
+    m_Colour: [0.530137, 0.68562883, 0.14276558]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  85:
+    m_Position: [1.3732148, 68.61287, -19.987453]
+    m_Colour: [0.031067843, 0.86867887, 0.6445204]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  86:
+    m_Position: [-15.94185, -0.7712021, -12.13431]
+    m_Colour: [0.9479049, 0.05877865, 0.27497178]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  87:
+    m_Position: [16.403584, 89.62816, 11.502455]
+    m_Colour: [0.69454026, 0.2186346, 0.15591906]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  88:
+    m_Position: [-13.940219, 46.315437, -14.389381]
+    m_Colour: [0.10641804, 0.90264595, 0.4417249]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  89:
+    m_Position: [13.88666, 2.3171463, 14.441076]
+    m_Colour: [0.31113622, 0.9926145, 0.038575396]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  90:
+    m_Position: [-1.8423003, 10.441788, -19.949686]
+    m_Colour: [0.1535081, 0.62031925, 0.88537246]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  91:
+    m_Position: [4.506581, 60.929893, 19.521137]
+    m_Colour: [0.45545822, 0.9212928, 0.6641743]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  92:
+    m_Position: [-16.250393, 58.72487, 11.717881]
+    m_Colour: [0.42204046, 0.94302195, 0.5405744]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  93:
+    m_Position: [-11.528823, 47.93707, -16.385061]
+    m_Colour: [0.39695424, 0.35026094, 0.03662221]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  94:
+    m_Position: [-19.958029, 53.80065, -1.74961]
+    m_Colour: [0.19766839, 0.15588854, 0.6443373]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  95:
+    m_Position: [19.186964, 55.264076, 5.7657976]
+    m_Colour: [0.44129765, 0.6844691, 0.396527]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  96:
+    m_Position: [-17.926119, 53.95886, -8.946409]
+    m_Colour: [0.94946134, 0.8760033, 0.39170507]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  97:
+    m_Position: [16.911428, 37.742542, 10.741862]
+    m_Colour: [0.70851773, 0.0496231, 0.28556168]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  98:
+    m_Position: [12.982966, 34.02466, -15.258656]
+    m_Colour: [0.71019626, 0.7284463, 0.89605397]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  99:
+    m_Position: [-2.0470243, 32.920498, -19.929718]
+    m_Colour: [0.30860317, 0.38810387, 0.57057405]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  100:
+    m_Position: [-4.471657, 69.239105, 19.529167]
+    m_Colour: [0.7363811, 0.739433, 0.13931699]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  101:
+    m_Position: [-9.879685, 19.439861, 17.429165]
+    m_Colour: [0.9111301, 0.3678396, 0.51765496]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  102:
+    m_Position: [2.377402, 60.722244, -19.893011]
+    m_Colour: [0.68764305, 0.09042634, 0.079561755]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  103:
+    m_Position: [-19.617664, 65.306984, -4.065873]
+    m_Colour: [0.39484847, 0.06784265, 0.67574084]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  104:
+    m_Position: [18.838526, 11.460251, -6.818646]
+    m_Colour: [0.6157109, 0.6548967, 0.54399246]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  105:
+    m_Position: [17.022274, 47.34379, -10.5653305]
+    m_Colour: [0.6928007, 0.37211218, 0.3886227]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  106:
+    m_Position: [-4.3254976, 24.766197, 19.562057]
+    m_Colour: [0.009155553, 0.43986326, 0.5078585]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  107:
+    m_Position: [13.577105, 71.92205, -14.73249]
+    m_Colour: [0.34980315, 0.84264654, 0.94232]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  108:
+    m_Position: [20.0298, 83.26358, -0.43717122]
+    m_Colour: [0.30640584, 0.28421888, 0.026703697]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  109:
+    m_Position: [16.433678, 77.30442, -11.45942]
+    m_Colour: [0.5825983, 0.5950194, 0.079012424]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  110:
+    m_Position: [-3.3062243, 39.917904, -19.75988]
+    m_Colour: [0.5894345, 0.5692007, 0.81606495]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  111:
+    m_Position: [-4.1832037, 26.88882, 19.59298]
+    m_Colour: [0.77101964, 0.37174597, 0.86986905]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  112:
+    m_Position: [18.476002, 68.36237, 7.7473516]
+    m_Colour: [0.8939482, 0.1830195, 0.5355693]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  113:
+    m_Position: [-3.344194, 10.029785, -19.75349]
+    m_Colour: [0.2649922, 0.25064853, 0.7322001]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  114:
+    m_Position: [-10.797639, 8.460892, -16.87587]
+    m_Colour: [0.48094118, 0.08148442, 0.8065432]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  115:
+    m_Position: [-1.8328483, 41.08139, -19.950554]
+    m_Colour: [0.19186987, 0.7277749, 0.99502546]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  116:
+    m_Position: [-18.916126, 80.603714, -6.600318]
+    m_Colour: [0.37122715, 0.77950376, 0.23252052]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  117:
+    m_Position: [-5.1881304, 15.019928, 19.351158]
+    m_Colour: [0.9710379, 0.2817469, 0.022888882]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  118:
+    m_Position: [19.667208, 34.77285, 3.8190298]
+    m_Colour: [0.09067049, 0.54518265, 0.6992706]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  119:
+    m_Position: [-2.4820476, 61.0123, -19.880226]
+    m_Colour: [0.53547776, 0.5700247, 0.053987242]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  120:
+    m_Position: [-19.488426, 18.078615, -4.6459994]
+    m_Colour: [0.8633381, 0.4865871, 0.08743553]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  121:
+    m_Position: [-17.855501, 66.61549, -9.086533]
+    m_Colour: [0.8642231, 0.85055083, 0.2930082]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  122:
+    m_Position: [-17.936758, 59.651047, 8.925059]
+    m_Colour: [0.82863855, 0.76561785, 0.8719138]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  123:
+    m_Position: [17.832901, 1.6249886, 9.130812]
+    m_Colour: [0.82305366, 0.4277169, 0.16983551]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  124:
+    m_Position: [17.396856, 77.222015, 9.936472]
+    m_Colour: [0.14285715, 0.048463393, 0.34614092]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  125:
+    m_Position: [-19.549646, 60.633255, -4.3812475]
+    m_Colour: [0.022827845, 0.8260445, 0.13843197]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  126:
+    m_Position: [17.518719, 13.197241, -9.720007]
+    m_Colour: [0.78215885, 0.34253976, 0.48060548]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  127:
+    m_Position: [13.1968975, 6.295418, 15.074014]
+    m_Colour: [0.7116306, 0.9987487, 0.77550584]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  128:
+    m_Position: [-8.687662, 57.090057, 18.052937]
+    m_Colour: [0.68816185, 0.28980377, 0.56715596]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  129:
+    m_Position: [-19.203428, 49.209324, 5.710724]
+    m_Colour: [0.24643697, 0.54667807, 0.49262977]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  130:
+    m_Position: [2.424766, 38.14136, 19.887297]
+    m_Colour: [0.7455367, 0.98892176, 0.2046266]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  131:
+    m_Position: [6.67219, 88.260315, 18.890894]
+    m_Colour: [0.9183935, 0.5055391, 0.4893948]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  132:
+    m_Position: [-8.750356, 48.803917, 18.022633]
+    m_Colour: [0.061372723, 0.9960326, 0.12775049]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  133:
+    m_Position: [-2.081905, 25.903316, -19.926104]
+    m_Colour: [0.6535844, 0.41053498, 0.4275033]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  134:
+    m_Position: [-17.471228, 63.279945, 9.805113]
+    m_Colour: [0.49754325, 0.5076449, 0.80272835]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  135:
+    m_Position: [7.721215, 86.243164, -18.486937]
+    m_Colour: [0.6505936, 0.514481, 0.73397017]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  136:
+    m_Position: [19.998571, 2.7818832, -1.200474]
+    m_Colour: [0.5800958, 0.69029814, 0.7315592]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  137:
+    m_Position: [-18.766, 62.330696, -7.015785]
+    m_Colour: [0.80886257, 0.37818536, 0.9974975]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  138:
+    m_Position: [-1.1813995, 9.57164, 19.999708]
+    m_Colour: [0.19562365, 0.96014285, 0.1902524]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  139:
+    m_Position: [3.7029042, 22.831444, 19.6894]
+    m_Colour: [0.19815668, 0.046235543, 0.7711722]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  140:
+    m_Position: [-3.338345, 36.0484, -19.75448]
+    m_Colour: [0.4613483, 0.49485764, 0.749382]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  141:
+    m_Position: [19.920353, 50.41566, 2.1362572]
+    m_Colour: [0.9220252, 0.8938261, 0.8570208]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  142:
+    m_Position: [3.4162135, 43.01614, -19.741163]
+    m_Colour: [0.7472152, 0.75606555, 0.2557451]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  143:
+    m_Position: [-16.783556, -4.4660187, 10.940578]
+    m_Colour: [0.7903684, 0.7041536, 0.024048585]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  144:
+    m_Position: [-17.149593, 49.76305, 10.357384]
+    m_Colour: [0.8755455, 0.79692984, 0.30542925]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  145:
+    m_Position: [15.364574, 42.043823, -12.857444]
+    m_Colour: [0.6519669, 0.00085451826, 0.7685782]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  146:
+    m_Position: [-16.47231, 65.369606, 11.403819]
+    m_Colour: [0.4362621, 0.98171943, 0.63554794]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  147:
+    m_Position: [-6.639941, 41.513165, 18.902254]
+    m_Colour: [0.07928709, 0.10098575, 0.14322336]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  148:
+    m_Position: [-20.00351, 19.090487, -1.115182]
+    m_Colour: [0.22937712, 0.8461562, 0.8748436]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  149:
+    m_Position: [-19.123951, 38.5204, 5.9714775]
+    m_Colour: [0.894467, 0.6230354, 0.5463424]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  150:
+    m_Position: [1.1500624, 46.440685, 20.001534]
+    m_Colour: [0.9993286, 0.9693289, 0.8674276]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  151:
+    m_Position: [-4.3948793, 77.77245, 19.546587]
+    m_Colour: [0.8181707, 0.1246376, 0.718894]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  152:
+    m_Position: [-14.841037, 60.1817, 13.458367]
+    m_Colour: [0.8896756, 0.03216651, 0.7734916]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  153:
+    m_Position: [-7.0612674, 16.229559, 18.748936]
+    m_Colour: [0.9065218, 0.21347697, 0.032105472]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  154:
+    m_Position: [18.68021, 14.650776, 7.241119]
+    m_Colour: [0.8063906, 0.85201573, 0.33161414]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  155:
+    m_Position: [9.226588, 14.594744, 17.783533]
+    m_Colour: [0.37104404, 0.36689353, 0.034974214]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  156:
+    m_Position: [-1.1997974, 32.969936, -19.998611]
+    m_Colour: [0.32493058, 0.89901423, 0.2014832]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  157:
+    m_Position: [10.949553, 38.121582, -16.777702]
+    m_Colour: [0.6347545, 0.5600757, 0.6240425]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  158:
+    m_Position: [-20.003086, 18.879541, 1.122734]
+    m_Colour: [0.6816614, 0.561449, 0.95883054]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  159:
+    m_Position: [1.4170773, 75.12906, 19.98439]
+    m_Colour: [0.81838435, 0.7394635, 0.13577685]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  160:
+    m_Position: [-0.669576, 78.81399, 20.023378]
+    m_Colour: [0.5972167, 0.2636189, 0.8442335]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  161:
+    m_Position: [-7.591793, 70.801414, -18.540462]
+    m_Colour: [0.014496292, 0.47654653, 0.626484]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  162:
+    m_Position: [-20.031572, 31.430706, -0.3465494]
+    m_Colour: [0.28882718, 0.5968505, 0.8838771]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  163:
+    m_Position: [9.2685375, 90.60707, -17.761705]
+    m_Colour: [0.53312784, 0.010071108, 0.9742424]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  164:
+    m_Position: [6.3394613, 37.24155, -19.005136]
+    m_Colour: [0.33295694, 0.6023438, 0.4985504]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  165:
+    m_Position: [17.61038, -5.787712, -9.552933]
+    m_Colour: [0.23303933, 0.9373455, 0.8595233]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  166:
+    m_Position: [-7.2594438, 55.751884, -18.673098]
+    m_Colour: [0.076448865, 0.40702537, 0.30530718]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  167:
+    m_Position: [-18.595951, 13.352152, 7.4548388]
+    m_Colour: [0.56071657, 0.87441635, 0.25006866]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  168:
+    m_Position: [17.777967, 68.53047, -9.237314]
+    m_Colour: [0.23108615, 0.19071017, 0.446791]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  169:
+    m_Position: [18.047031, 45.67931, 8.6999235]
+    m_Colour: [0.41227454, 0.9247108, 0.60106206]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  170:
+    m_Position: [15.827893, 41.381325, 12.282583]
+    m_Colour: [0.951323, 0.5483566, 0.83492535]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  171:
+    m_Position: [-18.926687, 76.5793, -6.569973]
+    m_Colour: [0.8700827, 0.3180639, 0.9391766]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  172:
+    m_Position: [19.953106, 73.688705, -1.8048912]
+    m_Colour: [0.17590868, 0.026673177, 0.041627247]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  173:
+    m_Position: [-19.845455, 74.20288, -2.746267]
+    m_Colour: [0.2987457, 0.7814264, 0.9215064]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  174:
+    m_Position: [-17.377499, 16.203192, 9.9702835]
+    m_Colour: [0.023010956, 0.07571642, 0.030884732]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  175:
+    m_Position: [19.935535, 67.25492, 1.9895723]
+    m_Colour: [0.18042544, 0.2979217, 0.18210395]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  176:
+    m_Position: [-16.746058, 28.757652, -10.997888]
+    m_Colour: [0.15881832, 0.8998688, 0.13180944]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  177:
+    m_Position: [17.058828, 51.635178, -10.5062065]
+    m_Colour: [0.53993344, 0.66490674, 0.8707541]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  178:
+    m_Position: [-8.4485655, 50.260746, -18.16606]
+    m_Colour: [0.8951384, 0.07251198, 0.8723106]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  179:
+    m_Position: [-3.0368273, 31.934994, 19.803072]
+    m_Colour: [0.67195654, 0.4509415, 0.28138065]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  180:
+    m_Position: [20.034454, 19.41679, 0.06788468]
+    m_Colour: [0.19794305, 0.6005127, 0.48735008]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  181:
+    m_Position: [18.99555, 14.832056, -6.3681326]
+    m_Colour: [0.69179356, 0.948149, 0.67113256]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  182:
+    m_Position: [-14.508315, 86.98806, -13.816398]
+    m_Colour: [0.3264565, 0.537492, 0.57078767]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  183:
+    m_Position: [0.91034615, 27.600754, -20.013878]
+    m_Colour: [0.29016998, 0.21927549, 0.92281866]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  184:
+    m_Position: [13.520311, 77.1561, 14.784626]
+    m_Colour: [0.686697, 0.27008882, 0.7668691]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  185:
+    m_Position: [-14.492162, -5.2076187, -13.833339]
+    m_Colour: [0.020783106, 0.83819085, 0.61851865]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  186:
+    m_Position: [14.119743, 55.23771, -14.2132635]
+    m_Colour: [0.7773675, 0.6400342, 0.6967376]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  187:
+    m_Position: [5.725832, -5.448227, -19.19893]
+    m_Colour: [0.26926482, 0.06826991, 0.24485]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  188:
+    m_Position: [17.38287, 44.6971, -9.960915]
+    m_Colour: [0.07101657, 0.36750388, 0.9555345]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  189:
+    m_Position: [-0.14552271, 26.447155, -20.034042]
+    m_Colour: [0.2895291, 0.050965913, 0.99270606]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  190:
+    m_Position: [6.789692, 74.980736, 18.848982]
+    m_Colour: [0.083681755, 0.26276436, 0.13647878]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  191:
+    m_Position: [-15.193904, 50.758442, 13.058686]
+    m_Colour: [0.6322825, 0.10690634, 0.4537187]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  192:
+    m_Position: [19.555704, 64.98397, 4.354135]
+    m_Colour: [0.56758326, 0.86849576, 0.08120976]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  193:
+    m_Position: [18.999693, 54.235725, -6.3557587]
+    m_Colour: [0.19425032, 0.9788812, 0.23151341]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  194:
+    m_Position: [-5.199503, 75.85418, 19.348104]
+    m_Colour: [0.9000519, 0.37943664, 0.7275613]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  195:
+    m_Position: [14.518076, 29.01474, -13.806138]
+    m_Colour: [0.976043, 0.22363964, 0.8957793]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  196:
+    m_Position: [20.0103, 20.494581, 0.98585147]
+    m_Colour: [0.53199863, 0.290994, 0.21997742]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  197:
+    m_Position: [-19.437943, 62.561417, 4.8528714]
+    m_Colour: [0.0057679983, 0.491348, 0.60463274]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  198:
+    m_Position: [-5.0836115, 21.387796, 19.37888]
+    m_Colour: [0.74691, 0.87383646, 0.91222876]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  199:
+    m_Position: [18.219864, 55.43876, 8.331901]
+    m_Colour: [0.78423417, 0.15012054, 0.5426191]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  200:
+    m_Position: [11.360666, 17.959959, -16.5021]
+    m_Colour: [0.22864467, 0.18900113, 0.8622089]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  201:
+    m_Position: [2.6301947, 93.9558, -19.861172]
+    m_Colour: [0.8786584, 0.4087039, 0.40314952]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  202:
+    m_Position: [0.9412186, 61.121063, 20.01245]
+    m_Colour: [0.94518876, 0.28312021, 0.0022278512]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  203:
+    m_Position: [18.245298, -4.6604805, 8.276054]
+    m_Colour: [0.4219489, 0.9544969, 0.6039613]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  204:
+    m_Position: [-19.77392, 34.75307, 3.2211838]
+    m_Colour: [0.6231269, 0.8084048, 0.004852443]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  205:
+    m_Position: [-18.92219, 32.59749, 6.5829163]
+    m_Colour: [0.31678212, 0.8242439, 0.85351115]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  206:
+    m_Position: [-3.8290365, 11.348183, 19.665262]
+    m_Colour: [0.46906948, 0.995117, 0.43324077]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  207:
+    m_Position: [-18.31073, 35.227695, 8.130264]
+    m_Colour: [0.5804315, 0.8777428, 0.33741266]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  208:
+    m_Position: [4.6263876, 92.71321, -19.493092]
+    m_Colour: [0.4185919, 0.6082949, 0.7767571]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  209:
+    m_Position: [-0.5315206, 24.265205, 20.027517]
+    m_Colour: [0.62913907, 0.33277383, 0.07931761]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  210:
+    m_Position: [-19.213034, 5.425274, -5.678321]
+    m_Colour: [0.8249763, 0.4390698, 0.9944151]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  211:
+    m_Position: [9.07419, 1.5920258, 17.861778]
+    m_Colour: [0.26459548, 0.007354961, 0.5762505]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  212:
+    m_Position: [-13.405342, 87.63078, 14.88895]
+    m_Colour: [0.22266304, 0.30262154, 0.4784692]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  213:
+    m_Position: [19.675129, 34.756367, -3.7780101]
+    m_Colour: [0.84160894, 0.38911098, 0.42747277]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  214:
+    m_Position: [-1.9970186, 28.84005, -19.934792]
+    m_Colour: [0.09439375, 0.41529587, 0.18836024]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  215:
+    m_Position: [9.157206, 6.661274, 17.81936]
+    m_Colour: [0.18228705, 0.27228615, 0.2059389]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  216:
+    m_Position: [5.599194, 40.985806, -19.236242]
+    m_Colour: [0.24860378, 0.93670464, 0.27744377]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  217:
+    m_Position: [10.348179, 78.823875, -17.155151]
+    m_Colour: [0.62990206, 0.7950682, 0.007202368]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  218:
+    m_Position: [-19.168459, 45.88366, -5.8270245]
+    m_Colour: [0.25617236, 0.92104864, 0.49125645]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  219:
+    m_Position: [10.445158, 31.457073, -17.096277]
+    m_Colour: [0.5150914, 0.43153173, 0.14072084]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  220:
+    m_Position: [-20.012133, 34.45973, 0.9479495]
+    m_Colour: [0.18765831, 0.101718195, 0.42313913]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  221:
+    m_Position: [-19.380077, 46.961452, -5.079034]
+    m_Colour: [0.8371838, 0.27149266, 0.49949643]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  222:
+    m_Position: [-19.291283, 21.793205, 5.406518]
+    m_Colour: [0.78612626, 0.9213233, 0.9284341]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  223:
+    m_Position: [-11.585948, 25.797844, -16.344717]
+    m_Colour: [0.88753927, 0.38010803, 0.4332713]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  224:
+    m_Position: [-2.4563904, 18.846582, 19.883413]
+    m_Colour: [0.5278481, 0.80205697, 0.79412216]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  225:
+    m_Position: [-16.10877, 42.561295, 11.911822]
+    m_Colour: [0.55903804, 0.27878657, 0.34717858]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  226:
+    m_Position: [16.741909, 20.497877, -11.004207]
+    m_Colour: [0.32456434, 0.050141912, 0.8816187]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  227:
+    m_Position: [10.969215, 33.612656, -16.764854]
+    m_Colour: [0.87527084, 0.6081118, 0.7836543]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  228:
+    m_Position: [-19.021034, 38.78408, -6.291599]
+    m_Colour: [0.43333232, 0.6364635, 0.80455947]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  229:
+    m_Position: [17.41062, 47.56462, -9.912332]
+    m_Colour: [0.07718131, 0.30460525, 0.06445509]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  230:
+    m_Position: [4.898874, 4.4397697, -19.426401]
+    m_Colour: [0.8206427, 0.50877404, 0.26871547]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  231:
+    m_Position: [-17.028511, 66.351814, -10.555278]
+    m_Colour: [0.29474777, 0.34464553, 0.5251015]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  232:
+    m_Position: [-3.1129303, 92.24188, 19.791254]
+    m_Colour: [0.47392192, 0.4513077, 0.9188818]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  233:
+    m_Position: [1.8573129, 29.44981, 19.948294]
+    m_Colour: [0.65971863, 0.12253182, 0.50740075]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  234:
+    m_Position: [-19.085297, 20.217718, 6.093888]
+    m_Colour: [0.7912839, 0.3691824, 0.8581194]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  235:
+    m_Position: [11.907038, 40.095886, -16.112307]
+    m_Colour: [0.44209114, 0.58592486, 0.37903988]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  236:
+    m_Position: [15.876282, 50.221195, 12.219972]
+    m_Colour: [0.8366649, 0.18570513, 0.009704886]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  237:
+    m_Position: [-0.039909363, 34.31141, 20.03453]
+    m_Colour: [0.442732, 0.13306071, 0.5440535]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  238:
+    m_Position: [7.277846, 85.65648, 18.665932]
+    m_Colour: [0.15259255, 0.016541032, 0.5352031]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  239:
+    m_Position: [-14.62681, 44.660847, 13.690891]
+    m_Colour: [0.32840967, 0.6254158, 0.2507706]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  240:
+    m_Position: [20.031792, 47.62065, -0.33366382]
+    m_Colour: [0.47807246, 0.32816553, 0.6745811]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  241:
+    m_Position: [12.432745, 52.9371, -15.710216]
+    m_Colour: [0.92229986, 0.120975375, 0.66472363]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  242:
+    m_Position: [1.4420754, 39.00491, -19.982605]
+    m_Colour: [0.41850033, 0.6399121, 0.09921567]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  243:
+    m_Position: [-18.540106, 93.92614, -7.5926647]
+    m_Colour: [0.72569966, 0.63060397, 0.3741264]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  244:
+    m_Position: [19.369558, 29.136692, 5.119001]
+    m_Colour: [0.8189642, 0.7837153, 0.27393416]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  245:
+    m_Position: [18.141748, 34.69045, -8.500646]
+    m_Colour: [0.17096469, 0.5442061, 0.24124882]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  246:
+    m_Position: [-4.8998885, 14.307991, 19.426144]
+    m_Colour: [0.6984161, 0.6702475, 0.64333016]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  247:
+    m_Position: [-16.701157, 23.223667, 11.065958]
+    m_Colour: [0.3685415, 0.27643666, 0.9611194]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  248:
+    m_Position: [19.630177, 18.167606, 4.005024]
+    m_Colour: [0.75603503, 0.58281195, 0.27100438]
+    m_Attenuation: [0.017, 0.022, 0.04]
+    m_CastShadow: false
+    m_Enable: true
+    m_AmbinentIntensity: 0.5
+    m_DiffuseIntensity: 0.6
+    m_SpecularIntensity: 0.5
+  249:
+    m_Position: [-18.306446, 26.493298, -8.139909]
+    m_Colour: [0.021576587, 0.7005524, 0.6306955]
     m_Attenuation: [0.017, 0.022, 0.04]
     m_CastShadow: false
     m_Enable: true

@@ -9,8 +9,13 @@ static GLint OpenGLFormat(FBO_Format format)
 	{
 		case FBO_Format::RGB: return GL_RGB;
 		case FBO_Format::RGBA: return GL_RGBA;
+
 		case FBO_Format::RGB16F: return GL_RGB16F;
 		case FBO_Format::RGBA16F: return GL_RGBA16F;
+
+		case FBO_Format::RGBA32F: return GL_RGBA32F;
+
+		case FBO_Format::RGBA16: return GL_RGBA16;
 	}
 
 	std::cout << "[TEXTURE]: Format not supported yet !!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
@@ -212,7 +217,7 @@ bool MRTFramebuffer::Generate(unsigned int count, FBO_Format i_format)
 	return true;
 }
 
-bool MRTFramebuffer::Generate(unsigned int width, unsigned int height, std::vector<FBO_ImageConfig> img_config)
+bool MRTFramebuffer::Generate(unsigned int width, unsigned int height, std::vector<FBO_TextureImageConfig> img_config)
 {
 	//for now 
 	if (img_config.size() <= 0)
@@ -244,9 +249,8 @@ bool MRTFramebuffer::Generate(unsigned int width, unsigned int height, std::vect
 
 		glBindTexture(GL_TEXTURE_2D, colourAttachments[i]);
 		glTexImage2D(GL_TEXTURE_2D, 0, OpenGLFormat(img_config[i].internalFormat), m_Width, m_Height, 0, OpenGLFormat(img_config[i].format), img_config[i].imgDataType, NULL);
-		//glTexImage2D(GL_TEXTURE_2D, 0, OpenGLFormat(img_config[i].format), m_Width, m_Height, 0, GL_RGB, img_config[i].imgDataType, NULL);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, /*GL_LINEAR*/GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, /*GL_LINEAR*/GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, colourAttachments[i], 0);
 	}
@@ -265,10 +269,8 @@ bool MRTFramebuffer::Generate(unsigned int width, unsigned int height, std::vect
 	///////////////////////////////////////////////////////////////////////
 	glGenRenderbuffers(1, &m_RenderbufferID);
 	glBindRenderbuffer(GL_RENDERBUFFER, m_RenderbufferID);
-	//glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, m_Width, m_Height);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, m_Width, m_Height);
 
-	//glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_RenderbufferID);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_RenderbufferID);
 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
@@ -299,17 +301,14 @@ bool MRTFramebuffer::ResizeBuffer(unsigned int width, unsigned int height)
 	{
 		glBindTexture(GL_TEXTURE_2D, colourAttachments[i]);
 		if(i < imgFormatConfig.size())
-			glTexImage2D(GL_TEXTURE_2D, 0, OpenGLFormat(imgFormatConfig[i].internalFormat), m_Width, m_Height, 0, GL_RGBA, imgFormatConfig[i].imgDataType, NULL);
-			//glTexImage2D(GL_TEXTURE_2D, 0, OpenGLFormat(imgFormatConfig[i].format), m_Width, m_Height, 0, GL_RGBA, imgFormatConfig[i].imgDataType, NULL);
+			glTexImage2D(GL_TEXTURE_2D, 0, OpenGLFormat(imgFormatConfig[i].internalFormat), m_Width, m_Height, 0, OpenGLFormat(imgFormatConfig[i].format), imgFormatConfig[i].imgDataType, NULL);
 		else
 			glTexImage2D(GL_TEXTURE_2D, 0, OpenGLFormat(imgFormatConfig[0].internalFormat), m_Width, m_Height, 0, GL_RGBA, imgFormatConfig[0].imgDataType, NULL);
-		//glTexImage2D(GL_TEXTURE_2D, 0, OpenGLFormat(m_InternalFormat), m_Width, m_Height, 0, GL_RGBA, GL_FLOAT, NULL);
 	}
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	//resize render buffer
 	glBindRenderbuffer(GL_RENDERBUFFER, m_RenderbufferID);
-	//glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, m_Width, m_Height);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, m_Width, m_Height);
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 	{

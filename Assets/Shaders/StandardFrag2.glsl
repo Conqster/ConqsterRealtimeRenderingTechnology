@@ -178,6 +178,12 @@ vec3 CalculateDirectionalLight(DirectionalLight light, vec3 base_colour, vec3 N,
 	float spec_factor = pow(max(dot(N, H), 0.0f), u_Material.shinness);
 	//have a specular map later
 	vec3 specular = light.specular * light.colour * spec_factor;
+	//specular map contribution
+	if(u_Material.hasSpecularMap)
+	{
+		vec3 spec_map_value = texture(u_Material.specularMap, fs_in.UVs).rgb;
+		specular += spec_map_value;
+	}
 	
 	vec3 lighting = (ambinent + (1.0f - shadow) * (diffuse + specular));// * base_colour;
 	return lighting;
@@ -211,6 +217,13 @@ vec3 CalculatePointLights(vec3 base_colour, vec3 N, vec3 V)
 		float spec_factor = pow(max(dot(N, H), 0.0f), u_Material.shinness);
 		//have a specular map later
 		vec3 specular = pointLights[i].specular * pointLights[i].colour * spec_factor;
+		
+		//specular map contribution
+		if(u_Material.hasSpecularMap)
+		{
+			vec3 spec_map_value = texture(u_Material.specularMap, fs_in.UVs).rgb;
+			specular += spec_map_value;
+		}
 		
 		//Shadow calculation 
 		float shadow = 0.0f;

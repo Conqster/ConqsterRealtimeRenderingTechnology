@@ -4,7 +4,7 @@
 layout(location = 0) out vec3 o_BaseColourBuffer;  
 layout(location = 1) out vec3 o_NormalBuffer;
 layout(location = 2) out vec3 o_PositionBuffer;
-layout(location = 3) out ivec4 o_Depth_MatShinnessBuffer;
+layout(location = 3) out vec4 o_Specular_MatShinnessBuffer;
 
 
 //--------------IN--------------/
@@ -75,9 +75,11 @@ void main()
 	
 	
 	////////////
-	//Depth Buffer
+	//Specular & Specular power Buffer
 	////////////
-	float linear_depth = LinearizeDepth(gl_FragCoord.z) /far;
-	o_Depth_MatShinnessBuffer = ivec4(vec3(linear_depth), u_Material.shinness);
-	o_Depth_MatShinnessBuffer.a = u_Material.shinness;
+	vec3 specular = vec3(0.0f);
+	if(u_Material.hasSpecularMap)
+		specular = texture(u_Material.specularMap, fs_in.uv).rgb;
+		
+	o_Specular_MatShinnessBuffer = vec4(specular, u_Material.shinness);
 }

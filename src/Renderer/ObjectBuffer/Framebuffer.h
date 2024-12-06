@@ -6,8 +6,13 @@ enum class FBO_Format
 {
 	RGB,
 	RGBA,
+
 	RGB16F,
-	RGBA16F
+	RGBA16F,
+
+	RGBA32F,
+
+	RGBA16,
 };
 
 
@@ -50,7 +55,7 @@ private:
 
 //----------------------------------------------Multiple Render Targets MRT----------------------/
 
-struct FBO_ImageConfig
+struct FBO_TextureImageConfig
 {
 	FBO_Format internalFormat = FBO_Format::RGBA16F;
 	//change this later
@@ -66,7 +71,7 @@ public:
 	~MRTFramebuffer();
 
 	bool Generate(unsigned int count = 2, FBO_Format i_format = FBO_Format::RGB);
-	bool Generate(unsigned int width, unsigned int height, std::vector<FBO_ImageConfig> img_config);
+	bool Generate(unsigned int width, unsigned int height, std::vector<FBO_TextureImageConfig> img_config);
 	bool Generate(unsigned int width, unsigned int height, unsigned int count = 2, FBO_Format i_format = FBO_Format::RGB);
 
 	bool ResizeBuffer(unsigned int width, unsigned int height);
@@ -92,6 +97,6 @@ private:
 	unsigned int m_ColourAttachmentCount = 0;
 	
 	std::vector<unsigned int> colourAttachments;
-	std::vector<FBO_ImageConfig> imgFormatConfig;
+	std::vector<FBO_TextureImageConfig> imgFormatConfig;
 	//FBO_Format m_InternalFormat;
 };
