@@ -1,4 +1,5 @@
-#version 400
+//#version 400
+#version 430
 
 //--------------attributes--------------/
 out vec4 FragColour; 
@@ -80,8 +81,8 @@ layout (std140) uniform u_LightBuffer
     PointLight pointLights[MAX_POINT_LIGHTS];   //aligned
 };
 uniform bool u_EnableSceneShadow;
-uniform sampler2D u_DirShadowMap;
-uniform samplerCube u_PointShadowCube;
+layout (binding = 0) uniform sampler2D u_DirShadowMap;
+layout (binding = 1) uniform samplerCube u_PointShadowCube;
 
 //--------------------Environment-----------------------------------------
 //struct Environment only called once if changed
@@ -92,7 +93,7 @@ layout (std140) uniform u_EnvironmentBuffer
 	float objectReflectivity; 
 	vec2 alignmentPadding;
 };
-uniform samplerCube u_SkyboxMap;
+layout (binding = 2) uniform samplerCube u_SkyboxMap;
 
 
 ///////////////////////////////

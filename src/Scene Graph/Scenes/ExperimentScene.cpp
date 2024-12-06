@@ -743,7 +743,7 @@ void ExperimentScene::SceneDebugger()
 	Plane left_f = Plane::CreateFromPointAndNormal(m_Camera->GetPosition(), left_plane_nor);
 	Plane right_f = Plane::CreateFromPointAndNormal(m_Camera->GetPosition(), right_plane_nor);
 	//DebugGizmos::DrawPlane(left_f, testPlaneSize, glm::vec3(0.0f, 0.0f, 1.0f));
-	//DebugGizmos::DrawPlane(right_f, testPlaneSize, glm::vec3(1.0f, 0.0f, 0.0f));
+	DebugGizmos::DrawPlane(right_f, testPlaneSize, glm::vec3(1.0f, 0.0f, 0.0f));
 	//debug right plane normal
 	glm::vec3 N = right_f.GetNormal();
 	N = glm::normalize(N);
@@ -755,7 +755,37 @@ void ExperimentScene::SceneDebugger()
 		arbitrary_vec = glm::vec3(0.0f, -N.z, N.y);
 	glm::vec3 u = glm::cross(N, arbitrary_vec);
 	glm::vec3 v = glm::cross(N, u);
-	//DebugGizmos::DrawWireCone(pt + m_Camera->GetForward() * 15.0f, N, u, 1.0f, 2.0f, glm::vec3(0.0f, 0.0f, 1.0f));
+	DebugGizmos::DrawWireCone(pt + m_Camera->GetForward() * 15.0f, N, u, 1.0f, 2.0f, glm::vec3(0.0f, 0.0f, 1.0f));
+
+
+
+	///////////////////////////////////////////////
+	// EXPERIMENTING IN VIEW WITH AABB
+	///////////////////////////////////////////////
+	glm::vec3 col_blue = glm::vec3(0.0f, 0.0f, 1.0f);
+	glm::vec3 col_red = glm::vec3(1.0f, 0.0f, 0.0f);
+
+
+	//Draw a unit AABB at coord
+	glm::vec3 pos = glm::vec3(0.0f, 20.0f, 0.0f); //its start location 
+	AABB aabb = AABB(glm::vec3(pos));
+	aabb.Scale(glm::vec3(0.5f));
+	//DebugGizmos::DrawBox(aabb, col_blue);
+	//Debug its center 
+	//DebugGizmos::DrawSphere(pos, 0.2f, col_blue);
+
+	glm::vec3 aabb_dir = glm::normalize(pos);
+	glm::vec3 plane_nor = N;
+	float _dot = glm::dot(plane_nor, aabb_dir);
+	glm::vec3 use_col = (_dot < 1) ? col_blue : col_red;
+	DebugGizmos::DrawSphere(pos, 0.2f, use_col);
+	DebugGizmos::DrawBox(aabb, use_col);
+
+
+
+
+
+
 
 
 	//top and bottom
@@ -764,7 +794,7 @@ void ExperimentScene::SceneDebugger()
 	Plane top_f = Plane::CreateFromPointAndNormal(m_Camera->GetPosition(), top_plane_nor);
 	Plane bottom_f = Plane::CreateFromPointAndNormal(m_Camera->GetPosition(), bottom_plane_nor);
 	//DebugGizmos::DrawPlane(top_f, testPlaneSize, glm::vec3(0.0f, 1.0f, 0.0f));
-	DebugGizmos::DrawPlane(bottom_f, testPlaneSize, glm::vec3(1.0f, 1.0f, 0.0f));
+	//DebugGizmos::DrawPlane(bottom_f, testPlaneSize, glm::vec3(1.0f, 1.0f, 0.0f));
 	//debug top plane normal
 	N = bottom_f.GetNormal();
 	N = glm::normalize(N);
@@ -775,7 +805,7 @@ void ExperimentScene::SceneDebugger()
 	else
 		arbitrary_vec = glm::vec3(0.0f, -N.z, N.y);
 	u = glm::cross(N, arbitrary_vec);
-	DebugGizmos::DrawWireCone(pt + m_Camera->GetForward() * 15.0f, N, u, 1.0f, 2.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+	//DebugGizmos::DrawWireCone(pt + m_Camera->GetForward() * 15.0f, N, u, 1.0f, 2.0f, glm::vec3(0.0f, 1.0f, 0.0f));
 
 
 
