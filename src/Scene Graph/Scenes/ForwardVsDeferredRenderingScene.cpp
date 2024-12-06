@@ -136,12 +136,36 @@ void ForwardVsDeferredRenderingScene::OnRenderUI()
 	EnititiesUI();
 	MaterialsUI();
 	GBufferDisplayUI();
+	ScreenFBODisplayUI();
 }
 
 void ForwardVsDeferredRenderingScene::OnDestroy()
 {
 	if (m_PtLightCount > 0)
 		SerialiseScene();
+
+	m_ForwardShader.Clear();
+	m_SceneEntities.clear();
+	m_RenderableEntities.clear();
+	m_ShadowDepthShader.Clear();
+	m_Skybox.Destroy();
+	m_SkyboxShader.Clear();
+	//UniformBuffers
+	m_CamMatUBO.Delete();
+	m_LightDataUBO.Delete();
+	m_EnviUBO.Delete();
+
+	m_GBuffer.Delete();
+	m_GBufferShader.Clear();
+	m_DeferredShader.Clear();
+	
+	if (m_QuadMesh)
+	{
+		m_QuadMesh->Clear();
+		m_QuadMesh = nullptr;
+	}
+
+	m_ScreenFBO.Delete();
 }
 
 void ForwardVsDeferredRenderingScene::InitRenderer()
@@ -162,12 +186,29 @@ void ForwardVsDeferredRenderingScene::InitRenderer()
 	///////////////////////////////////////
 	std::vector<FBO_ImageConfig> fbo_img_config =
 	{
-		{FBO_Format::RGBA16F, GL_FLOAT},	//Base colour buffer vec3
-		{FBO_Format::RGBA16F, GL_FLOAT},	//Normal buffer
-		{FBO_Format::RGBA16F, GL_FLOAT},	//Position buffer 
-		{FBO_Format::RGBA16F, GL_FLOAT},	//Depth buffer //Specular
+		{FBO_Format::RGB16F, GL_FLOAT},	//Base colour buffer vec3
+		{FBO_Format::RGB16F, GL_FLOAT},	//Normal buffer
+		{FBO_Format::RGB16F, GL_FLOAT},	//Position buffer 
+		{FBO_Format::RGBA, GL_UNSIGNED_BYTE},	//Depth buffer with alpha as model mat shinness
+		//{FBO_Format::RGBA16F, GL_FLOAT},	//Depth buffer with alpha as model mat shinness
 	};
 	m_GBuffer.Generate(window->GetWidth(), window->GetHeight(), fbo_img_config);
+
+
+	///////////////////////////////////////
+	// Deferred Rendering Properties
+	///////////////////////////////////////
+	/*Shader m_DeferredShader;
+	std::shared_ptr<Mesh> m_QuadMesh;
+	Framebuffer m_ScreenFBO;*/
+	m_QuadMesh = CRRT::PrimitiveMeshFactory::Instance().CreateQuad();
+	m_ScreenFBO.Generate(window->GetWidth(), window->GetHeight(), FBO_Format::RGBA16F);
+	ShaderFilePath shader_file_path
+	{
+		"Assets/Shaders/Experimental/DeferredShading.vert",
+		"Assets/Shaders/Experimental/DeferredShading.frag"
+	};
+	m_DeferredShader.Create("deferred_shading", shader_file_path);
 }
 
 void ForwardVsDeferredRenderingScene::CreateEntities(const SceneData&  scene_data)
@@ -322,6 +363,9 @@ void ForwardVsDeferredRenderingScene::CreateGPUDatas()
 	//if Deferred Shadering / GBuffer
 	m_GBufferShader.Bind();
 	m_GBufferShader.SetUniformBlockIdx("u_CameraMat", 0);
+
+	m_DeferredShader.Bind();
+	m_DeferredShader.SetUniformBlockIdx("u_LightBuffer", 1);
 }
 
 SceneData ForwardVsDeferredRenderingScene::LoadSceneFromFile()
@@ -694,8 +738,54 @@ void ForwardVsDeferredRenderingScene::GBufferPass()
 	//Write into the Gbuffer
 	m_GBuffer.Bind();
 	RenderCommand::Clear();
+	RenderCommand::DisableBlend();
 	OpaquePass(m_GBufferShader, m_RenderableEntities);
+	RenderCommand::EnableBlend();
 	m_GBuffer.UnBind();
+
+
+
+	//Draw output to Screen buffer
+	//what is required 
+	//uniform sampler2D u_GBaseColour;
+	//uniform sampler2D u_GNormal;
+	//uniform sampler2D u_GPosition;
+	//uniform sampler2D u_GDepth_MatShinness;
+
+
+	//const int MAX_POINT_LIGHTS = 1000;
+	//const int MAX_POINT_LIGHT_SHADOW = 10;
+	////--------------uniform--------------/
+	//uniform vec3 u_ViewPos;
+	//uniform int u_PtLightCount = 0;
+
+	////Light specify
+	//layout(std140) uniform u_LightBuffer
+	//{
+	//	DirectionalLight dirLight;                  //aligned
+	//	PointLight pointLights[MAX_POINT_LIGHTS];   //aligned
+	//};
+
+	m_ScreenFBO.Bind();
+	RenderCommand::Clear();
+	m_DeferredShader.Bind();
+	m_DeferredShader.SetUniform1i("u_GBaseColour", 0);
+	m_GBuffer.BindTextureIdx(0, 0);
+	m_DeferredShader.SetUniform1i("u_GNormal", 1);
+	m_GBuffer.BindTextureIdx(1, 1);
+	m_DeferredShader.SetUniform1i("u_GPosition", 2);
+	m_GBuffer.BindTextureIdx(2, 2);
+	m_DeferredShader.SetUniform1i("u_GDepth_MatShinness", 3);
+	m_GBuffer.BindTextureIdx(3, 3);
+
+	m_DeferredShader.SetUniformVec3("u_ViewPos", m_Camera->GetPosition());
+	m_DeferredShader.SetUniform1i("u_PtLightCount", m_PtLightCount);
+
+	///m_Scre
+	m_SceneRenderer.DrawMesh(m_QuadMesh);
+
+	m_DeferredShader.UnBind();
+	m_ScreenFBO.UnBind();
 }
 
 void ForwardVsDeferredRenderingScene::SceneDebugger()
@@ -758,9 +848,12 @@ void ForwardVsDeferredRenderingScene::ResetSceneFrame()
 
 void ForwardVsDeferredRenderingScene::ResizeBuffers(unsigned int width, unsigned int height)
 {
+	return;
+
 	m_PrevViewWidth = width;
 	m_PrevViewHeight = height;
 	m_GBuffer.ResizeBuffer(width, height);
+	m_ScreenFBO.ResizeBuffer(width, height);
 }
 
 void ForwardVsDeferredRenderingScene::MaterialShaderBindHelper(Material& mat, Shader& shader)
@@ -866,6 +959,9 @@ void ForwardVsDeferredRenderingScene::MainUI()
 	///////////////////////////////////////////
 	// SCENE LIGHTS
 	///////////////////////////////////////////
+	ImGui::Spacing();
+	ImGui::SeparatorText("Scene Properties");
+	ImGui::ColorEdit3("clear Screen Colour", &m_ClearScreenColour[0]);
 	ImGui::Spacing();
 	ExternalMainUI_LightTreeNode();
 
@@ -1119,6 +1215,19 @@ void ForwardVsDeferredRenderingScene::GBufferDisplayUI()
 		ImGui::Image((ImTextureID)(intptr_t)m_GBuffer.GetColourAttachment(i), img_size, ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f));
 		ImGui::PopID();
 	}
+
+	ImGui::End();
+}
+
+void ForwardVsDeferredRenderingScene::ScreenFBODisplayUI()
+{
+	ImGui::Begin("Screen FBO");
+	static int scale = 1;
+	ImGui::SliderInt("image scale", &scale, 1, 5);
+	ImVec2 img_size(500.0f * scale, 500.0f * scale);
+	img_size.y *= (m_ScreenFBO.GetSize().y / m_ScreenFBO.GetSize().x); //invert
+	ImGui::Separator();
+	ImGui::Image((ImTextureID)(intptr_t)m_ScreenFBO.GetColourAttachment(), img_size, ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f));
 
 	ImGui::End();
 }

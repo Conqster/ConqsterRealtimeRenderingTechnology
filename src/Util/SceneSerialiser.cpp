@@ -291,6 +291,8 @@ void SceneSerialiser::SerialiseRenderingConfig(YAML::Emitter& out, SceneRenderin
 			out << YAML::BeginMap;
 			out << YAML::Key << "m_GBufferShader";
 				SerialiseShader(out, rendering_config.m_GBufferShader);
+			out << YAML::Key << "m_DeferredShader";
+				SerialiseShader(out, rendering_config.m_DeferredShader);
 			out << YAML::EndMap;
 	out << YAML::EndMap;
 }

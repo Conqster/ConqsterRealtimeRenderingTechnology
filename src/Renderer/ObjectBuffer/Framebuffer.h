@@ -6,6 +6,7 @@ enum class FBO_Format
 {
 	RGB,
 	RGBA,
+	RGB16F,
 	RGBA16F
 };
 
@@ -51,9 +52,10 @@ private:
 
 struct FBO_ImageConfig
 {
-	FBO_Format format = FBO_Format::RGBA16F;
+	FBO_Format internalFormat = FBO_Format::RGBA16F;
 	//change this later
 	unsigned int imgDataType = 0x1406; //GL_FLOAT
+	FBO_Format format = FBO_Format::RGBA;
 };
 
 class MRTFramebuffer
@@ -90,5 +92,6 @@ private:
 	unsigned int m_ColourAttachmentCount = 0;
 	
 	std::vector<unsigned int> colourAttachments;
-	FBO_Format m_InternalFormat;
+	std::vector<FBO_ImageConfig> imgFormatConfig;
+	//FBO_Format m_InternalFormat;
 };

@@ -66,6 +66,9 @@ private:
 	Shader m_GBufferShader;
 	int m_PrevViewWidth;
 	int m_PrevViewHeight;
+	Shader m_DeferredShader;
+	std::shared_ptr<Mesh> m_QuadMesh;
+	Framebuffer m_ScreenFBO;
 
 	//Utilities
 	CRRT::ModelLoader m_NewModelLoader;
@@ -139,4 +142,5 @@ private:
 	void EntityModelMaterial(const Entity& entity);
 
 	void GBufferDisplayUI();
+	void ScreenFBODisplayUI();
 };

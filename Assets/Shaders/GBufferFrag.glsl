@@ -4,8 +4,7 @@
 layout(location = 0) out vec3 o_BaseColourBuffer;  
 layout(location = 1) out vec3 o_NormalBuffer;
 layout(location = 2) out vec3 o_PositionBuffer;
-layout(location = 3) out vec3 o_DepthBuffer;
-//layout(location = 3) out vec4 o_Specular;
+layout(location = 3) out ivec4 o_Depth_MatShinnessBuffer;
 
 
 //--------------IN--------------/
@@ -53,7 +52,6 @@ void main()
 	//////////
 	vec3 base_colour = u_Material.baseColour.rgb;
 	base_colour *= texture(u_Material.baseMap, fs_in.uv).rgb;
-	//o_BaseColourBuffer = vec4(base_colour, 1.0f);
 	o_BaseColourBuffer = base_colour;
 	
 	///////////
@@ -66,14 +64,12 @@ void main()
 		N = N * 2.0f - 1.0f;
 		N = normalize(fs_in.TBN * N);
 	}
-	//o_NormalBuffer = vec4(N, 1.0f);
 	o_NormalBuffer = N;
 	
 
 	////////////
 	//Position Buffer
 	////////////
-	//o_PositionBuffer = vec4(fs_in.fragPos, 1.0f);
 	o_PositionBuffer = fs_in.fragPos;
 	
 	
@@ -82,6 +78,6 @@ void main()
 	//Depth Buffer
 	////////////
 	float linear_depth = LinearizeDepth(gl_FragCoord.z) /far;
-	//o_DepthBuffer = vec4(vec3(linear_depth),1.0f);
-	o_DepthBuffer = vec3(linear_depth);
+	o_Depth_MatShinnessBuffer = ivec4(vec3(linear_depth), u_Material.shinness);
+	o_Depth_MatShinnessBuffer.a = u_Material.shinness;
 }

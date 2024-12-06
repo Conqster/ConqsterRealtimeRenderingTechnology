@@ -27,7 +27,7 @@ struct SceneLightData
 
 struct ShaderData
 {
-	std::string m_Name = "default";
+	std::string m_Name = "default/not_set";
 	std::string m_Vertex = "";
 	std::string m_Fragment = "";
 	std::string m_Geometry = "";
@@ -60,6 +60,7 @@ struct SceneRenderingConfig
 	//ResolutionSetting m_ResQuality;
 	//have render options: Forward shadering/deffered shading
 	ShaderData m_GBufferShader;
+	ShaderData m_DeferredShader;
 };
 
 struct SkyboxTextures
