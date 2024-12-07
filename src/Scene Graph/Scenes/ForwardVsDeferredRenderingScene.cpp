@@ -129,9 +129,9 @@ void ForwardVsDeferredRenderingScene::OnRender()
 
 
 	frames_count++;
+	SceneDebugger();
 
 	//return;
-	SceneDebugger();
 }
 
 void ForwardVsDeferredRenderingScene::OnRenderUI()
@@ -552,6 +552,39 @@ void ForwardVsDeferredRenderingScene::ForwardShading()
 	RenderCommand::Clear();
 	//update uniform buffers with light current state data, e.t.c LightPass
 	PostUpdateGPUUniformBuffers(); //<------- Not really necessary yet
+
+	m_ForwardShader.Bind();
+	m_ForwardShader.SetUniformVec3("u_ViewPos", m_Camera->GetPosition());
+
+	//m_ForwardShader.SetUniform1i("u_EnableSceneShadow", m_EnableShadows);
+	if (m_EnableShadows && m_FrameAsShadow)
+	{
+		m_ForwardShader.SetUniformMat4f("u_DirLightSpaceMatrix", dirLightObject.dirLightShadow.GetLightSpaceMatrix());
+		//tex unit 0 >> texture (base map)
+		//tex unit 1 >> potenially normal map
+		//tex unit 2 >> potenially parallax map
+		//tex unit 3 >> potenially specular map
+		//tex unit 4 >> shadow map (dir Light)
+		//tex unit 5 >> skybox cube map
+		//tex unit 6 >> shadow cube (pt Light)
+		dirDepthMap.Read(MAT_TEXTURE_COUNT);
+		m_ForwardShader.SetUniform1i("u_DirShadowMap", MAT_TEXTURE_COUNT);
+
+		//point light shadow starts at  Material::TextureCount + 2 >> 6
+		for (int i = 0; i < m_PtLightCount; i++)
+		{
+			if (i > MAX_POINT_LIGHT_SHADOW)
+				break;
+
+			m_PtDepthMapCubes[i].Read(MAT_TEXTURE_COUNT + 2 + i);
+			m_ForwardShader.SetUniform1i(("u_PointShadowCubes[" + std::to_string(i) + "]").c_str(), MAT_TEXTURE_COUNT + 2 + i);
+		}
+	}
+
+
+	m_ForwardShader.SetUniform1i("u_PtLightCount", m_PtLightCount);
+	m_ForwardShader.SetUniform1i("u_SceneAsShadow", m_FrameAsShadow);
+
 	//Draw Skybox
 	if (m_EnableSkybox)
 		m_Skybox.Draw(m_SkyboxShader, m_SceneRenderer);
@@ -562,22 +595,7 @@ void ForwardVsDeferredRenderingScene::ForwardShading()
 void ForwardVsDeferredRenderingScene::DeferredShading()
 {
 	//Later remove forward shader from the PostUpdate buffer function 
-	//PostUpdateGPUUniformBuffers();
-	unsigned int offset_pointer = 0;
-	offset_pointer = 0;
-	dirLightObject.dirlight.UpdateUniformBufferData(m_LightDataUBO, offset_pointer);
-	//for (int i = 0; i < MAX_POINT_LIGHT; i++)
-		//ptLight[i].UpdateUniformBufferData(m_LightDataUBO, offset_pointer);
-
-	//direction needs to be updated before point light 
-	//has point light is dynamic, but the max light data are updated every frame
-	//if only one light is available, we only update the available light 
-	//and perform directional light before keeps the Light uniform buffer integrity 
-	for (int i = 0; i < m_PtLightCount; i++)
-		if (i < MAX_POINT_LIGHT)
-			m_PtLights[i].UpdateUniformBufferData(m_LightDataUBO, offset_pointer);
-
-
+	PostUpdateGPUUniformBuffers();
 
 	//Using (Base Colour, Normal, Position, Depth)
 	//Write into the Gbuffer
@@ -609,8 +627,12 @@ void ForwardVsDeferredRenderingScene::DeferredShading()
 	if (render_2_Screen_fbo)
 	{
 		m_ScreenFBO.Bind();
-		RenderCommand::Clear();
 	}
+
+
+	RenderCommand::Clear();
+
+
 
 	m_DeferredShader.Bind();
 	m_DeferredShader.SetUniform1i("u_GBaseColour", 0);
@@ -629,7 +651,11 @@ void ForwardVsDeferredRenderingScene::DeferredShading()
 	m_SceneRenderer.DrawMesh(m_QuadMesh);
 
 	m_DeferredShader.UnBind();
-	
+
+
+
+
+
 	//m_ScreenFBO.UnBind();
 }
 
@@ -752,37 +778,6 @@ void ForwardVsDeferredRenderingScene::PostUpdateGPUUniformBuffers()
 			m_PtLights[i].UpdateUniformBufferData(m_LightDataUBO, offset_pointer);
 
 
-	m_ForwardShader.Bind();
-	m_ForwardShader.SetUniformVec3("u_ViewPos", m_Camera->GetPosition());
-
-	//m_ForwardShader.SetUniform1i("u_EnableSceneShadow", m_EnableShadows);
-	if (m_EnableShadows && m_FrameAsShadow)
-	{
-		m_ForwardShader.SetUniformMat4f("u_DirLightSpaceMatrix", dirLightObject.dirLightShadow.GetLightSpaceMatrix());
-		//tex unit 0 >> texture (base map)
-		//tex unit 1 >> potenially normal map
-		//tex unit 2 >> potenially parallax map
-		//tex unit 3 >> potenially specular map
-		//tex unit 4 >> shadow map (dir Light)
-		//tex unit 5 >> skybox cube map
-		//tex unit 6 >> shadow cube (pt Light)
-		dirDepthMap.Read(MAT_TEXTURE_COUNT);
-		m_ForwardShader.SetUniform1i("u_DirShadowMap", MAT_TEXTURE_COUNT);
-
-		//point light shadow starts at  Material::TextureCount + 2 >> 6
-		for (int i = 0; i < m_PtLightCount; i++)
-		{
-			if (i > MAX_POINT_LIGHT_SHADOW)
-				break;
-
-			m_PtDepthMapCubes[i].Read(MAT_TEXTURE_COUNT + 2 + i);
-			m_ForwardShader.SetUniform1i(("u_PointShadowCubes[" + std::to_string(i) + "]").c_str(), MAT_TEXTURE_COUNT + 2 + i);
-		}
-	}
-
-
-	m_ForwardShader.SetUniform1i("u_PtLightCount", m_PtLightCount);
-	m_ForwardShader.SetUniform1i("u_SceneAsShadow", m_FrameAsShadow);
 	//environment
 	offset_pointer = 0;
 	m_EnviUBO.SetSubDataByID(&m_EnableSkybox, sizeof(bool), offset_pointer);
@@ -835,6 +830,7 @@ void ForwardVsDeferredRenderingScene::GBufferPass()
 
 void ForwardVsDeferredRenderingScene::SceneDebugger()
 {
+	
 	DebugGizmos::DrawSphere(m_PtOrbitOrigin);
 
 	if (dirLightObject.dirLightShadow.debugPara)

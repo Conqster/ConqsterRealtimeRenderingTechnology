@@ -35,6 +35,7 @@ private:
 	//Scene Construction
 	void InitRenderer();
 	void CreateEntities(const struct SceneData& scene_data);  // Loads (Environment, Entities, materials 
+	void CreateLightsDatas();
 	void CreateGPUDatas();
 
 	//experimenting 
