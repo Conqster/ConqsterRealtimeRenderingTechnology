@@ -10,6 +10,7 @@ enum class FBO_Format
 	RGB16F,
 	RGBA16F,
 
+	RGB32F,
 	RGBA32F,
 
 	RGBA16,

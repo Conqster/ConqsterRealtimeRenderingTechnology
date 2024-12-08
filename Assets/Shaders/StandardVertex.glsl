@@ -1,4 +1,4 @@
-#version 400
+#version 420 
 
 //--------------attributes--------------/
 layout (location = 0) in vec4 pos;
@@ -28,6 +28,7 @@ out NVS_OUT
 	vec3 normalVS;	//view space normal
 	vec4 pos;		//clip space position
 }nvs_out;
+out vec2 vs_ScreenUV;
 
 
 //--------------uniform--------------/
@@ -44,6 +45,11 @@ uniform mat4 u_DirLightSpaceMatrix;
 void main()
 {
 	gl_Position = proj * view * u_Model * pos;
+	vec4 c_pos = proj * view * u_Model * pos;
+	//c_pos =  view * u_Model * pos;
+	vs_ScreenUV = (c_pos.xyz / c_pos.w).xy;
+	//vs_ScreenUV = vs_ScreenUV * 0.5f + 0.5f;
+	//vs_ScreenUV = c_pos.xy * 0.5f + 0.5f;
 	
 	vs_out.fragPos = vec3(u_Model * pos);
 	vs_out.UVs = uv;
@@ -55,13 +61,10 @@ void main()
 	vec3 n = normalize(vec3(u_Model * vec4(nor, 0.0f)));
 	vec3 b = cross(n, t);
 	
-	
 	vs_out.TBN = mat3(t, b, n);
 	
+	
 	vs_out.normal = mat3(transpose(inverse(u_Model))) * nor;
-	
-	
-	
 	nvs_out.posVS = proj * view * u_Model * pos;
 	nvs_out.UVs = uv;
 	mat4 model_view = view * u_Model;

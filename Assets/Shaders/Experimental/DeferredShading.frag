@@ -39,10 +39,10 @@ struct DirectionalLight
 
 
 
-layout(binding = 0) uniform sampler2D u_GBaseColour;
+layout(binding = 0) uniform sampler2D u_GBaseColourSpec;
 layout(binding = 1) uniform sampler2D u_GNormal;
 layout(binding = 2) uniform sampler2D u_GPosition;
-layout(binding = 3) uniform sampler2D u_GDepth_MatShinness;
+layout(binding = 3) uniform sampler2D u_GDepth;
 
 
 const int MAX_POINT_LIGHTS = 1000;
@@ -68,10 +68,11 @@ vec3 CalculatePointLights(vec3 base_colour, vec3 normal, vec3 view_dir, vec3 fra
 
 void main()
 {
-	vec3 base_colour = texture(u_GBaseColour, vs_TexCoords).rgb;
+	vec3 base_colour = texture(u_GBaseColourSpec, vs_TexCoords).rgb;
 	vec3 normal = texture(u_GNormal, vs_TexCoords).rgb;
 	vec3 frag_pos = texture(u_GPosition, vs_TexCoords).rgb;
-	float mat_shinness = texture(u_GDepth_MatShinness, vs_TexCoords).a;
+	//float mat_shinness = texture(u_GDepth, vs_TexCoords).a;
+	float mat_shinness = texture(u_GBaseColourSpec, vs_TexCoords).a;
 	
 	vec3 commulated_light = vec3(0.0f);
 	vec3 view_dir = normalize(u_ViewPos - frag_pos);
@@ -84,7 +85,7 @@ void main()
 	//point contribution 
 	commulated_light += CalculatePointLights(base_colour, normal, view_dir, frag_pos, mat_shinness);
 	
-	o_FragColour = vec4(commulated_light, 1.0f);
+	o_FragColour = vec4(commulated_light, 1.0f);	
 }
 
 

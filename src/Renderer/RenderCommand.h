@@ -25,7 +25,9 @@ public:
 	static void ClearColour(glm::vec4& colour);
 	static void ClearColour(float r, float g, float b, float a = 1.0f);
 	static void Clear();
+	static void ClearColourOnly();
 	static void ClearDepthOnly();
+	static void ClearStencilOnly();
 
 	static void CullFront();
 	static void CullBack();

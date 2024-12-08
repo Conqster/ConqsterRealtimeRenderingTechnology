@@ -40,6 +40,8 @@
 		//m_ShaderFilePath.fragmentPath = file_paths.fragmentPath;Y
 		m_FragFilePath = file_paths.fragmentPath;
 		m_VertexFilePath = file_paths.vertexPath;
+		m_GeometryFilePath = file_paths.geometryPath;
+
 		std::string vString = ReadFile(file_paths.vertexPath);
 		std::string fString = ReadFile(file_paths.fragmentPath);
 
@@ -48,8 +50,10 @@
 		if (!file_paths.geometryPath.empty())
 			gString = ReadFile(file_paths.geometryPath);
 
-		return CreateFromCode(vString.c_str(), fString.c_str(), gString);
+		return CreateFromCode(m_ProgramID, vString.c_str(), fString.c_str(), gString);
 	}
+
+
 
 
 	std::string Shader::ReadFile(const std::string& shader_file)
@@ -75,38 +79,54 @@
 	}
 
 
-	bool Shader::CreateFromCode(const char* vCode, const char* fCode, const std::string& gCode)
+	bool Shader::CreateFromCode(unsigned int& ID, const char* vCode, const char* fCode, const std::string& gCode, bool hard)
 	{
-		m_ProgramID = glCreateProgram();
-		printf("The shader program '%s' ID: %d\n", m_Name.c_str(), m_ProgramID);
+		//m_ProgramID = glCreateProgram();
+		ID = glCreateProgram();
+		printf("The shader program '%s' ID: %d\n", m_Name.c_str(), ID);
 
-		GLuint vshader = CompileShader(GL_VERTEX_SHADER, vCode);
-		GLuint fshader = CompileShader(GL_FRAGMENT_SHADER, fCode);
+		GLuint vshader = CompileShader(GL_VERTEX_SHADER, vCode, hard);
+		GLuint fshader = CompileShader(GL_FRAGMENT_SHADER, fCode, hard);
 
-		GLCall(glAttachShader(m_ProgramID, vshader));
-		GLCall(glAttachShader(m_ProgramID, fshader));
+		GLCall(glAttachShader(ID, vshader));
+		GLCall(glAttachShader(ID, fshader));
 
 		//Special shaders 
 		GLuint gshader;
 		if (!gCode.empty())
 		{
 			gshader = CompileShader(GL_GEOMETRY_SHADER, gCode);
-			GLCall(glAttachShader(m_ProgramID, gshader));
+			GLCall(glAttachShader(ID, gshader));
 		}
 
-		glLinkProgram(m_ProgramID);
-		glValidateProgram(m_ProgramID);
+		glLinkProgram(ID);
+		glValidateProgram(ID);
 
 
 		GLint result = 0;
 		GLchar eLog[1024] = { 0 };
-		glGetProgramiv(m_ProgramID, GL_VALIDATE_STATUS, &result);
+		glGetProgramiv(ID, GL_VALIDATE_STATUS, &result);
 
 		if (!result)
 		{
-			glGetProgramInfoLog(m_ProgramID, sizeof(eLog), NULL, eLog);
+			glGetProgramInfoLog(ID, sizeof(eLog), NULL, eLog);
 			printf("[ERROR VALIDATING PROGRAM (for %s)]: '%s'\n", m_Name.c_str(), eLog);
-			exit(-1);
+
+
+			//need to destroy shader if compiled 
+			GLCall(glDeleteShader(vshader));
+			GLCall(glDeleteShader(fshader));
+
+
+			//speical shaders
+			if (!gCode.empty())
+			{
+				GLCall(glDeleteShader(gshader));
+			}
+
+			if(hard)
+				exit(-1);
+
 			return false;
 		}
 
@@ -127,7 +147,7 @@
 	}
 
 
-	unsigned int Shader::CompileShader(GLenum type, const std::string& source)
+	unsigned int Shader::CompileShader(GLenum type, const std::string& source, bool hard)
 	{
 		GLuint shaderid = glCreateShader(type);
 
@@ -148,7 +168,8 @@
 			// LEFT_BRACE or COMMA or SEMICOLON.
 			glGetShaderInfoLog(shaderid, sizeof(eLog), NULL, eLog);
 			printf("[SHADER]: Couldn't create a %s, %sSOURCE: %s\n", LogShaderTypeName2(type), eLog, GetShaderFilePath(type));
-			exit(-1);
+			if(hard)
+				exit(-1);
 		}
 
 		return shaderid;
@@ -158,6 +179,7 @@
 
 	void Shader::Bind() const
 	{
+		
 		GLCall(glUseProgram(m_ProgramID));
 		//glUseProgram(m_ProgramID);
 	}
@@ -217,10 +239,17 @@
 		return "Not a registered shader";
 	}
 
-	void Shader::SetUniformBlockIdx(const char* name, int blockBindingIdx) const
+	void Shader::SetUniformBlockIdx(const char* name, int blockBindingIdx)
 	{
 		const int idx = glGetUniformBlockIndex(m_ProgramID, name);
 		GLCall(glUniformBlockBinding(m_ProgramID, idx, blockBindingIdx));
+
+		ShaderBlockingIdx shader_block
+		{
+			name,
+			blockBindingIdx
+		};
+		cacheBindingBlocks.push_back(shader_block);
 	}
 
 	void Shader::SetUniform1i(const char* name, int value)

@@ -13,6 +13,7 @@ static GLint OpenGLFormat(FBO_Format format)
 		case FBO_Format::RGB16F: return GL_RGB16F;
 		case FBO_Format::RGBA16F: return GL_RGBA16F;
 
+		case FBO_Format::RGB32F: return GL_RGB32F;
 		case FBO_Format::RGBA32F: return GL_RGBA32F;
 
 		case FBO_Format::RGBA16: return GL_RGBA16;

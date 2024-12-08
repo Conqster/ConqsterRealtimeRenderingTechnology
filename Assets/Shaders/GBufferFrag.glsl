@@ -1,10 +1,10 @@
 #version 400
 
 //--------------OUT--------------/
-layout(location = 0) out vec3 o_BaseColourBuffer;  
+layout(location = 0) out vec4 o_BaseSpecBuffer;  
 layout(location = 1) out vec3 o_NormalBuffer;
 layout(location = 2) out vec3 o_PositionBuffer;
-layout(location = 3) out vec4 o_Specular_MatShinnessBuffer;
+layout(location = 3) out vec3 o_DepthBuffer;
 
 
 //--------------IN--------------/
@@ -37,10 +37,9 @@ struct Material
 };
 //--------------uniform--------------/
 uniform Material u_Material;
-float far = 150.0f;
-float near = 0.1f;
+uniform float u_Far = 150.0f;
 
-float LinearizeDepth(float depth)
+float LinearizeDepth(float depth, float near, float far)
 {
 	float z = depth * 2.0f - 1.0f;
 	return (2.0f * near * far) /(far + near - z * (far - near));
@@ -52,7 +51,7 @@ void main()
 	//////////
 	vec3 base_colour = u_Material.baseColour.rgb;
 	base_colour *= texture(u_Material.baseMap, fs_in.uv).rgb;
-	o_BaseColourBuffer = base_colour;
+	o_BaseSpecBuffer.rgb = base_colour;
 	
 	///////////
 	//Normal Colour
@@ -77,9 +76,16 @@ void main()
 	////////////
 	//Specular & Specular power Buffer
 	////////////
-	vec3 specular = vec3(0.0f);
+	float specular_value = 0.0f;
 	if(u_Material.hasSpecularMap)
-		specular = texture(u_Material.specularMap, fs_in.uv).rgb;
+		specular_value = texture(u_Material.specularMap, fs_in.uv).r;
 		
-	o_Specular_MatShinnessBuffer = vec4(specular, u_Material.shinness);
+		
+	
+	//Store specular map red & shinness / power in o_BaseSpecBuffer's alpha
+	//for now add the specular value with material shiness /power;
+	o_BaseSpecBuffer.a = specular_value + u_Material.shinness;
+	
+	float linear_depth = LinearizeDepth(gl_FragCoord.z, 0.1f,  u_Far) /u_Far;
+	o_DepthBuffer = vec4(vec3(linear_depth), 1.0f).rgb;
 }

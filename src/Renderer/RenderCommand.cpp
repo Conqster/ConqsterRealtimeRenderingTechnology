@@ -25,9 +25,19 @@ void RenderCommand::Clear()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
+void RenderCommand::ClearColourOnly()
+{
+	glClear(GL_COLOR_BUFFER_BIT);
+}
+
 void RenderCommand::ClearDepthOnly()
 {
 	glClear(GL_DEPTH_BUFFER_BIT);
+}
+
+void RenderCommand::ClearStencilOnly()
+{
+	glClear(GL_STENCIL_BUFFER_BIT);
 }
 
 void RenderCommand::CullFront()

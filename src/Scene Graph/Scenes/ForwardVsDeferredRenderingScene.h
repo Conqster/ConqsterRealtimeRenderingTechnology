@@ -13,6 +13,7 @@
 #include "Renderer/Skybox.h"
 
 #include "Renderer/ObjectBuffer/Framebuffer.h"
+#include "Util/ShaderHotReload.h"
 
 class Material;
 class Entity;
@@ -34,8 +35,9 @@ public:
 private:
 	//Scene Construction
 	void InitRenderer();
+	void SetRenderingConfiguration(const struct SceneRenderingConfig& scene_render_config);
+	void CreateLightsAndShadowDatas(const struct SceneLightData& light_data, const struct SceneShadowData& shadow_data);
 	void CreateEntities(const struct SceneData& scene_data);  // Loads (Environment, Entities, materials 
-	void CreateLightsDatas();
 	void CreateGPUDatas();
 
 	//experimenting 
@@ -70,6 +72,9 @@ private:
 	Shader m_DeferredShader;
 	std::shared_ptr<Mesh> m_QuadMesh;
 	Framebuffer m_ScreenFBO;
+	Shader m_ScreenPostShader;
+	ShaderHotReload  m_ShaderHotReload;
+	
 
 	//Utilities
 	CRRT::ModelLoader m_NewModelLoader;
@@ -104,6 +109,8 @@ private:
 	void OpaquePass(Shader& main_shader, const std::vector<std::weak_ptr<Entity>> opaque_entities);
 	//Deferred Pass
 	void GBufferPass();
+	void OldDeferredLightingPass();
+	void DeferredLightingPass();
 	void SceneDebugger();
 
 	void ResetSceneFrame();

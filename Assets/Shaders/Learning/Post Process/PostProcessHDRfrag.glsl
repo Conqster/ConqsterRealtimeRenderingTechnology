@@ -4,6 +4,7 @@ out vec4 FragColour;
 
 in vec2 v_UVCoord;
 in vec4 v_Colour;
+in vec4 v_FragPos;
 
 uniform sampler2D u_ScreenTex;
 uniform bool u_DoHDR;
@@ -24,6 +25,7 @@ void main()
 		final_colour = mapped_col;
 	}
 	
+	//final_colour = v_FragPos.rgb;
 	FragColour.rgb = final_colour;
 	FragColour.a = 1.0f;
 	//FragColour = (final_colour, 1.0f);
