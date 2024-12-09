@@ -79,6 +79,7 @@ public:
 
 	void Bind();
 	void UnBind();
+	void BlitDepth();
 	void Delete();
 
 	void BindTextureIdx(unsigned int idx, unsigned int slot = 0);

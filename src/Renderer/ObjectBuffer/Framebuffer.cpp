@@ -334,6 +334,17 @@ void MRTFramebuffer::UnBind()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+void MRTFramebuffer::BlitDepth()
+{
+	//read data
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, m_ID);
+	//draw into main framebuffer
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+
+	glBlitFramebuffer(0, 0, m_Width, m_Height, 0, 0, m_Width, m_Height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
 void MRTFramebuffer::Delete()
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);

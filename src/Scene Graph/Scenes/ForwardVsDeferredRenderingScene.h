@@ -56,6 +56,8 @@ private:
 	std::shared_ptr<Material> defaultFallBackMaterial; //shared_ptr, just in case to take ownership if other ref gets deleted
 	std::vector<std::shared_ptr<Entity>> m_SceneEntities;
 	std::vector<std::weak_ptr<Entity>> m_RenderableEntities;
+	std::vector<std::weak_ptr<Entity>> m_OpaqueEntities;
+	std::vector<std::weak_ptr<Entity>> m_TransparentEntities;
 	Shader m_ShadowDepthShader;  //this is not scene deoth shader
 	Skybox m_Skybox;
 	Shader m_SkyboxShader;
@@ -78,10 +80,13 @@ private:
 
 	//Utilities
 	CRRT::ModelLoader m_NewModelLoader;
-	glm::vec3 m_PtOrbitOrigin = glm::vec3(0.0f, 44.0f, 0.0f);
-	float m_SpawnZoneRadius = 54.0f;
-	float m_DesiredDistance = 20.0f;
+	glm::vec3 m_PtOrbitOrigin = glm::vec3(0.0f, 220.0f, 0.0f);
+	float m_SpawnZoneRadius = 310.0f;
+	float m_DesiredDistance = 200.0f;//based on entity_extra_scaleby
 	float m_OrbitSpeed = 20.0f;
+
+	bool m_DebugScene = false;
+	bool m_DebugPointLightRange = false;
 
 
 	//Shading
@@ -100,13 +105,18 @@ private:
 
 	//Pre-Rendering
 	unsigned int frames_count = 0;
+	bool flag_rebuild_transparency = false;
+	bool flag_resort_transparency = false;
 	void BuildRenderableMeshes(const std::shared_ptr<Entity>& entity);
+	void BuildOpaqueTransparency(const std::vector<std::weak_ptr<Entity>> renderable_entities);
+	void SortByViewDistance(std::vector<std::weak_ptr<Entity>> sorting_list);
 
 	//Scene Render
 	void PostUpdateGPUUniformBuffers(); //light ubo after scene is sorted & light pass
 
 	//Passes
 	void OpaquePass(Shader& main_shader, const std::vector<std::weak_ptr<Entity>> opaque_entities);
+	void TransparencyPass(Shader& main_shader, const std::vector<std::weak_ptr<Entity>> transparent_entities);
 	//Deferred Pass
 	void GBufferPass();
 	void OldDeferredLightingPass();
@@ -150,6 +160,7 @@ private:
 	//UIs
 	void MainUI();
 	void ExternalMainUI_LightTreeNode();
+	void ExternalMainUI_SceneDebugTreeNode();
 	void EnititiesUI();
 	void EntityDebugUI(Entity& entity);
 	void MaterialsUI();

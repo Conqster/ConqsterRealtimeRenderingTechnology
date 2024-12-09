@@ -33,7 +33,7 @@ void ShaderHotReload::Update()
 		{
 			printf("Hot load a changed shader !!!!!!!!!!!!!\n");
 			Shader* new_shader = new Shader();
-			bool success = new_shader->Create(("model_forward_shading v" + std::to_string(version++)),
+			bool success = new_shader->SoftCreate(("model_forward_shading v" + std::to_string(version++)),
 				m_TrackingShader.shader->GetShaderFilePath(GL_VERTEX_SHADER),
 				m_TrackingShader.shader->GetShaderFilePath(GL_FRAGMENT_SHADER),
 				m_TrackingShader.shader->GetShaderFilePath(GL_GEOMETRY_SHADER));

@@ -85,10 +85,15 @@ struct PointLight : public Light
 
 	glm::vec3 position;
 
+	//To prevent confusions, accessing attenuation from array
+#define CONSTANT_ATT 0
+#define LINEAR_ATT 1
+#define QUARDRATIC_ATT 2
+
 	//So as to store all attenuation contiguously in memory
-	//constant
-	//linear
-	//quardratic
+	//constant -> 0
+	//linear -> 1
+	//quardratic ->2
 	float attenuation[3];
 	float shadow_far = 150.0f;
 	PointLight(const glm::vec3& pos = glm::vec3(0.0f), const glm::vec3& col = glm::vec3(1.0f), float amb_inten = 0.5f, float diff_inten = 0.6f);
@@ -102,6 +107,14 @@ struct PointLight : public Light
 	}
 
 	virtual void UpdateUniformBufferData(class UniformBuffer& ubo, unsigned int& offset_pointer) override;
+
+	float CalculateLightRadius(float threshold = 0.01f) const
+	{
+		return (-attenuation[LINEAR_ATT] +
+			glm::sqrt(attenuation[LINEAR_ATT] * attenuation[LINEAR_ATT] - 4 * attenuation[QUARDRATIC_ATT] *
+				(attenuation[CONSTANT_ATT] - 1.0f / threshold)))
+			/ (2.0f * attenuation[QUARDRATIC_ATT]);
+	}
 };
 
 //--------------------------------------SPOT LIGHT----------------------------------------------/

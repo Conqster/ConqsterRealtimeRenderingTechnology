@@ -29,6 +29,8 @@ out NVS_OUT
 	vec4 pos;		//clip space position
 }nvs_out;
 out vec2 vs_ScreenUV;
+out vec4 vs_ClipSpace;
+out mat4 vs_Proj;
 
 
 //--------------uniform--------------/
@@ -44,18 +46,12 @@ uniform mat4 u_DirLightSpaceMatrix;
 
 void main()
 {
-	gl_Position = proj * view * u_Model * pos;
-	vec4 c_pos = proj * view * u_Model * pos;
-	//c_pos =  view * u_Model * pos;
-	vs_ScreenUV = (c_pos.xyz / c_pos.w).xy;
-	//vs_ScreenUV = vs_ScreenUV * 0.5f + 0.5f;
-	//vs_ScreenUV = c_pos.xy * 0.5f + 0.5f;
+	vec4 clip_pos = proj * view * u_Model * pos;
 	
+	gl_Position = clip_pos;
 	vs_out.fragPos = vec3(u_Model * pos);
 	vs_out.UVs = uv;
 	vs_out.fragPosLightSpace = u_DirLightSpaceMatrix * u_Model * pos;
-	
-	
 	
 	vec3 t = normalize(vec3(u_Model * vec4(tangent, 0.0f)));
 	vec3 n = normalize(vec3(u_Model * vec4(nor, 0.0f)));
@@ -65,7 +61,7 @@ void main()
 	
 	
 	vs_out.normal = mat3(transpose(inverse(u_Model))) * nor;
-	nvs_out.posVS = proj * view * u_Model * pos;
+	nvs_out.posVS = clip_pos;
 	nvs_out.UVs = uv;
 	mat4 model_view = view * u_Model;
 	nvs_out.tangentVS = mat3(model_view) * tangent;

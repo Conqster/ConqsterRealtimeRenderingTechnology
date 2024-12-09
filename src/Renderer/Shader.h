@@ -44,6 +44,7 @@ public:
 	bool Create(const std::string& name,  const std::string& ver, const std::string& frag, const std::string& geo);
 	bool CreateFromFile(const ShaderFilePath& file_paths);
 
+	bool SoftCreate(const std::string& name, const std::string& ver, const std::string& frag, const std::string& geo);
 
 	void Bind() const;
 	void UnBind() const;

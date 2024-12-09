@@ -65,7 +65,6 @@ in VS_OUT
 	mat3 TBN;
 	vec3 normal;
 }fs_in;
-in vec2 vs_ScreenUV;
 
 const int MAX_POINT_LIGHTS = 1000;
 const int MAX_POINT_LIGHT_SHADOW = 10;
@@ -89,8 +88,6 @@ layout(binding = 3) uniform sampler2D u_DirShadowMap;
 layout(binding = 4) uniform samplerCube u_SkyboxMap;
 layout(binding = 5) uniform samplerCube u_PointShadowCubes[MAX_POINT_LIGHT_SHADOW];
 
-uniform bool u_HasDepthMap = false;
-layout(binding = 6) uniform sampler2D u_GBufferMap;
 
 //--------------------Environment-----------------------------------------
 //struct Environment only called once if changed
@@ -129,15 +126,6 @@ float LinearizeDepth(float depth, float near, float far)
 }
 void main()
 {
-	if(u_HasDepthMap)
-	{
-		float linear_depth = LinearizeDepth(gl_FragCoord.z, 0.1f,  150.0f)/150.0f;
-		
-
-		if(linear_depth > (texture(u_GBufferMap, vs_ScreenUV).r))
-			discard;
-	}
-
 	//does not support parallax & transparency at the moment
 	vec3 base_colour = u_Material.baseColour.rgb;
 	base_colour *= texture(u_Material.baseMap, fs_in.UVs).rgb;
@@ -174,10 +162,10 @@ void main()
 		commulated_light += mix(vec3(0.0f), ReflectedSkybox(v_dir, N), skyboxInfluencity);
 	}
 
-	FragColour = vec4(commulated_light, 1.0f);
-	//FragColour = vec4(texture(u_GBufferMap, fs_in.UVs).rgb, 1.0f);
-	//FragColour = vec4(texture(u_GBufferMap, vs_ScreenUV).rgb, 1.0f);
-	//FragColour = vec4(vec3(0.0f, 0.0f, 1.0f), 1.0f);
+	//FragColour = vec4(commulated_light, 1.0f);
+	//float alpha = (u_Material.isTransparent) ? u_Material.baseColour.a : 1.0f;
+	float alpha = u_Material.baseColour.a;
+	FragColour = vec4(commulated_light, alpha);
 }
 
 

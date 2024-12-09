@@ -3,17 +3,17 @@ m_HasLights: true
 m_HasShadow: false
 m_HasEnvironmentMap: true
 Main Camera:
-  m_Position: [-8.123117, 20.849869, -27.874632]
-  m_Yaw: 83.44945
-  m_Pitch: -33.404766
+  m_Position: [-6.85479, 50.337326, 78.41846]
+  m_Yaw: 303.62372
+  m_Pitch: -10.154938
   m_Fov: 62.4
   m_Near: 0.1
-  m_Far: 1500
+  m_Far: 150
   m_MoveSpeed: 50
   m_RotSpeed: 1
 Rendering Config:
   m_ForwardShader:
-    name: model_forward_shading
+    name: model_forward_shading v1
     vertex: Assets/Shaders/StandardVertex.glsl
     fragment: Assets/Shaders/StandardFrag2.glsl
     geometry: ""
@@ -24,9 +24,9 @@ Rendering Config:
       fragment: Assets/Shaders/GBufferFrag.glsl
       geometry: ""
     m_DeferredShader:
-      name: default/not_set
-      vertex: ""
-      fragment: ""
+      name: deferred_shading
+      vertex: Assets/Shaders/Experimental/DeferredShading.vert
+      fragment: Assets/Shaders/Experimental/DeferredShading.frag
       geometry: ""
 m_Environment Setting:
   m_EnableSkybox: false
@@ -61,253 +61,118 @@ Shadow Setting:
     m_FragmentShader: Assets/Shaders/ShadowMapping/ShadowDepthFrag.glsl
     m_GeometryShader: Assets/Shaders/ShadowMapping/ShadowDepthGeometry.glsl
 Dir light:
-  m_Direction: [1.45, 4.85, 0.35]
-  m_Colour: [0.17647028, 0, 1]
-  m_CastShadow: true
+  m_Direction: [-1, 1, 1]
+  m_Colour: [1, 1, 1]
+  m_CastShadow: false
   m_Enable: false
-  m_AmbinentIntensity: 0.092
-  m_DiffuseIntensity: 0.513
-  m_SpecularIntensity: 0.582
+  m_AmbinentIntensity: 0.5
+  m_DiffuseIntensity: 0.6
+  m_SpecularIntensity: 0.5
 Point Lights:
-  m_Counts: 27
+  m_Counts: 12
   0:
-    m_Position: [-10.630512, 15.7, 17.05155]
+    m_Position: [-6.109893, 15.7, 19.043875]
     m_Colour: [0.9362745, 0.33503944, 0.33503944]
-    m_Attenuation: [0.032, 0.051, 0.024]
+    m_Attenuation: [0.034, 0.023, 0.022]
     m_CastShadow: false
     m_Enable: true
-    m_AmbinentIntensity: 0.488
-    m_DiffuseIntensity: 0.566
+    m_AmbinentIntensity: 0.57
+    m_DiffuseIntensity: 0.517
     m_SpecularIntensity: 0.595
   1:
-    m_Position: [19.205164, 5.6, 5.9097114]
+    m_Position: [19.973494, 5.6, 1.029334]
     m_Colour: [1, 1, 1]
-    m_Attenuation: [1, 0.2, 0.03]
+    m_Attenuation: [0.034, 0.023, 0.022]
     m_CastShadow: false
     m_Enable: true
     m_AmbinentIntensity: 0.5
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   2:
-    m_Position: [-13.62136, 6.7, -14.772327]
+    m_Position: [-16.741451, 6.7, -10.941837]
     m_Colour: [0.90686274, 0, 0.88019025]
-    m_Attenuation: [0.961, 0.139, 0.018]
+    m_Attenuation: [0.034, 0.023, 0.022]
     m_CastShadow: false
     m_Enable: true
     m_AmbinentIntensity: 1
     m_DiffuseIntensity: 1
     m_SpecularIntensity: 1
   3:
-    m_Position: [-6.828763, 9.8, 18.897911]
+    m_Position: [-1.9916115, 9.8, 19.90059]
     m_Colour: [0.17647028, 0, 1]
-    m_Attenuation: [1, 0.2, 0.03]
+    m_Attenuation: [0.034, 0.023, 0.022]
     m_CastShadow: false
     m_Enable: true
     m_AmbinentIntensity: 0.5
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   4:
-    m_Position: [-19.205164, 0, -5.9097114]
+    m_Position: [-19.973494, 0, -1.029334]
     m_Colour: [1, 1, 1]
-    m_Attenuation: [1, 0.2, 0.03]
+    m_Attenuation: [0.034, 0.023, 0.022]
     m_CastShadow: false
     m_Enable: true
     m_AmbinentIntensity: 0.5
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   5:
-    m_Position: [-16.932709, 0, 10.818804]
-    m_Colour: [1, 1, 1]
-    m_Attenuation: [1, 0.2, 0.03]
+    m_Position: [19.234882, 53.181004, -5.4789834]
+    m_Colour: [0.35029146, 0.8959624, 0.82284003]
+    m_Attenuation: [0.034, 0.023, 0.022]
     m_CastShadow: false
     m_Enable: true
     m_AmbinentIntensity: 0.5
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   6:
-    m_Position: [5.9097114, 9, -19.205164]
-    m_Colour: [1, 1, 1]
-    m_Attenuation: [1, 0.2, 0.03]
+    m_Position: [7.966022, 45.461773, -18.345095]
+    m_Colour: [0.014984588, 0.09140293, 0.36445203]
+    m_Attenuation: [0.034, 0.023, 0.022]
     m_CastShadow: false
     m_Enable: true
     m_AmbinentIntensity: 0.5
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   7:
-    m_Position: [5.9097114, 9, -19.205164]
-    m_Colour: [1, 1, 1]
-    m_Attenuation: [1, 0.2, 0.03]
+    m_Position: [19.999994, 54.99051, -0.014728225]
+    m_Colour: [0.16623431, 0.6630451, 0.45078892]
+    m_Attenuation: [0.034, 0.023, 0.022]
     m_CastShadow: false
     m_Enable: true
     m_AmbinentIntensity: 0.5
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   8:
-    m_Position: [17.22205, 53.181004, -10.352009]
-    m_Colour: [0.35029146, 0.8959624, 0.82284003]
-    m_Attenuation: [0.017, 0.022, 0.04]
+    m_Position: [-3.9398782, -3.839779, 19.608093]
+    m_Colour: [0.7833186, 0.8026063, 0.5198828]
+    m_Attenuation: [0.034, 0.023, 0.022]
     m_CastShadow: false
     m_Enable: true
     m_AmbinentIntensity: 0.5
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   9:
-    m_Position: [3.5640125, 45.461773, -19.77526]
-    m_Colour: [0.014984588, 0.09140293, 0.36445203]
-    m_Attenuation: [0.017, 0.022, 0.04]
+    m_Position: [4.479855, 84.60506, 19.491816]
+    m_Colour: [0.9559007, 0.92571795, 0.5393536]
+    m_Attenuation: [0.034, 0.023, 0.022]
     m_CastShadow: false
     m_Enable: true
     m_AmbinentIntensity: 0.5
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   10:
-    m_Position: [-12.306617, 54.99051, -15.884278]
-    m_Colour: [0.16623431, 0.6630451, 0.45078892]
-    m_Attenuation: [0.017, 0.022, 0.04]
+    m_Position: [-17.923044, 39.90472, 8.874937]
+    m_Colour: [0.8622394, 0.20960112, 0.77965635]
+    m_Attenuation: [0.034, 0.023, 0.022]
     m_CastShadow: false
     m_Enable: true
     m_AmbinentIntensity: 0.5
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   11:
-    m_Position: [-18.948484, 53.181004, 6.6871505]
-    m_Colour: [0.35029146, 0.8959624, 0.82284003]
-    m_Attenuation: [0.017, 0.022, 0.04]
-    m_CastShadow: false
-    m_Enable: true
-    m_AmbinentIntensity: 0.5
-    m_DiffuseIntensity: 0.6
-    m_SpecularIntensity: 0.5
-  12:
-    m_Position: [17.807798, 45.461773, 9.308354]
-    m_Colour: [0.014984588, 0.09140293, 0.36445203]
-    m_Attenuation: [0.017, 0.022, 0.04]
-    m_CastShadow: false
-    m_Enable: true
-    m_AmbinentIntensity: 0.5
-    m_DiffuseIntensity: 0.6
-    m_SpecularIntensity: 0.5
-  13:
-    m_Position: [-9.965157, 54.99051, 17.448746]
-    m_Colour: [0.16623431, 0.6630451, 0.45078892]
-    m_Attenuation: [0.017, 0.022, 0.04]
-    m_CastShadow: false
-    m_Enable: true
-    m_AmbinentIntensity: 0.5
-    m_DiffuseIntensity: 0.6
-    m_SpecularIntensity: 0.5
-  14:
-    m_Position: [-14.567474, -3.839779, 13.840223]
-    m_Colour: [0.7833186, 0.8026063, 0.5198828]
-    m_Attenuation: [0.017, 0.022, 0.04]
-    m_CastShadow: false
-    m_Enable: true
-    m_AmbinentIntensity: 0.5
-    m_DiffuseIntensity: 0.6
-    m_SpecularIntensity: 0.5
-  15:
-    m_Position: [-0.7937584, 84.60506, 20.078175]
-    m_Colour: [0.9559007, 0.92571795, 0.5393536]
-    m_Attenuation: [0.017, 0.022, 0.04]
-    m_CastShadow: false
-    m_Enable: true
-    m_AmbinentIntensity: 0.5
-    m_DiffuseIntensity: 0.6
-    m_SpecularIntensity: 0.5
-  16:
-    m_Position: [-18.090076, 39.90472, 8.747125]
-    m_Colour: [0.8622394, 0.20960112, 0.77965635]
-    m_Attenuation: [0.017, 0.022, 0.04]
-    m_CastShadow: false
-    m_Enable: true
-    m_AmbinentIntensity: 0.5
-    m_DiffuseIntensity: 0.6
-    m_SpecularIntensity: 0.5
-  17:
-    m_Position: [-17.44428, 32.38325, -9.972971]
+    m_Position: [-14.56377, 32.38325, -13.707538]
     m_Colour: [0.2972808, 0.84014404, 0.0237434]
-    m_Attenuation: [0.017, 0.022, 0.04]
-    m_CastShadow: false
-    m_Enable: true
-    m_AmbinentIntensity: 0.5
-    m_DiffuseIntensity: 0.6
-    m_SpecularIntensity: 0.5
-  18:
-    m_Position: [19.333147, 0.0033569336, 5.476535]
-    m_Colour: [0.056215096, 0.008789331, 0.9187902]
-    m_Attenuation: [0.017, 0.022, 0.04]
-    m_CastShadow: false
-    m_Enable: true
-    m_AmbinentIntensity: 0.5
-    m_DiffuseIntensity: 0.6
-    m_SpecularIntensity: 0.5
-  19:
-    m_Position: [18.072168, 19.472822, 8.784064]
-    m_Colour: [0.6911832, 0.837611, 0.7264931]
-    m_Attenuation: [0.017, 0.022, 0.04]
-    m_CastShadow: false
-    m_Enable: true
-    m_AmbinentIntensity: 0.5
-    m_DiffuseIntensity: 0.6
-    m_SpecularIntensity: 0.5
-  20:
-    m_Position: [6.730087, 12.178776, -18.933277]
-    m_Colour: [0.46845913, 0.45796075, 0.94915617]
-    m_Attenuation: [0.017, 0.022, 0.04]
-    m_CastShadow: false
-    m_Enable: true
-    m_AmbinentIntensity: 0.5
-    m_DiffuseIntensity: 0.6
-    m_SpecularIntensity: 0.5
-  21:
-    m_Position: [-18.29385, 1.6942062, 8.312528]
-    m_Colour: [0.38523513, 0.73500776, 0.60896635]
-    m_Attenuation: [0.017, 0.022, 0.04]
-    m_CastShadow: false
-    m_Enable: true
-    m_AmbinentIntensity: 0.5
-    m_DiffuseIntensity: 0.6
-    m_SpecularIntensity: 0.5
-  22:
-    m_Position: [18.348946, 29.024628, 8.190196]
-    m_Colour: [0.22510453, 0.42515334, 0.80288094]
-    m_Attenuation: [0.017, 0.022, 0.04]
-    m_CastShadow: false
-    m_Enable: true
-    m_AmbinentIntensity: 0.5
-    m_DiffuseIntensity: 0.6
-    m_SpecularIntensity: 0.5
-  23:
-    m_Position: [-16.780424, 8.249947, -11.053527]
-    m_Colour: [0.49189734, 0.063539535, 0.6997589]
-    m_Attenuation: [0.017, 0.022, 0.04]
-    m_CastShadow: false
-    m_Enable: true
-    m_AmbinentIntensity: 0.5
-    m_DiffuseIntensity: 0.6
-    m_SpecularIntensity: 0.5
-  24:
-    m_Position: [7.832183, 36.068176, -18.504595]
-    m_Colour: [0.96661276, 0.68318737, 0.15323344]
-    m_Attenuation: [0.017, 0.022, 0.04]
-    m_CastShadow: false
-    m_Enable: true
-    m_AmbinentIntensity: 0.5
-    m_DiffuseIntensity: 0.6
-    m_SpecularIntensity: 0.5
-  25:
-    m_Position: [-5.6064534, 6.7997055, 19.295876]
-    m_Colour: [0.732017, 0.40559098, 0.27958006]
-    m_Attenuation: [0.017, 0.022, 0.04]
-    m_CastShadow: false
-    m_Enable: true
-    m_AmbinentIntensity: 0.5
-    m_DiffuseIntensity: 0.6
-    m_SpecularIntensity: 0.5
-  26:
-    m_Position: [16.331852, 63.682053, -11.70614]
-    m_Colour: [0.72191536, 0.47529528, 0.12302011]
-    m_Attenuation: [0.017, 0.022, 0.04]
+    m_Attenuation: [0.034, 0.023, 0.022]
     m_CastShadow: false
     m_Enable: true
     m_AmbinentIntensity: 0.5

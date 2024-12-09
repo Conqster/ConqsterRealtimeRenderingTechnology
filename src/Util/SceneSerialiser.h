@@ -81,6 +81,7 @@ struct SceneEnvironment
 	ShaderData m_SkyboxShader;
 };
 
+
 struct SceneData
 {
 	std::string m_Name;

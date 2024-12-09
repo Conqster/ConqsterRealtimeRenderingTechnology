@@ -53,6 +53,24 @@
 		return CreateFromCode(m_ProgramID, vString.c_str(), fString.c_str(), gString);
 	}
 
+	bool Shader::SoftCreate(const std::string& name, const std::string& ver, const std::string& frag, const std::string& geo)
+	{
+		m_Name = name;
+		m_VertexFilePath = ver;
+		m_FragFilePath = frag;
+		m_GeometryFilePath = geo;
+
+		std::string vString = ReadFile(m_VertexFilePath);
+		std::string fString = ReadFile(m_FragFilePath);
+
+		//special shaders 
+		std::string gString = "";
+		if (!m_GeometryFilePath.empty())
+			gString = ReadFile(m_GeometryFilePath);
+
+		return CreateFromCode(m_ProgramID, vString.c_str(), fString.c_str(), gString, false);
+	}
+
 
 
 
@@ -222,6 +240,9 @@
 			glDeleteProgram(m_ProgramID);
 			m_ProgramID = 0;
 		}
+
+		cacheUniformLocations.clear();
+		cacheBindingBlocks.clear();
 	}
 
 

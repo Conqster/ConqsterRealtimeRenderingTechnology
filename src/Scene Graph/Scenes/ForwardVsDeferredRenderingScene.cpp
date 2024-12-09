@@ -68,6 +68,10 @@ void ForwardVsDeferredRenderingScene::OnUpdate(float delta_time)
 	glm::vec3 pt_orbit_dir_xz; //ignore direction on y 
 
 
+	bool hack = false; 
+	if (hack)
+		m_OrbitSpeed = 0.0f;
+
 	for (int i = 0; i < m_PtLightCount; i++)
 	{
 		pt_orbit_dir_xz = m_PtOrbitOrigin - m_PtLights[i].position;
@@ -84,7 +88,7 @@ void ForwardVsDeferredRenderingScene::OnUpdate(float delta_time)
 
 
 		desired_move_dir = glm::cross(world_up, pt_orbit_dir_xz);
-		m_PtLights[i].position += desired_move_dir * m_OrbitSpeed * delta_time;
+		m_PtLights[i].position += desired_move_dir * m_OrbitSpeed * delta_time * 5.0f; // based on entity_extra_scaleby
 	}
 
 
@@ -116,8 +120,23 @@ void ForwardVsDeferredRenderingScene::OnRender()
 	{
 		for (const auto& e : m_SceneEntities)
 			BuildRenderableMeshes(e);
+
+		//Build renderable meshes flats out the mesh and sort by grp {Opaque, Transparency}
+		//so if transparent lets sort by view. 
+		if (m_TransparentEntities.size() > 1)
+			SortByViewDistance(m_TransparentEntities);
 	}
 
+
+
+	if (flag_rebuild_transparency)
+	{
+		BuildOpaqueTransparency(m_RenderableEntities);
+		SortByViewDistance(m_TransparentEntities);
+	}
+
+	if (flag_resort_transparency)
+		SortByViewDistance(m_TransparentEntities);
 
 	switch (m_RenderingPath)
 	{
@@ -131,7 +150,9 @@ void ForwardVsDeferredRenderingScene::OnRender()
 
 
 	frames_count++;
-	SceneDebugger();
+
+	if(m_DebugScene)
+		SceneDebugger();
 
 	//return;
 }
@@ -273,6 +294,15 @@ void ForwardVsDeferredRenderingScene::CreateEntities(const SceneData&  scene_dat
 	floorMat->normalMap = std::make_shared<Texture>(FilePaths::Instance().GetPath("cobblestone-nor"));
 	floorMat->parallaxMap = std::make_shared<Texture>(FilePaths::Instance().GetPath("cobblestone-disp"));
 
+	auto glassMat = std::make_shared<Material>();
+	glassMat->name = "Glass Material";
+	glassMat->baseMap = std::make_shared<Texture>(FilePaths::Instance().GetPath("glass"));
+	glassMat->renderMode = CRRT_Mat::RenderingMode::Transparent;
+	glassMat->baseColour = glm::vec4(0.0f, 0.36f, 0.73f, 0.51f);
+
+	auto glass2Mat = std::make_shared<Material>();
+	glass2Mat->name = "Glass Material";
+	glass2Mat->baseMap = std::make_shared<Texture>(FilePaths::Instance().GetPath("glass"));
 
 	defaultFallBackMaterial = plainMat;
 
@@ -281,11 +311,12 @@ void ForwardVsDeferredRenderingScene::CreateEntities(const SceneData&  scene_dat
 	////////////////////////////////////////
 
 	//TEST TEST TEST TEST 
-
+	//kind of like world scale
+	float entity_extra_scaleby = 5.0f;
 
 	glm::mat4 temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f)) *
 						   glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) *
-						   glm::scale(glm::mat4(1.0f), glm::vec3(50)); 
+						   glm::scale(glm::mat4(1.0f), glm::vec3(50.0f) * entity_extra_scaleby); 
 
 	//primitive construction
 	std::shared_ptr<Mesh> m_QuadMesh = CRRT::PrimitiveMeshFactory::Instance().CreateQuad();
@@ -297,17 +328,33 @@ void ForwardVsDeferredRenderingScene::CreateEntities(const SceneData&  scene_dat
 	m_SceneEntities.emplace_back(std::make_shared<Entity>(floor_plane_entity));
 
 	//move up 
-	temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 1.6f, 0.0f));
+	temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 1.6f, 0.0f) * entity_extra_scaleby) * 
+				 glm::scale(glm::mat4(1.0f), glm::vec3(1.0f) * entity_extra_scaleby);
 	Entity cube_entity = Entity(id_idx++, "cube-entity", temp_trans, cube_mesh, plainMat);
 	m_SceneEntities.emplace_back(std::make_shared<Entity>(cube_entity));
 
-	temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 3.5f, 0.0f));
+	temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 3.5f, 0.0f) * entity_extra_scaleby) *
+				 glm::scale(glm::mat4(1.0f), glm::vec3(1.0f) * entity_extra_scaleby);
 	Entity sphere_entity = Entity(id_idx++, "sphere-entity", temp_trans, CRRT::PrimitiveMeshFactory::Instance().CreateSphere(), plainMat);
 	m_SceneEntities.emplace_back(std::make_shared<Entity>(sphere_entity));
 
+	temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 5.0f, 10.0f) * entity_extra_scaleby) *
+				glm::scale(glm::mat4(1.0f), glm::vec3(10.0f, 10.0f, 1.0f) * entity_extra_scaleby);
+	//glasses 
+	Entity transparent_1 = Entity(id_idx++, "transparent_1_entity", temp_trans, cube_mesh, glassMat);
+	m_SceneEntities.emplace_back(std::make_shared<Entity>(transparent_1));
+	temp_trans = glm::translate(temp_trans, glm::vec3(0.0f, 0.0f, 10.0f));
+	Entity transparent_2 = Entity(id_idx++, "transparent_2_entity", temp_trans, cube_mesh, glass2Mat);
+	m_SceneEntities.emplace_back(std::make_shared<Entity>(transparent_2));
+	temp_trans = glm::translate(temp_trans, glm::vec3(0.0f, 0.5f, -5.0f)) *
+				 glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 0.1f, 10.0f));
+	Entity transparent_3 = Entity(id_idx++, "transparent_3_entity", temp_trans, cube_mesh, glassMat);
+	m_SceneEntities.emplace_back(std::make_shared<Entity>(transparent_3));
+
+
 	//testing sponza
 	temp_trans = glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) * 
-				 glm::scale(glm::mat4(1.0f), glm::vec3(0.05f));
+				 glm::scale(glm::mat4(1.0f), glm::vec3(0.05f) * entity_extra_scaleby);
 	std::shared_ptr<Entity> sponza_model = m_NewModelLoader.LoadAsEntity(FilePaths::Instance().GetPath("sponza"), true);
 	sponza_model->SetLocalTransform(temp_trans);
 	m_SceneEntities.emplace_back(sponza_model);
@@ -348,6 +395,8 @@ void ForwardVsDeferredRenderingScene::CreateLightsAndShadowDatas(const SceneLigh
 		m_PtDepthMapCubes.back().Generate();
 		count++;
 	}
+
+
 
 }
 
@@ -601,7 +650,11 @@ void ForwardVsDeferredRenderingScene::ForwardShading()
 	if (m_EnableSkybox)
 		m_Skybox.Draw(m_SkyboxShader, m_SceneRenderer);
 	//Render Opaques entities
-	OpaquePass(m_ForwardShader, m_RenderableEntities);
+	//OpaquePass(m_ForwardShader, m_RenderableEntities);
+	OpaquePass(m_ForwardShader, m_OpaqueEntities);
+
+	//Transparent enitties
+	TransparencyPass(m_ForwardShader, m_TransparentEntities);
 }
 
 void ForwardVsDeferredRenderingScene::DeferredShading()
@@ -614,7 +667,21 @@ void ForwardVsDeferredRenderingScene::DeferredShading()
 	GBufferPass();
 	//OldDeferredLightingPass();
 	DeferredLightingPass();
-	//m_ScreenFBO.UnBind();
+
+	//Use forward shader for transparency pass 
+	if (m_TransparentEntities.size() > 0)
+	{
+		//set up required data 
+		m_ForwardShader.Bind();
+		m_ForwardShader.SetUniformVec3("u_ViewPos", m_Camera->GetPosition());
+		//clear screen image texture depth created by deferred light padd
+		RenderCommand::ClearDepthOnly();
+		//get depth from gbuffer draw on default frame 
+		//to test opaque depth with transparent objects
+		m_GBuffer.BlitDepth();
+		TransparencyPass(m_ForwardShader, m_TransparentEntities);
+	}
+
 }
 
 void ForwardVsDeferredRenderingScene::BeginRenderScene()
@@ -712,12 +779,74 @@ void ForwardVsDeferredRenderingScene::BuildRenderableMeshes(const std::shared_pt
 	auto& renderable_mesh = entity->GetMesh();
 
 	if (renderable_mesh)
+	{
 		m_RenderableEntities.emplace_back(entity);
+
+		//sort into group immediatrly on when built
+		auto& mat = entity->GetMaterial();
+		if (mat)
+		{
+			switch (mat->renderMode)
+			{
+			case CRRT_Mat::RenderingMode::Transparent:
+				m_TransparentEntities.emplace_back(entity);
+				break;
+			case CRRT_Mat::RenderingMode::Opaque:
+				m_OpaqueEntities.emplace_back(entity);
+				break;
+			default:
+				m_OpaqueEntities.emplace_back(entity);
+				break;
+			}
+		}
+	}
 
 	auto& children = entity->GetChildren();
 	for (auto& c : children)
 		BuildRenderableMeshes(c);
 }
+
+
+void ForwardVsDeferredRenderingScene::BuildOpaqueTransparency(const std::vector<std::weak_ptr<Entity>> renderable_entities)
+{
+	m_TransparentEntities.clear();
+	m_OpaqueEntities.clear();
+	for (const auto& e : renderable_entities)
+	{
+		auto& mat = e.lock()->GetMaterial();
+
+		if (mat)
+		{
+			switch (mat->renderMode)
+			{
+			case CRRT_Mat::RenderingMode::Transparent:
+				m_TransparentEntities.emplace_back(e);
+				break;
+			case CRRT_Mat::RenderingMode::Opaque:
+				m_OpaqueEntities.emplace_back(e);
+				break;
+			default:
+				m_OpaqueEntities.emplace_back(e);
+				break;
+			}
+		}
+	}
+
+	flag_rebuild_transparency = false;
+}
+
+void ForwardVsDeferredRenderingScene::SortByViewDistance(std::vector<std::weak_ptr<Entity>> sorting_list)
+{
+	//probably move later
+	for (const auto& e : sorting_list)
+		e.lock()->UpdateViewSqrDist(m_Camera->GetPosition());
+
+	std::sort(sorting_list.begin(), sorting_list.end(), Entity::CompareDistanceToView);
+
+	flag_resort_transparency = false;
+}
+
+
 
 void ForwardVsDeferredRenderingScene::PostUpdateGPUUniformBuffers()
 {
@@ -751,9 +880,7 @@ void ForwardVsDeferredRenderingScene::OpaquePass(Shader& main_shader, const std:
 	main_shader.Bind();
 	for (const auto& e : opaque_entities)
 	{
-		if (e.lock()->GetID() == 0)
-			continue;
-
+	
 		if (!e.expired())
 		{
 			auto& mesh = e.lock()->GetMesh();
@@ -775,6 +902,39 @@ void ForwardVsDeferredRenderingScene::OpaquePass(Shader& main_shader, const std:
 	}
 }
 
+void ForwardVsDeferredRenderingScene::TransparencyPass(Shader& main_shader, const std::vector<std::weak_ptr<Entity>> transparent_entities)
+{
+	main_shader.Bind();
+	RenderCommand::EnableBlend();
+	RenderCommand::EnableDepthTest();
+	RenderCommand::BlendFactor(BlendFactors::SRC_ALPHA, BlendFactors::ONE_MINUS_SCR_A);
+
+	for (const auto& e : transparent_entities)
+	{
+		if (!e.expired())
+		{
+			auto& mesh = e.lock()->GetMesh();
+			auto& mat = e.lock()->GetMaterial();
+
+
+			if (mesh)
+			{
+				if (mat)
+					MaterialShaderBindHelper(*mat, main_shader);
+				else//if no material, use first scene mat as default
+					MaterialShaderBindHelper(*defaultFallBackMaterial, main_shader);
+
+
+				main_shader.SetUniformMat4f("u_Model", e.lock()->GetWorldTransform());
+				m_SceneRenderer.DrawMesh(mesh);
+			}
+
+		}
+	}
+
+	RenderCommand::DisableBlend();
+}
+
 void ForwardVsDeferredRenderingScene::GBufferPass()
 {
 	//Using (Base Colour, Normal, Position, Depth)
@@ -784,7 +944,8 @@ void ForwardVsDeferredRenderingScene::GBufferPass()
 	RenderCommand::DisableBlend();
 	m_GBufferShader.Bind();
 	m_GBufferShader.SetUniform1f("u_Far", *m_Camera->Ptr_Far());
-	OpaquePass(m_GBufferShader, m_RenderableEntities);
+	//OpaquePass(m_GBufferShader, m_RenderableEntities);
+	OpaquePass(m_GBufferShader, m_OpaqueEntities);
 	RenderCommand::EnableBlend();
 	m_GBuffer.UnBind();
 
@@ -836,11 +997,11 @@ void ForwardVsDeferredRenderingScene::OldDeferredLightingPass()
 void ForwardVsDeferredRenderingScene::DeferredLightingPass()
 {
 
-	bool render_2_Screen_fbo = false;
-	if (render_2_Screen_fbo)
-	{
-		m_ScreenFBO.Bind();
-	}
+	//bool render_2_Screen_fbo = false;
+	//if (render_2_Screen_fbo)
+	//{
+	//	m_ScreenFBO.Bind();
+	//}
 
 	//clear only stencil without the depth 
 	//because the previous depth is important for extra object passes
@@ -858,8 +1019,9 @@ void ForwardVsDeferredRenderingScene::DeferredLightingPass()
 	m_GBuffer.BindTextureIdx(1, 1);
 	m_DeferredShader.SetUniform1i("u_GPosition", 2);
 	m_GBuffer.BindTextureIdx(2, 2);
-	m_DeferredShader.SetUniform1i("u_GDepth", 3);
-	m_GBuffer.BindTextureIdx(3, 3);
+	//not in use at the moment 
+	//m_DeferredShader.SetUniform1i("u_GDepth", 3);
+	//m_GBuffer.BindTextureIdx(3, 3);
 
 	m_DeferredShader.SetUniformVec3("u_ViewPos", m_Camera->GetPosition());
 	m_DeferredShader.SetUniform1i("u_PtLightCount", m_PtLightCount);
@@ -869,38 +1031,50 @@ void ForwardVsDeferredRenderingScene::DeferredLightingPass()
 
 	m_DeferredShader.UnBind();
 
-
+	////clear screen image texture
 	//RenderCommand::ClearDepthOnly();
-	RenderCommand::Clear();
+	////get depth from gbuffer
+	//m_GBuffer.BlitDepth();
 
-	m_ForwardShader.Bind();
-	m_ForwardShader.SetUniform1i("u_HasDepthMap", 0);
-	m_ForwardShader.SetUniform1i("u_GBufferMap", 6);
-	m_GBuffer.BindTextureIdx(1, 6);
-	auto& mesh = m_RenderableEntities[0].lock()->GetMesh();
-	auto& mat = m_RenderableEntities[0].lock()->GetMaterial();
-
-
-	if (mesh)
-	{
-		if (mat)
-			MaterialShaderBindHelper(*mat, m_ForwardShader);
-		else//if no material, use first scene mat as default
-			MaterialShaderBindHelper(*defaultFallBackMaterial, m_ForwardShader);
+	//m_ForwardShader.Bind();
+	//m_ForwardShader.SetUniform1i("u_HasDepthMap", 0);
+	//m_ForwardShader.SetUniform1i("u_GBufferMap", 6);
+	//m_GBuffer.BindTextureIdx(1, 6);
+	//auto& mesh = m_RenderableEntities[0].lock()->GetMesh();
+	//auto& mat = m_RenderableEntities[0].lock()->GetMaterial();
 
 
-		m_ForwardShader.SetUniformMat4f("u_Model", m_RenderableEntities[0].lock()->GetWorldTransform());
-		m_SceneRenderer.DrawMesh(mesh);
-	}
-	m_ForwardShader.SetUniform1i("u_HasDepthMap", 0);
-	m_ForwardShader.UnBind();
+	//if (mesh)
+	//{
+	//	if (mat)
+	//		MaterialShaderBindHelper(*mat, m_ForwardShader);
+	//	else//if no material, use first scene mat as default
+	//		MaterialShaderBindHelper(*defaultFallBackMaterial, m_ForwardShader);
+
+
+	//	m_ForwardShader.SetUniformMat4f("u_Model", m_RenderableEntities[0].lock()->GetWorldTransform());
+	//	m_SceneRenderer.DrawMesh(mesh);
+	//}
+	//m_ForwardShader.SetUniform1i("u_HasDepthMap", 0);
+	//m_ForwardShader.UnBind();
 
 }
 
 void ForwardVsDeferredRenderingScene::SceneDebugger()
 {
-	
-	DebugGizmos::DrawSphere(m_PtOrbitOrigin);
+
+	if (m_DebugPointLightRange)
+	{
+		for (const auto& pt : m_PtLights)
+		{
+			DebugGizmos::DrawWireSphere(pt.position, pt.CalculateLightRadius(0.02f), pt.colour);
+		}
+	}
+
+
+	DebugGizmos::DrawSphere(m_PtOrbitOrigin, 5.0f);
+	DebugGizmos::DrawWireThreeDisc(m_PtOrbitOrigin, m_SpawnZoneRadius);
+
 
 	if (dirLightObject.dirLightShadow.debugPara)
 	{
@@ -918,20 +1092,7 @@ void ForwardVsDeferredRenderingScene::SceneDebugger()
 	}
 
 
-	//test test 
-	glm::vec3 vecpt_orbt = m_PtOrbitOrigin - m_PtLights[0].position;
-	//DebugGizmos::DrawSphere(m_PtLights[0].position, 1.0f, m_PtLights[0].colour);
-	vecpt_orbt = glm::normalize(vecpt_orbt);
-	DebugGizmos::DrawRay(m_PtLights[0].position, vecpt_orbt, m_DesiredDistance);
-	//ignore y
-	vecpt_orbt = m_PtOrbitOrigin - m_PtLights[0].position;
-	vecpt_orbt.y = 0.0f; //no difference on y axis
-	vecpt_orbt = glm::normalize(vecpt_orbt);
-	DebugGizmos::DrawRay(m_PtLights[0].position, vecpt_orbt, m_DesiredDistance, m_PtLights[0].colour, 5.0f);
 
-	DebugGizmos::DrawWireThreeDisc(m_PtOrbitOrigin, m_SpawnZoneRadius);
-
-	
 	if (m_PtShadowConfig.debugLight)
 	{
 		for (int i = 0; i < m_PtLightCount; i++)
@@ -1006,7 +1167,7 @@ bool ForwardVsDeferredRenderingScene::AddPointLight(glm::vec3 pos, glm::vec3 col
 	m_PtLights.back().enable = true;
 	m_PtLights.back().attenuation[0] = 0.017f;
 	m_PtLights.back().attenuation[1] = 0.022f;
-	m_PtLights.back().attenuation[2] = 0.04f;
+	m_PtLights.back().attenuation[2] = 0.002f;
 
 	m_PtLightCount++;
 	return true;
@@ -1039,7 +1200,7 @@ void ForwardVsDeferredRenderingScene::MainUI()
 
 	if (ImGui::TreeNode("Camera Properties"))
 	{
-		ImGui::SliderFloat("Move Speed", m_Camera->Ptr_MoveSpeed(), 5.0f, 50.0f);
+		ImGui::SliderFloat("Move Speed", m_Camera->Ptr_MoveSpeed(), 5.0f, 250.0f);
 		ImGui::SliderFloat("Rot Speed", m_Camera->Ptr_RotSpeed(), 0.0f, 2.0f);
 
 		float window_width = (float)window->GetWidth();
@@ -1070,12 +1231,17 @@ void ForwardVsDeferredRenderingScene::MainUI()
 	ImGui::Spacing();
 	ImGui::SeparatorText("Scene Properties");
 	ImGui::ColorEdit3("clear Screen Colour", &m_ClearScreenColour[0]);
+	ExternalMainUI_SceneDebugTreeNode();
 	static int curr_value = 0;
 	const char* render_paths[] = { "Forward", "Deferred" };
 	if (ImGui::Combo("Rendering Path", &curr_value, render_paths, 2))
 		m_RenderingPath = (RenderingPath)curr_value;
 
 	ImGui::Spacing();
+	ImGui::SeparatorText("Scene Entities");
+	ImGui::Text("Entities counts %d", m_RenderableEntities.size());
+	ImGui::Text("Opaque entities %d", m_OpaqueEntities.size());
+	ImGui::Text("Transparent entities %d", m_TransparentEntities.size());
 	ExternalMainUI_LightTreeNode();
 
 
@@ -1153,7 +1319,7 @@ void ForwardVsDeferredRenderingScene::ExternalMainUI_LightTreeNode()
 			ImGui::Spacing();
 			ImGui::SeparatorText("Point Light Orbit");
 			ImGui::DragFloat3("Orbit origin", &m_PtOrbitOrigin[0]);
-			ImGui::SliderFloat("Desired Distance", &m_DesiredDistance, 0.0f, 100.0f);
+			ImGui::SliderFloat("Desired Distance", &m_DesiredDistance, 0.0f, 500.0f);
 			ImGui::SliderFloat("Desired Speed", &m_OrbitSpeed, -20.0f, 50.0f);
 
 			if (ImGui::TreeNode("Shadow Camera Info"))
@@ -1167,7 +1333,7 @@ void ForwardVsDeferredRenderingScene::ExternalMainUI_LightTreeNode()
 
 
 			ImGui::Spacing();
-			ImGui::SliderFloat("Spawn Zone", &m_SpawnZoneRadius, 0.0f, 100.0f);
+			ImGui::SliderFloat("Spawn Zone", &m_SpawnZoneRadius, 0.0f, 500.0f);
 			ImGui::Text("Current Point Light count: %d, MAX: %d", m_PtLightCount, MAX_POINT_LIGHT);
 			if (ImGui::Button("Add Point Light"))
 			{
@@ -1209,6 +1375,23 @@ void ForwardVsDeferredRenderingScene::ExternalMainUI_LightTreeNode()
 	}
 }
 
+void ForwardVsDeferredRenderingScene::ExternalMainUI_SceneDebugTreeNode()
+{
+	ImGui::Spacing();
+	if (ImGui::TreeNode("Debug Scene"))
+	{
+		ImGui::Checkbox("Allow Scene Debug Gizmos", &m_DebugScene);
+		if (m_DebugScene)
+		{
+			ImGui::Checkbox("Draw Point Light Range", &m_DebugPointLightRange);
+			ImGui::Checkbox("Debug Dir Shadow Para", &dirLightObject.dirLightShadow.debugPara);
+		}
+		else
+			ImGui::Text("Check Allow Scene Debug Gizmos");
+		ImGui::TreePop();
+	}
+}
+
 void ForwardVsDeferredRenderingScene::EnititiesUI()
 {
 	if (m_SceneEntities.size() > 0)
@@ -1242,6 +1425,9 @@ void ForwardVsDeferredRenderingScene::EntityDebugUI(Entity& entity)
 		entity.SetLocalTransform(glm::translate(glm::mat4(1.0f), translate) *
 			glm::toMat4(glm::quat(glm::radians(euler))) *
 			glm::scale(glm::mat4(1.0f), scale));
+
+		if (entity.GetMaterial())
+			flag_resort_transparency |= (entity.GetMaterial()->renderMode == CRRT_Mat::RenderingMode::Transparent);
 	}
 	if (entity.GetMaterial())
 		ImGui::Text("Material Name: %s", entity.GetMaterial()->name);
@@ -1289,7 +1475,10 @@ void ForwardVsDeferredRenderingScene::EntityModelMaterial(const Entity& entity)
 		ImGui::Text("1. %s, from mesh: %s", mat->name, entity.GetName());
 		int curr_sel = (int)mat->renderMode;
 		if (ImGui::Combo("Rendering Mode", &curr_sel, CRRT_Mat::GetAllRenderingModesAsName(), (int)CRRT_Mat::RenderingMode::Count))
+		{
 			mat->renderMode = (CRRT_Mat::RenderingMode)curr_sel;
+			flag_rebuild_transparency |= true;
+		}
 		ImGui::ColorEdit4("Colour", &mat->baseColour[0]);
 		tex_id = (mat->baseMap) ? mat->baseMap->GetID() : blank_tex_id;
 		ImGui::Image((ImTextureID)(intptr_t)tex_id, ImVec2(100, 100));
