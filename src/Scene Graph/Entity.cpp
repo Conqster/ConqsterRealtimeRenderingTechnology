@@ -17,6 +17,10 @@ void Entity::UpdateWorldTransform()
 void Entity::MarkTransformDirty()
 {
 	m_DirtyTranform = true;
+
+	//override for now (for renderable mesh
+	UpdateWorldTransform();
+
 	for (auto& c : m_Children)
 		c->MarkTransformDirty();
 }
@@ -33,6 +37,14 @@ const glm::mat4& Entity::GetWorldTransform()
 		UpdateWorldTransform();
 
 	return m_WorldTransform;
+}
+
+glm::mat4* Entity::GetWorldTransformPtr()
+{
+	if (m_DirtyTranform)
+		UpdateWorldTransform();
+
+	return &m_WorldTransform;
 }
 
 const AABB Entity::GetEncapsulatedChildrenAABB()

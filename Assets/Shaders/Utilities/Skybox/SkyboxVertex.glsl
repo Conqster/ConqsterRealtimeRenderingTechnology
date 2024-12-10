@@ -6,8 +6,12 @@ out vec3 v_TexCoords;
 
 layout (std140)  uniform u_CameraMat
 {
+	vec3 viewPos;
+	float far;
 	mat4 projection;
 	mat4 view;
+	//mat3 padding;
+	//vec4 padding;
 };
 
 void main()

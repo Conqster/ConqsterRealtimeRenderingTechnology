@@ -100,7 +100,7 @@ void ForwardVsDeferredRenderingScene::OnUpdate(float delta_time)
 	ResetSceneFrame();
 
 
-	m_ShaderHotReload.Update();
+	//m_ShaderHotReload.Update();
 
 
 	//m_ForwardShader.Bind();
@@ -116,43 +116,47 @@ void ForwardVsDeferredRenderingScene::OnRender()
 	PreUpdateGPUUniformBuffers(*m_Camera);
 	//naive flat out self - children - children into list/collection, easy mutilple interation
 
-	if (frames_count < 1)
+	if (m_FrameCount < 1)
 	{
 		for (const auto& e : m_SceneEntities)
 			BuildRenderableMeshes(e);
 
-		//Build renderable meshes flats out the mesh and sort by grp {Opaque, Transparency}
-		//so if transparent lets sort by view. 
-		if (m_TransparentEntities.size() > 1)
-			SortByViewDistance(m_TransparentEntities);
+		////Build renderable meshes flats out the mesh and sort by grp {Opaque, Transparency}
+		////so if transparent lets sort by view. 
+		if (def_TransparentEntities.size() > 1)
+			SortByViewDistance(def_TransparentEntities);
 	}
 
 
 
-	if (flag_rebuild_transparency)
+	if (b_RebuildTransparency)
 	{
-		BuildOpaqueTransparency(m_RenderableEntities);
-		SortByViewDistance(m_TransparentEntities);
+		BuildOpaqueTransparency(def_RenderableEntities);
+		SortByViewDistance(def_TransparentEntities);
 	}
 
-	if (flag_resort_transparency)
-		SortByViewDistance(m_TransparentEntities);
+	if (b_ResortTransparency)
+		SortByViewDistance(def_TransparentEntities);
+		
+	SortByViewDistance(def_TransparentEntities);
+
+	IntermidateUpdateGPUUniformBuffers(dirLightObject.dirlight, m_PtLights, MAX_POINT_LIGHT);
 
 	switch (m_RenderingPath)
 	{
 	case Forward:
-		ForwardShading();
+		ForwardShading(def_OpaqueEntities, def_TransparentEntities);
 		break;
 	case Deferred:
-		DeferredShading();
+		DeferredShading(def_OpaqueEntities, def_TransparentEntities);
 		break;
 	}
 
 
-	frames_count++;
+	m_FrameCount++;
 
 	if(m_DebugScene)
-		SceneDebugger();
+		OnSceneDebug();
 
 	//return;
 }
@@ -171,28 +175,8 @@ void ForwardVsDeferredRenderingScene::OnDestroy()
 	if (m_PtLightCount > 0)
 		SerialiseScene();
 
-	m_ForwardShader.Clear();
-	m_SceneEntities.clear();
-	m_RenderableEntities.clear();
-	m_ShadowDepthShader.Clear();
-	m_Skybox.Destroy();
-	m_SkyboxShader.Clear();
-	//UniformBuffers
-	m_CamMatUBO.Delete();
-	m_LightDataUBO.Delete();
-	m_EnviUBO.Delete();
 
-	m_GBuffer.Delete();
-	m_GBufferShader.Clear();
-	m_DeferredShader.Clear();
-	
-	if (m_QuadMesh)
-	{
-		m_QuadMesh->Clear();
-		m_QuadMesh = nullptr;
-	}
-
-	m_ScreenFBO.Delete();
+	Scene::OnDestroy();
 }
 
 void ForwardVsDeferredRenderingScene::InitRenderer()
@@ -208,19 +192,6 @@ void ForwardVsDeferredRenderingScene::InitRenderer()
 	//Shadow config modification
 	//etc 
 
-	///////////////////////////////////////
-	// GBUFFER
-	///////////////////////////////////////
-	std::vector<FBO_TextureImageConfig> fbo_img_config =
-	{
-		{FBO_Format::RGBA16F, GL_FLOAT},	//Basecolour-specular power buffer vec4
-		{FBO_Format::RGB16F, GL_FLOAT, FBO_Format::RGB},	//Normal buffer
-		{FBO_Format::RGB16F, GL_FLOAT, FBO_Format::RGB},	//Position buffer 
-		//{FBO_Format::RGBA, GL_UNSIGNED_INT},	//Depth buffer with alpha as model mat shinness
-		//use float for now and fix later
-		{FBO_Format::RGB, GL_FLOAT, FBO_Format::RGB},	//Depth buffer with alpha as model mat shinness
-	};
-	m_GBuffer.Generate(window->GetWidth(), window->GetHeight(), fbo_img_config);
 
 
 	///////////////////////////////////////
@@ -229,26 +200,15 @@ void ForwardVsDeferredRenderingScene::InitRenderer()
 	/*Shader m_DeferredShader;
 	std::shared_ptr<Mesh> m_QuadMesh;
 	Framebuffer m_ScreenFBO;*/
-	m_QuadMesh = CRRT::PrimitiveMeshFactory::Instance().CreateQuad();
-	m_ScreenFBO.Generate(window->GetWidth(), window->GetHeight(), FBO_Format::RGBA16F);
+	SetQuadMesh(CRRT::PrimitiveMeshFactory::Instance().CreateQuad());
 	ShaderFilePath shader_file_path
 	{
-		"Assets/Shaders/Experimental/DeferredShading.vert",
-		"Assets/Shaders/Experimental/DeferredShading.frag"
+		"Assets/Shaders/Deferred/DeferredShading.vert",
+		"Assets/Shaders/Deferred/DeferredShading.frag"
 	};
-	m_DeferredShader.Create("deferred_shading", shader_file_path);
+	def_DeferredShader.Create("deferred_shading", shader_file_path);
 
 
-
-	//screen shader / post process 
-	//Post Process shader
-	ShaderFilePath screen_shader_file_path
-	{
-		//"Assets/Shaders/Learning/MSAA/AA_PostProcess_Vertex.glsl",
-		"Assets/Shaders/Learning/Post Process/QuadScreenVertex.glsl",
-		"Assets/Shaders/Learning/Post Process/PostProcessHDRfrag.glsl"
-	};
-	m_ScreenPostShader.Create("screen_post_shading", screen_shader_file_path);
 }
 
 void ForwardVsDeferredRenderingScene::CreateEntities(const SceneData&  scene_data)
@@ -260,7 +220,7 @@ void ForwardVsDeferredRenderingScene::CreateEntities(const SceneData&  scene_dat
 
 
 	auto& envir_data = scene_data.m_SceneEnvi;
-	m_EnableSkybox = envir_data.m_EnableSkybox;
+	b_EnableSkybox = envir_data.m_EnableSkybox;
 	m_SkyboxInfluencity = envir_data.m_SkyboxInfluencity;
 	m_SkyboxReflectivity = envir_data.m_SkyboxReflectivity;
 	///////////////////////////////////////////////////////////////////////
@@ -275,10 +235,10 @@ void ForwardVsDeferredRenderingScene::CreateEntities(const SceneData&  scene_dat
 		envir_data.m_SkyboxTex.tex_ft,
 		envir_data.m_SkyboxTex.tex_bk,
 	};
-	m_Skybox.Create(def_skybox_faces);
-	m_Skybox.ActivateMap(4);
+	def_Skybox.Create(def_skybox_faces);
+	def_Skybox.ActivateMap(4);
 	//skybox shading
-	m_SkyboxShader.Create(envir_data.m_SkyboxShader.m_Name, envir_data.m_SkyboxShader.m_Vertex, 
+	def_SkyboxShader.Create(envir_data.m_SkyboxShader.m_Name, envir_data.m_SkyboxShader.m_Vertex, 
 						 envir_data.m_SkyboxShader.m_Fragment, envir_data.m_SkyboxShader.m_Geometry);
 
 	////////////////////////////////////////
@@ -304,8 +264,7 @@ void ForwardVsDeferredRenderingScene::CreateEntities(const SceneData&  scene_dat
 	glass2Mat->name = "Glass Material";
 	glass2Mat->baseMap = std::make_shared<Texture>(FilePaths::Instance().GetPath("glass"));
 
-	defaultFallBackMaterial = plainMat;
-
+	def_MeshMaterial = plainMat;
 	////////////////////////////////////////
 	// CREATE ENTITIES 
 	////////////////////////////////////////
@@ -409,18 +368,32 @@ void ForwardVsDeferredRenderingScene::SetRenderingConfiguration(const SceneRende
 		scene_render_config.m_ForwardShader.m_Fragment,
 		scene_render_config.m_ForwardShader.m_Geometry,
 	};
-	m_ForwardShader.Create(scene_render_config.m_ForwardShader.m_Name, shader_file_path);
-	m_ForwardShader.Bind();
+	def_ForwardShader.Create(scene_render_config.m_ForwardShader.m_Name, shader_file_path);
+	def_ForwardShader.Bind();
 	//texture unit Material::TextureCount + 1 >> 5
-	m_ForwardShader.SetUniform1i("u_SkyboxMap", MAT_TEXTURE_COUNT + 1);
+	def_ForwardShader.SetUniform1i("u_SkyboxMap", MAT_TEXTURE_COUNT + 1);
+
+
+	///////////////////////////////////////
+	// GBUFFER
+	///////////////////////////////////////
+	std::vector<FBO_TextureImageConfig> fbo_img_config =
+	{
+		{FBO_Format::RGBA16F, GL_FLOAT},	//Basecolour-specular power buffer vec4
+		{FBO_Format::RGB16F, GL_FLOAT, FBO_Format::RGB},	//Normal buffer
+		{FBO_Format::RGB16F, GL_FLOAT, FBO_Format::RGB},	//Position buffer 
+		//{FBO_Format::RGBA, GL_UNSIGNED_INT},	//Depth buffer with alpha as model mat shinness
+		//use float for now and fix later
+		{FBO_Format::RGB, GL_FLOAT, FBO_Format::RGB},	//Depth buffer with alpha as model mat shinness
+	};
+	def_GBuffer.Generate(window->GetWidth(), window->GetHeight(), fbo_img_config);
 
 	auto& shader_data = scene_render_config.m_GBufferShader;
-	m_GBufferShader.Create(shader_data.m_Name, shader_data.m_Vertex,
+	def_GBufferShader.Create(shader_data.m_Name, shader_data.m_Vertex,
 		shader_data.m_Fragment, shader_data.m_Geometry);
 
-
 	//Track forward shader for hot reloading
-	m_ShaderHotReload.TrackShader(&m_ForwardShader);
+	//m_ShaderHotReload.TrackShader(&m_ForwardShader);
 
 }
 
@@ -431,9 +404,11 @@ void ForwardVsDeferredRenderingScene::CreateGPUDatas()
 	// UNIFORM BUFFERs
 	////////////////////////////////////////
 	//------------------Camera Matrix Data UBO-----------------------------/
-	long long int buf_size = 2 * sizeof(glm::mat4);// +sizeof(glm::vec2);   //to store view, projection
-	m_CamMatUBO.Generate(buf_size);
-	m_CamMatUBO.BindBufferRndIdx(0, buf_size, 0);
+	long long int buf_size = sizeof(glm::vec3);// +sizeof(glm::mat3); //for view pos & mat3 padding
+	buf_size += sizeof(float);// camera far
+	buf_size += 2 * sizeof(glm::mat4);// +sizeof(glm::vec2);   //to store view, projection
+	def_CamMatUBO.Generate(buf_size);
+	def_CamMatUBO.BindBufferRndIdx(0, buf_size, 0);
 
 	//------------------Light Data UBO-----------------------------/
 	//struct
@@ -454,20 +429,7 @@ void ForwardVsDeferredRenderingScene::CreateGPUDatas()
 	m_EnviUBO.BindBufferRndIdx(2, envi_buffer_size, 0);
 
 	//Assign UBO, if necessary 
-	m_ForwardShader.Bind();
-	m_ForwardShader.SetUniformBlockIdx("u_CameraMat", 0);
-	m_ForwardShader.SetUniformBlockIdx("u_LightBuffer", 1);
-	m_ForwardShader.SetUniformBlockIdx("u_EnvironmentBuffer", 2);
-
-	m_SkyboxShader.Bind();
-	m_SkyboxShader.SetUniformBlockIdx("u_CameraMat", 0);
-
-	//if Deferred Shadering / GBuffer
-	m_GBufferShader.Bind();
-	m_GBufferShader.SetUniformBlockIdx("u_CameraMat", 0);
-
-	m_DeferredShader.Bind();
-	m_DeferredShader.SetUniformBlockIdx("u_LightBuffer", 1);
+	UpdateShadersUniformBuffers();
 }
 
 SceneData ForwardVsDeferredRenderingScene::LoadSceneFromFile()
@@ -524,50 +486,50 @@ void ForwardVsDeferredRenderingScene::SerialiseScene()
 		{
 			//forward rendering shader
 			{
-				m_ForwardShader.GetName(),
+				def_ForwardShader.GetName(),
 				//REALLY BAD,
-				(m_ForwardShader.GetShaderFilePath(GL_VERTEX_SHADER)),
-				(m_ForwardShader.GetShaderFilePath(GL_FRAGMENT_SHADER)),
-				(m_ForwardShader.GetShaderFilePath(GL_GEOMETRY_SHADER)),
+				(def_ForwardShader.GetShaderFilePath(GL_VERTEX_SHADER)),
+				(def_ForwardShader.GetShaderFilePath(GL_FRAGMENT_SHADER)),
+				(def_ForwardShader.GetShaderFilePath(GL_GEOMETRY_SHADER)),
 			},
 			//Deferred Rendering: GBuffer Shader
 			{
-				m_GBufferShader.GetName(),
+				def_GBufferShader.GetName(),
 				//REALLY BAD,
-				(m_GBufferShader.GetShaderFilePath(GL_VERTEX_SHADER)),
-				(m_GBufferShader.GetShaderFilePath(GL_FRAGMENT_SHADER)),
-				(m_GBufferShader.GetShaderFilePath(GL_GEOMETRY_SHADER)),
+				(def_GBufferShader.GetShaderFilePath(GL_VERTEX_SHADER)),
+				(def_GBufferShader.GetShaderFilePath(GL_FRAGMENT_SHADER)),
+				(def_GBufferShader.GetShaderFilePath(GL_GEOMETRY_SHADER)),
 			},
 			//Deferred Rendering: Deferred Shader
 			{
-				m_DeferredShader.GetName(),
+				def_DeferredShader.GetName(),
 				//REALLY BAD,
-				(m_DeferredShader.GetShaderFilePath(GL_VERTEX_SHADER)),
-				(m_DeferredShader.GetShaderFilePath(GL_FRAGMENT_SHADER)),
-				(m_DeferredShader.GetShaderFilePath(GL_GEOMETRY_SHADER)),
+				(def_DeferredShader.GetShaderFilePath(GL_VERTEX_SHADER)),
+				(def_DeferredShader.GetShaderFilePath(GL_FRAGMENT_SHADER)),
+				(def_DeferredShader.GetShaderFilePath(GL_GEOMETRY_SHADER)),
 			},
 		},
 		//environment data
 		{
-			m_EnableSkybox,
+			b_EnableSkybox,
 			m_SkyboxInfluencity,
 			m_SkyboxReflectivity,
 			//skybox textures
 			{
-				m_Skybox.GetFacePaths()[0],
-				m_Skybox.GetFacePaths()[1],
-				m_Skybox.GetFacePaths()[2],
-				m_Skybox.GetFacePaths()[3],
-				m_Skybox.GetFacePaths()[4],
-				m_Skybox.GetFacePaths()[5],
+				def_Skybox.GetFacePaths()[0],
+				def_Skybox.GetFacePaths()[1],
+				def_Skybox.GetFacePaths()[2],
+				def_Skybox.GetFacePaths()[3],
+				def_Skybox.GetFacePaths()[4],
+				def_Skybox.GetFacePaths()[5],
 			},
 			//skybox shader
 			{
-				m_SkyboxShader.GetName(),
+				def_SkyboxShader.GetName(),
 				//REALLY BAD,
-				(m_SkyboxShader.GetShaderFilePath(GL_VERTEX_SHADER)),
-				(m_SkyboxShader.GetShaderFilePath(GL_FRAGMENT_SHADER)),
-				(m_SkyboxShader.GetShaderFilePath(GL_GEOMETRY_SHADER)),
+				(def_SkyboxShader.GetShaderFilePath(GL_VERTEX_SHADER)),
+				(def_SkyboxShader.GetShaderFilePath(GL_FRAGMENT_SHADER)),
+				(def_SkyboxShader.GetShaderFilePath(GL_GEOMETRY_SHADER)),
 			},
 		},
 		//lights 
@@ -603,98 +565,10 @@ void ForwardVsDeferredRenderingScene::SerialiseScene()
 
 
 
-void ForwardVsDeferredRenderingScene::ForwardShading()
-{
-	//shadow data retrival
-	if (m_EnableShadows)
-		ShadowPass(m_ShadowDepthShader, m_RenderableEntities); //<----- important for storing shadow data in texture 2D & texture cube map probab;y move to renderer and data is sent back 
-
-	//Start Rendering
-	RenderCommand::Clear();
-	//update uniform buffers with light current state data, e.t.c LightPass
-	PostUpdateGPUUniformBuffers(); //<------- Not really necessary yet
-
-	m_ForwardShader.Bind();
-	m_ForwardShader.SetUniformVec3("u_ViewPos", m_Camera->GetPosition());
-
-	//m_ForwardShader.SetUniform1i("u_EnableSceneShadow", m_EnableShadows);
-	if (m_EnableShadows && m_FrameAsShadow)
-	{
-		m_ForwardShader.SetUniformMat4f("u_DirLightSpaceMatrix", dirLightObject.dirLightShadow.GetLightSpaceMatrix());
-		//tex unit 0 >> texture (base map)
-		//tex unit 1 >> potenially normal map
-		//tex unit 2 >> potenially parallax map
-		//tex unit 3 >> potenially specular map
-		//tex unit 4 >> shadow map (dir Light)
-		//tex unit 5 >> skybox cube map
-		//tex unit 6 >> shadow cube (pt Light)
-		dirDepthMap.Read(MAT_TEXTURE_COUNT);
-		m_ForwardShader.SetUniform1i("u_DirShadowMap", MAT_TEXTURE_COUNT);
-
-		//point light shadow starts at  Material::TextureCount + 2 >> 6
-		for (int i = 0; i < m_PtLightCount; i++)
-		{
-			if (i > MAX_POINT_LIGHT_SHADOW)
-				break;
-
-			m_PtDepthMapCubes[i].Read(MAT_TEXTURE_COUNT + 2 + i);
-			m_ForwardShader.SetUniform1i(("u_PointShadowCubes[" + std::to_string(i) + "]").c_str(), MAT_TEXTURE_COUNT + 2 + i);
-		}
-	}
-
-
-	m_ForwardShader.SetUniform1i("u_PtLightCount", m_PtLightCount);
-	m_ForwardShader.SetUniform1i("u_SceneAsShadow", m_FrameAsShadow);
-
-	//Draw Skybox
-	if (m_EnableSkybox)
-		m_Skybox.Draw(m_SkyboxShader, m_SceneRenderer);
-	//Render Opaques entities
-	//OpaquePass(m_ForwardShader, m_RenderableEntities);
-	OpaquePass(m_ForwardShader, m_OpaqueEntities);
-
-	//Transparent enitties
-	TransparencyPass(m_ForwardShader, m_TransparentEntities);
-}
-
-void ForwardVsDeferredRenderingScene::DeferredShading()
-{
-	//Later remove forward shader from the PostUpdate buffer function 
-	PostUpdateGPUUniformBuffers();
-
-	//Using (Base Colour, Normal, Position, Depth)
-	//Write into the Gbuffer
-	GBufferPass();
-	//OldDeferredLightingPass();
-	DeferredLightingPass();
-
-	//Use forward shader for transparency pass 
-	if (m_TransparentEntities.size() > 0)
-	{
-		//set up required data 
-		m_ForwardShader.Bind();
-		m_ForwardShader.SetUniformVec3("u_ViewPos", m_Camera->GetPosition());
-		//clear screen image texture depth created by deferred light padd
-		RenderCommand::ClearDepthOnly();
-		//get depth from gbuffer draw on default frame 
-		//to test opaque depth with transparent objects
-		m_GBuffer.BlitDepth();
-		TransparencyPass(m_ForwardShader, m_TransparentEntities);
-	}
-
-}
-
 void ForwardVsDeferredRenderingScene::BeginRenderScene()
 {
 	RenderCommand::ClearColour(m_ClearScreenColour);
 	RenderCommand::Clear();
-}
-
-void ForwardVsDeferredRenderingScene::PreUpdateGPUUniformBuffers(Camera& cam)
-{
-	//------------------Camera Matrix Data UBO-----------------------------/
-	m_CamMatUBO.SetSubDataByID(&(cam.CalculateProjMatrix(window->GetAspectRatio())[0][0]), sizeof(glm::mat4), 0);
-	m_CamMatUBO.SetSubDataByID(&(cam.CalViewMat()[0][0]), sizeof(glm::mat4), sizeof(glm::mat4));
 }
 
 void ForwardVsDeferredRenderingScene::ShadowPass(Shader& depth_shader, const std::vector<std::weak_ptr<Entity>> renderable_meshes)
@@ -774,293 +648,8 @@ void ForwardVsDeferredRenderingScene::ShadowPass(Shader& depth_shader, const std
 	RenderCommand::Viewport(0, 0, window->GetWidth(), window->GetHeight());
 }
 
-void ForwardVsDeferredRenderingScene::BuildRenderableMeshes(const std::shared_ptr<Entity>& entity)
-{	
-	auto& renderable_mesh = entity->GetMesh();
 
-	if (renderable_mesh)
-	{
-		m_RenderableEntities.emplace_back(entity);
-
-		//sort into group immediatrly on when built
-		auto& mat = entity->GetMaterial();
-		if (mat)
-		{
-			switch (mat->renderMode)
-			{
-			case CRRT_Mat::RenderingMode::Transparent:
-				m_TransparentEntities.emplace_back(entity);
-				break;
-			case CRRT_Mat::RenderingMode::Opaque:
-				m_OpaqueEntities.emplace_back(entity);
-				break;
-			default:
-				m_OpaqueEntities.emplace_back(entity);
-				break;
-			}
-		}
-	}
-
-	auto& children = entity->GetChildren();
-	for (auto& c : children)
-		BuildRenderableMeshes(c);
-}
-
-
-void ForwardVsDeferredRenderingScene::BuildOpaqueTransparency(const std::vector<std::weak_ptr<Entity>> renderable_entities)
-{
-	m_TransparentEntities.clear();
-	m_OpaqueEntities.clear();
-	for (const auto& e : renderable_entities)
-	{
-		auto& mat = e.lock()->GetMaterial();
-
-		if (mat)
-		{
-			switch (mat->renderMode)
-			{
-			case CRRT_Mat::RenderingMode::Transparent:
-				m_TransparentEntities.emplace_back(e);
-				break;
-			case CRRT_Mat::RenderingMode::Opaque:
-				m_OpaqueEntities.emplace_back(e);
-				break;
-			default:
-				m_OpaqueEntities.emplace_back(e);
-				break;
-			}
-		}
-	}
-
-	flag_rebuild_transparency = false;
-}
-
-void ForwardVsDeferredRenderingScene::SortByViewDistance(std::vector<std::weak_ptr<Entity>> sorting_list)
-{
-	//probably move later
-	for (const auto& e : sorting_list)
-		e.lock()->UpdateViewSqrDist(m_Camera->GetPosition());
-
-	std::sort(sorting_list.begin(), sorting_list.end(), Entity::CompareDistanceToView);
-
-	flag_resort_transparency = false;
-}
-
-
-
-void ForwardVsDeferredRenderingScene::PostUpdateGPUUniformBuffers()
-{
-	unsigned int offset_pointer = 0;
-	offset_pointer = 0;
-	dirLightObject.dirlight.UpdateUniformBufferData(m_LightDataUBO, offset_pointer);
-	//for (int i = 0; i < MAX_POINT_LIGHT; i++)
-		//ptLight[i].UpdateUniformBufferData(m_LightDataUBO, offset_pointer);
-
-	//direction needs to be updated before point light 
-	//has point light is dynamic, but the max light data are updated every frame
-	//if only one light is available, we only update the available light 
-	//and perform directional light before keeps the Light uniform buffer integrity 
-	for (int i = 0; i < m_PtLightCount; i++)
-		if (i < MAX_POINT_LIGHT)
-			m_PtLights[i].UpdateUniformBufferData(m_LightDataUBO, offset_pointer);
-
-
-	//environment
-	offset_pointer = 0;
-	m_EnviUBO.SetSubDataByID(&m_EnableSkybox, sizeof(bool), offset_pointer);
-	offset_pointer += sizeof(int);
-	m_EnviUBO.SetSubDataByID(&m_SkyboxInfluencity, sizeof(float), offset_pointer);
-	offset_pointer += sizeof(float);
-	m_EnviUBO.SetSubDataByID(&m_SkyboxReflectivity, sizeof(float), offset_pointer);
-	//m_SceneShader.SetUniform1i("u_SkyboxMap", 4);
-}
-
-void ForwardVsDeferredRenderingScene::OpaquePass(Shader& main_shader, const std::vector<std::weak_ptr<Entity>> opaque_entities)
-{
-	main_shader.Bind();
-	for (const auto& e : opaque_entities)
-	{
-	
-		if (!e.expired())
-		{
-			auto& mesh = e.lock()->GetMesh();
-			auto& mat = e.lock()->GetMaterial();
-
-
-			if (mesh)
-			{
-				if (mat)
-					MaterialShaderBindHelper(*mat, main_shader);
-				else//if no material, use first scene mat as default
-					MaterialShaderBindHelper(*defaultFallBackMaterial, main_shader);
-
-
-				main_shader.SetUniformMat4f("u_Model", e.lock()->GetWorldTransform());
-				m_SceneRenderer.DrawMesh(mesh);
-			}
-		}
-	}
-}
-
-void ForwardVsDeferredRenderingScene::TransparencyPass(Shader& main_shader, const std::vector<std::weak_ptr<Entity>> transparent_entities)
-{
-	main_shader.Bind();
-	RenderCommand::EnableBlend();
-	RenderCommand::EnableDepthTest();
-	RenderCommand::BlendFactor(BlendFactors::SRC_ALPHA, BlendFactors::ONE_MINUS_SCR_A);
-
-	for (const auto& e : transparent_entities)
-	{
-		if (!e.expired())
-		{
-			auto& mesh = e.lock()->GetMesh();
-			auto& mat = e.lock()->GetMaterial();
-
-
-			if (mesh)
-			{
-				if (mat)
-					MaterialShaderBindHelper(*mat, main_shader);
-				else//if no material, use first scene mat as default
-					MaterialShaderBindHelper(*defaultFallBackMaterial, main_shader);
-
-
-				main_shader.SetUniformMat4f("u_Model", e.lock()->GetWorldTransform());
-				m_SceneRenderer.DrawMesh(mesh);
-			}
-
-		}
-	}
-
-	RenderCommand::DisableBlend();
-}
-
-void ForwardVsDeferredRenderingScene::GBufferPass()
-{
-	//Using (Base Colour, Normal, Position, Depth)
-	//Write into the Gbuffer
-	m_GBuffer.Bind();
-	RenderCommand::Clear();
-	RenderCommand::DisableBlend();
-	m_GBufferShader.Bind();
-	m_GBufferShader.SetUniform1f("u_Far", *m_Camera->Ptr_Far());
-	//OpaquePass(m_GBufferShader, m_RenderableEntities);
-	OpaquePass(m_GBufferShader, m_OpaqueEntities);
-	RenderCommand::EnableBlend();
-	m_GBuffer.UnBind();
-
-
-}
-
-void ForwardVsDeferredRenderingScene::OldDeferredLightingPass()
-{
-	//Draw output to Screen buffer
-	//what is required 
-	//uniform sampler2D u_GBaseColour;
-	//uniform sampler2D u_GNormal;
-	//uniform sampler2D u_GPosition;
-	//uniform sampler2D u_GDepth_MatShinness;
-
-
-	//const int MAX_POINT_LIGHTS = 1000;
-	//const int MAX_POINT_LIGHT_SHADOW = 10;
-	////--------------uniform--------------/
-	//uniform vec3 u_ViewPos;
-	//uniform int u_PtLightCount = 0;
-
-	////Light specify
-	//layout(std140) uniform u_LightBuffer
-	//{
-	//	DirectionalLight dirLight;                  //aligned
-	//	PointLight pointLights[MAX_POINT_LIGHTS];   //aligned
-	//};
-
-	m_DeferredShader.Bind();
-	m_DeferredShader.SetUniform1i("u_GBaseColourSpec", 0);
-	m_GBuffer.BindTextureIdx(0, 0);
-	m_DeferredShader.SetUniform1i("u_GNormal", 1);
-	m_GBuffer.BindTextureIdx(1, 1);
-	m_DeferredShader.SetUniform1i("u_GPosition", 2);
-	m_GBuffer.BindTextureIdx(2, 2);
-	m_DeferredShader.SetUniform1i("u_GDepth", 3);
-	m_GBuffer.BindTextureIdx(3, 3);
-
-	m_DeferredShader.SetUniformVec3("u_ViewPos", m_Camera->GetPosition());
-	m_DeferredShader.SetUniform1i("u_PtLightCount", m_PtLightCount);
-
-	///m_Scre
-	m_SceneRenderer.DrawMesh(m_QuadMesh);
-
-	m_DeferredShader.UnBind();
-}
-
-void ForwardVsDeferredRenderingScene::DeferredLightingPass()
-{
-
-	//bool render_2_Screen_fbo = false;
-	//if (render_2_Screen_fbo)
-	//{
-	//	m_ScreenFBO.Bind();
-	//}
-
-	//clear only stencil without the depth 
-	//because the previous depth is important for extra object passes
-	//like transparent pass etc
-	//RenderCommand::Clear();
-
-	//RenderCommand::ClearStencilOnly();
-
-
-
-	m_DeferredShader.Bind();
-	m_DeferredShader.SetUniform1i("u_GBaseColourSpec", 0);
-	m_GBuffer.BindTextureIdx(0, 0);
-	m_DeferredShader.SetUniform1i("u_GNormal", 1);
-	m_GBuffer.BindTextureIdx(1, 1);
-	m_DeferredShader.SetUniform1i("u_GPosition", 2);
-	m_GBuffer.BindTextureIdx(2, 2);
-	//not in use at the moment 
-	//m_DeferredShader.SetUniform1i("u_GDepth", 3);
-	//m_GBuffer.BindTextureIdx(3, 3);
-
-	m_DeferredShader.SetUniformVec3("u_ViewPos", m_Camera->GetPosition());
-	m_DeferredShader.SetUniform1i("u_PtLightCount", m_PtLightCount);
-
-	///m_Scre
-	m_SceneRenderer.DrawMesh(m_QuadMesh);
-
-	m_DeferredShader.UnBind();
-
-	////clear screen image texture
-	//RenderCommand::ClearDepthOnly();
-	////get depth from gbuffer
-	//m_GBuffer.BlitDepth();
-
-	//m_ForwardShader.Bind();
-	//m_ForwardShader.SetUniform1i("u_HasDepthMap", 0);
-	//m_ForwardShader.SetUniform1i("u_GBufferMap", 6);
-	//m_GBuffer.BindTextureIdx(1, 6);
-	//auto& mesh = m_RenderableEntities[0].lock()->GetMesh();
-	//auto& mat = m_RenderableEntities[0].lock()->GetMaterial();
-
-
-	//if (mesh)
-	//{
-	//	if (mat)
-	//		MaterialShaderBindHelper(*mat, m_ForwardShader);
-	//	else//if no material, use first scene mat as default
-	//		MaterialShaderBindHelper(*defaultFallBackMaterial, m_ForwardShader);
-
-
-	//	m_ForwardShader.SetUniformMat4f("u_Model", m_RenderableEntities[0].lock()->GetWorldTransform());
-	//	m_SceneRenderer.DrawMesh(mesh);
-	//}
-	//m_ForwardShader.SetUniform1i("u_HasDepthMap", 0);
-	//m_ForwardShader.UnBind();
-
-}
-
-void ForwardVsDeferredRenderingScene::SceneDebugger()
+void ForwardVsDeferredRenderingScene::OnSceneDebug()
 {
 
 	if (m_DebugPointLightRange)
@@ -1121,42 +710,9 @@ void ForwardVsDeferredRenderingScene::ResizeBuffers(unsigned int width, unsigned
 {
 	m_PrevViewWidth = width;
 	m_PrevViewHeight = height;
-	m_GBuffer.ResizeBuffer(width, height);
-	m_ScreenFBO.ResizeBuffer(width, height);
+	def_GBuffer.ResizeBuffer(width, height);
 }
 
-void ForwardVsDeferredRenderingScene::MaterialShaderBindHelper(Material& mat, Shader& shader)
-{
-	unsigned int tex_units = 0;
-	shader.SetUniformVec4("u_Material.baseColour", mat.baseColour);
-	if (mat.baseMap)
-	{
-		mat.baseMap->Activate(tex_units);
-		shader.SetUniform1i("u_Material.baseMap", tex_units++);
-	}
-	if (mat.normalMap)
-	{
-		mat.normalMap->Activate(tex_units);
-		shader.SetUniform1i("u_Material.normalMap", tex_units++);
-	}
-	if (mat.specularMap)
-	{
-		mat.specularMap->Activate(tex_units);
-		shader.SetUniform1i("u_Material.specularMap", tex_units++);
-	}
-	//if (mat.parallaxMap)
-	//{
-	//	mat.parallaxMap->Activate(tex_units);
-	//	shader.SetUniform1i("u_Material.parallaxMap", tex_units++);
-	//}
-	//shader.SetUniform1i("u_Material.isTransparent", (mat.renderMode == CRRT_Mat::RenderingMode::Transparent));
-	shader.SetUniform1i("u_Material.useNormal", mat.useNormal && mat.normalMap);
-	//Ignore Specular Map
-	shader.SetUniform1i("u_Material.hasSpecularMap", (mat.specularMap != nullptr));
-	shader.SetUniform1i("u_Material.shinness", mat.shinness);
-	//shader.SetUniform1i("u_Material.useParallax", mat.useParallax);
-	//shader.SetUniform1f("u_Material.parallax", mat.heightScale);
-}
 
 bool ForwardVsDeferredRenderingScene::AddPointLight(glm::vec3 pos, glm::vec3 col)
 {
@@ -1239,9 +795,18 @@ void ForwardVsDeferredRenderingScene::MainUI()
 
 	ImGui::Spacing();
 	ImGui::SeparatorText("Scene Entities");
-	ImGui::Text("Entities counts %d", m_RenderableEntities.size());
-	ImGui::Text("Opaque entities %d", m_OpaqueEntities.size());
-	ImGui::Text("Transparent entities %d", m_TransparentEntities.size());
+	ImGui::Text("Entities counts %d", def_RenderableEntities.size());
+	ImGui::Text("Opaque entities %d", def_OpaqueEntities.size());
+	ImGui::Text("Transparent entities %d", def_TransparentEntities.size());
+
+	ImGui::Text("Transparent Order: ");
+	for (const auto& e : def_TransparentEntities)
+		if (!e.expired())
+		{
+			ImGui::SameLine();
+			ImGui::Text("%d", e.lock()->objectID);
+		}
+
 	ExternalMainUI_LightTreeNode();
 
 
@@ -1267,7 +832,7 @@ void ForwardVsDeferredRenderingScene::ExternalMainUI_LightTreeNode()
 		ImGui::SeparatorText("Environment");
 		if (ImGui::TreeNode("Skybox"))
 		{
-			ImGui::Checkbox("Use Skybox", &m_EnableSkybox);
+			ImGui::Checkbox("Use Skybox", &b_EnableSkybox);
 			ImGui::SliderFloat("Skybox influencity", &m_SkyboxInfluencity, 0.0f, 1.0f);
 			ImGui::SliderFloat("Skybox reflectivity", &m_SkyboxReflectivity, 0.0f, 1.0f);
 
@@ -1427,7 +992,7 @@ void ForwardVsDeferredRenderingScene::EntityDebugUI(Entity& entity)
 			glm::scale(glm::mat4(1.0f), scale));
 
 		if (entity.GetMaterial())
-			flag_resort_transparency |= (entity.GetMaterial()->renderMode == CRRT_Mat::RenderingMode::Transparent);
+			b_ResortTransparency |= (entity.GetMaterial()->renderMode == CRRT_Mat::RenderingMode::Transparent);
 	}
 	if (entity.GetMaterial())
 		ImGui::Text("Material Name: %s", entity.GetMaterial()->name);
@@ -1477,7 +1042,7 @@ void ForwardVsDeferredRenderingScene::EntityModelMaterial(const Entity& entity)
 		if (ImGui::Combo("Rendering Mode", &curr_sel, CRRT_Mat::GetAllRenderingModesAsName(), (int)CRRT_Mat::RenderingMode::Count))
 		{
 			mat->renderMode = (CRRT_Mat::RenderingMode)curr_sel;
-			flag_rebuild_transparency |= true;
+			b_RebuildTransparency |= true;
 		}
 		ImGui::ColorEdit4("Colour", &mat->baseColour[0]);
 		tex_id = (mat->baseMap) ? mat->baseMap->GetID() : blank_tex_id;
@@ -1510,14 +1075,14 @@ void ForwardVsDeferredRenderingScene::GBufferDisplayUI()
 		static int scale = 1;
 		ImGui::SliderInt("image scale", &scale, 1, 5);
 		ImVec2 img_size(500.0f * scale, 500.0f * scale);
-		img_size.y *= (m_GBuffer.GetSize().y / m_GBuffer.GetSize().x); //invert
-		ImGui::Text("Colour Attachment Count: %d", m_GBuffer.GetColourAttachmentCount());
+		img_size.y *= (def_GBuffer.GetSize().y / def_GBuffer.GetSize().x); //invert
+		ImGui::Text("Colour Attachment Count: %d", def_GBuffer.GetColourAttachmentCount());
 		//render image base on how many avaliable render tragets
-		for (unsigned int i = 0; i < m_GBuffer.GetColourAttachmentCount(); i++)
+		for (unsigned int i = 0; i < def_GBuffer.GetColourAttachmentCount(); i++)
 		{
 			ImGui::PushID(&i);//use this id 
 			ImGui::Separator();
-			ImGui::Image((ImTextureID)(intptr_t)m_GBuffer.GetColourAttachment(i), img_size, ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f));
+			ImGui::Image((ImTextureID)(intptr_t)def_GBuffer.GetColourAttachment(i), img_size, ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f));
 			ImGui::PopID();
 		}
 
@@ -1526,20 +1091,3 @@ void ForwardVsDeferredRenderingScene::GBufferDisplayUI()
 }
 
 
-
-
-/// <summary>
-/// Just for debugging Screen frame buffer output
-/// </summary>
-void ForwardVsDeferredRenderingScene::ScreenFBODisplayUI()
-{
-	ImGui::Begin("Screen FBO");
-	static int scale = 1;
-	ImGui::SliderInt("image scale", &scale, 1, 5);
-	ImVec2 img_size(500.0f * scale, 500.0f * scale);
-	img_size.y *= (m_ScreenFBO.GetSize().y / m_ScreenFBO.GetSize().x); //invert
-	ImGui::Separator();
-	ImGui::Image((ImTextureID)(intptr_t)m_ScreenFBO.GetColourAttachment(), img_size, ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f));
-
-	ImGui::End();
-}

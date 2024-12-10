@@ -40,8 +40,9 @@ void UniformBuffer::SetBufferSubData(const void* data, unsigned long long int si
 	GLCall(glBufferSubData(GL_UNIFORM_BUFFER, offset, size, data));
 }
 
-void UniformBuffer::BindBufferRndIdx(const unsigned int block_idx, unsigned long long int size, unsigned int offset) const
+void UniformBuffer::BindBufferRndIdx(const unsigned int block_idx, unsigned long long int size, unsigned int offset)
 {
+	m_BlockIdx = block_idx;
 	GLCall(glBindBufferRange(GL_UNIFORM_BUFFER, block_idx, m_ID, offset, size));
 }
 

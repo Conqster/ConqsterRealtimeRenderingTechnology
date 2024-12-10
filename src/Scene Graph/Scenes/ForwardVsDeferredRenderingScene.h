@@ -30,6 +30,8 @@ public:
 	virtual void OnRender() override;
 	virtual void OnRenderUI() override;
 
+	virtual void OnSceneDebug() override;
+
 	virtual void OnDestroy() override;
 
 private:
@@ -47,35 +49,13 @@ private:
 
 	//Scene Properties 
 	bool m_EnableShadows = true;
-	bool m_EnableSkybox = false;
-	float m_SkyboxInfluencity = 0.2f;
-	float m_SkyboxReflectivity = 0.8f;
 
 	//Scene Resources
-	Shader m_ForwardShader;
-	std::shared_ptr<Material> defaultFallBackMaterial; //shared_ptr, just in case to take ownership if other ref gets deleted
+	//std::shared_ptr<Material> defaultFallBackMaterial; //shared_ptr, just in case to take ownership if other ref gets deleted
 	std::vector<std::shared_ptr<Entity>> m_SceneEntities;
-	std::vector<std::weak_ptr<Entity>> m_RenderableEntities;
-	std::vector<std::weak_ptr<Entity>> m_OpaqueEntities;
-	std::vector<std::weak_ptr<Entity>> m_TransparentEntities;
 	Shader m_ShadowDepthShader;  //this is not scene deoth shader
-	Skybox m_Skybox;
-	Shader m_SkyboxShader;
-	//UniformBuffers
-	UniformBuffer m_CamMatUBO;
-	UniformBuffer m_LightDataUBO;
-	UniformBuffer m_EnviUBO;
-	//GBuffer (Light accumulation, Diffuse, Specular, Normal) 
-	//Using (Base Colour, Normal, Position, Depth)
-	MRTFramebuffer m_GBuffer;
-	Shader m_GBufferShader;
 	int m_PrevViewWidth;
 	int m_PrevViewHeight;
-	Shader m_DeferredShader;
-	std::shared_ptr<Mesh> m_QuadMesh;
-	Framebuffer m_ScreenFBO;
-	Shader m_ScreenPostShader;
-	ShaderHotReload  m_ShaderHotReload;
 	
 
 	//Utilities
@@ -88,41 +68,12 @@ private:
 	bool m_DebugScene = false;
 	bool m_DebugPointLightRange = false;
 
-
-	//Shading
-	enum RenderingPath
-	{
-		Forward,
-		Deferred
-	}m_RenderingPath = Forward;
-	void ForwardShading();
-	void DeferredShading();
-
 	//Begin Scene Render
 	void BeginRenderScene();
-	void PreUpdateGPUUniformBuffers(Camera& cam); //camera ubo
 	void ShadowPass(Shader& depth_shader, const std::vector<std::weak_ptr<Entity>> renderable_meshes);
 
-	//Pre-Rendering
-	unsigned int frames_count = 0;
-	bool flag_rebuild_transparency = false;
-	bool flag_resort_transparency = false;
-	void BuildRenderableMeshes(const std::shared_ptr<Entity>& entity);
-	void BuildOpaqueTransparency(const std::vector<std::weak_ptr<Entity>> renderable_entities);
-	void SortByViewDistance(std::vector<std::weak_ptr<Entity>> sorting_list);
 
-	//Scene Render
-	void PostUpdateGPUUniformBuffers(); //light ubo after scene is sorted & light pass
-
-	//Passes
-	void OpaquePass(Shader& main_shader, const std::vector<std::weak_ptr<Entity>> opaque_entities);
-	void TransparencyPass(Shader& main_shader, const std::vector<std::weak_ptr<Entity>> transparent_entities);
-	//Deferred Pass
-	void GBufferPass();
-	void OldDeferredLightingPass();
-	void DeferredLightingPass();
-	void SceneDebugger();
-
+	
 	void ResetSceneFrame();
 
 	////////////////////////////////
@@ -153,7 +104,6 @@ private:
 	//need to take this out later
 	void ResizeBuffers(unsigned int width, unsigned int height);
 
-	void MaterialShaderBindHelper(Material& mat, Shader& shader);
 	bool AddPointLight(glm::vec3 location, glm::vec3 colour);
 
 
@@ -167,5 +117,12 @@ private:
 	void EntityModelMaterial(const Entity& entity);
 
 	void GBufferDisplayUI();
-	void ScreenFBODisplayUI();
+	//void ScreenFBODisplayUI();
 };
+
+
+
+//rendeable mesh
+//mesh data 
+//transform 
+//material

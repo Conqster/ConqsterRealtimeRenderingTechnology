@@ -7,17 +7,6 @@
 #include "Camera.h"
 #include <windows.h>
 
-#include "Scene Graph/Scenes/MainScene.h"
-#include "Scene Graph/Scenes/Light&ModelScene.h"
-#include "Scene Graph/Scenes/AdvanceOpenGLScene.h"
-#include "Scene Graph/Scenes/FaceCullingScene.h"
-#include "Scene Graph/Scenes/Textures_FrameBufferScene.h"
-#include "Scene Graph/Scenes/GeometryScene.h"
-#include "Scene Graph/Scenes/InstancingScene.h"
-#include "Scene Graph/Scenes/AntiAliasingScene.h"
-//#include "Scene Graph/Scenes/AdvanceLightingScene.h"
-//#include "Scene Graph/Scenes/ParallaxExperimentalScene.h"
-#include "Scene Graph/Scenes/ExperimentScene.h"
 #include "Scene Graph/Scenes/ForwardVsDeferredRenderingScene.h"
 
 //FOR TESTING: Remove later
@@ -87,34 +76,10 @@ void Game::OnStart()
 
 	//Register scenes
 	m_SceneManager = new SceneManager();
-	//m_SceneManager->RegisterNewScene<MainScene>("Main Scene");
-	m_SceneManager->RegisterNewScene<Texture_FrameBufferScene>("Texture_FrameBufferScene");
-	//m_SceneManager->RegisterNewScene<Light_ModelScene>("Light Model");
-	//m_SceneManager->RegisterNewScene<AdvanceOpenGLScene>("Advance Scene");
-	m_SceneManager->RegisterNewScene<FaceCullingScene>("Face Culling");
-	m_SceneManager->RegisterNewScene<GeometryScene>("Geometry Scene");
-	//m_SceneManager->RegisterNewScene<InstancingScene>("Instance Scene");
-	m_SceneManager->RegisterNewScene<AntiAliasingScene>("AntiAliasing Scene");
-	//m_SceneManager->RegisterNewScene<AdvanceLightingScene>("Advance Lighting Scene");
-	//m_SceneManager->RegisterNewScene<ParallaxExperimentalScene>("Parallax Scene");
-	m_SceneManager->RegisterNewScene<ExperimentScene>("ReWorking_Scene_Rendering");
 	m_SceneManager->RegisterNewScene<ForwardVsDeferredRenderingScene>("ForwardVsDeferredRendering_Scene");
 
 	//Load
-	//m_CurrentScene = m_SceneManager->LoadScene("Instance Scene", m_Window);
-	//m_CurrentScene = m_SceneManager->LoadScene("Advance Lighting Scene", m_Window);
-	//m_CurrentScene = m_SceneManager->LoadScene("Parallax Scene", m_Window);
-	//m_CurrentScene = m_SceneManager->LoadScene("ReWorking_Scene_Rendering", m_Window);
 	m_CurrentScene = m_SceneManager->LoadScene("ForwardVsDeferredRendering_Scene", m_Window);
-	//m_CurrentScene = m_SceneManager->LoadScene("Face Culling", m_Window);
-	//m_CurrentScene = m_SceneManager->LoadScene("Texture_FrameBufferScene", m_Window);
-	//m_CurrentScene = m_SceneManager->LoadScene("AntiAliasing Scene", m_Window);
-	//m_CurrentScene = m_SceneManager->LoadScene("Main Scene", m_Window);
-
-
-
-
-
 
 
 	//Sample to get file path with key
