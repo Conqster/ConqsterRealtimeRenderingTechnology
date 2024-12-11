@@ -1,4 +1,4 @@
-# Deferred and Forward Rendering Comparison
+# <p align = "center"> Deferred and Forward Rendering Comparison </p>
 
 ## Table of Content
 - [Introdution/Scene Setup](#introdutionscene-setup)
@@ -37,18 +37,18 @@ NOTE: NO SHADOW (SHADOW DATA CALCUALTION & STORAGE) OMIMENTED.
         - (y): Scaling factor,
         - (n): Step number.
 
-- Scene src file: [ForwardVsDeferredScene.h](src/Scene Graph/Scenes/ForwardVsDeferredRenderingScene.h) & [.cpp](src/Scene Graph/Scenes/ForwardVsDeferredRenderingScene.cpp)
+- Scene src file: [ForwardVsDeferredScene.h](../src/Scene%20Graph/Scenes/ForwardVsDeferredRenderingScene.h) & [.cpp](../src/Scene%20Graph/Scenes/ForwardVsDeferredRenderingScene.cpp)
 
 ### Shaders
 
 | Name           | Vertex               | Fragment               |
 |----------------|----------------------|------------------------|
-| Forward Shader | [StandardVertex.glsl](Assets/Shaders/StandardVertex.glsl)| [StandardFrag.glsl](Assets/Shaders/StandardFrag2.glsl)|
-| G-Buffer Shader| [BasicVertexPos.vert](Assets/Shaders/Experimental/BasicVertexPos.vert)| [GBufferFrag.glsl](Assets/Shaders/GBufferFrag.glsl)|
-| Deferred Shader| [DeferredShading.vert](Assets/Shaders/Experimental/DeferredShading.vert)| [DeferredShading.frag](Assets/Shaders/Experimental/DeferredShading.frag)|
+| Forward Shader | [StandardVertex.glsl](../Assets/Shaders/StandardVertex.glsl)| [StandardFrag.glsl](../Assets/Shaders/StandardFrag2.glsl)|
+| G-Buffer Shader| [BasicVertexPos.vert](../Assets/Shaders/Experimental/BasicVertexPos.vert)| [GBufferFrag.glsl](../Assets/Shaders/GBufferFrag.glsl)|
+| Deferred Shader| [DeferredShading.vert](../Assets/Shaders/Experimental/DeferredShading.vert)| [DeferredShading.frag](../Assets/Shaders/Experimental/DeferredShading.frag)|
 
 
-## <p align = "center"> G-Buffer </p>
+##  G-Buffer 
 The G-Buffer uses a Multiple Render Target (MRT) setup to render the required properties of the scene in a single pass.
 
 ### Memory Size
