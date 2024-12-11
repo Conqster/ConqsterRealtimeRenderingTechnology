@@ -17,12 +17,14 @@ The primary aim of this project is to deepen my understanding of:
 
 ## Current Features
 ### Rendering Techniques
+- Deferred Rendering --> [Compared with Forward Rendering](Docs/DeferredVsForwardRendering.md)
 - Environment Mapping (Skybox)
 - Scene Rendering Entities Sorting (Spatial Ordering for Transparency)
 - Debug Gizmos Primitive
 - MRT (Multi-Render Target Framebuffer, for Geometric Buffer (GBuffer), multi render output etc)
 - Light Source (Directional, Point & Spot)
 - Omnidirectional Shadow mapping for Point Lights
+- Texture Mapping (Diffuse map, Normal map, Parallax map)
 - Directional Light Shadow mapping
 - Multisample Anti-alising (MSAA)
 - Object Instancing
