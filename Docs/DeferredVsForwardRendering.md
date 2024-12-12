@@ -5,7 +5,11 @@
     - [Shaders](#shaders)
 - [G-Buffer](#g-buffer)
     - [Memory Size](#memory-size)
-- Lights
+- [Lights](#lights)
+    - [GPU Structure & Size](#gpu-structure--size)
+- [Scene Models/Entities](#modelsentitiesobjects)
+    - [Vertex Attributes](#vertex-attributes)
+    - [Fragment Attributes](#fragment-attribute)
 - Rendering Paths
  - Forward Path
     - Opaque Pass
@@ -22,14 +26,15 @@
 
 ## Introdution/Scene Setup
 - Screen Resolution: 2560 x 1440.
-- Hardware API: OpenGL 
+- Graphics API: OpenGL 
 - Geometry Buffer (G-Buffer): 
-    - 2 RGB texture (normal, position attribute).
-    - RGBA (base colour as RGB and specularity as A).
+    - 2 RGB textures (normal, position attribute).
+    - 1 RGBA (base colour as RGB and specularity as A).
 - Uniform buffer(UBO): 2 x UBO (camera & light attribute).
 - Frame buffer (FBO): 2 X FBO (default, Multi-Render Target(MRT) for G-Buffer).
-- 
-NOTE: NO SHADOW (SHADOW DATA CALCUALTION & STORAGE) OMIMENTED.
+- Simplification
+    - No shadow data calculation or storage.
+    - Emphasis is placed on rendering efficiency over strict physical light accuracy.
 - Lights:
     - One Directional Light (On & Off).
     - Multiple Point Light count X<sup>(y*n-1)</sup>, where
@@ -47,9 +52,26 @@ NOTE: NO SHADOW (SHADOW DATA CALCUALTION & STORAGE) OMIMENTED.
 | G-Buffer Shader| [BasicVertexPos.vert](../Assets/Shaders/Experimental/BasicVertexPos.vert)| [GBufferFrag.glsl](../Assets/Shaders/GBufferFrag.glsl)|
 | Deferred Shader| [DeferredShading.vert](../Assets/Shaders/Experimental/DeferredShading.vert)| [DeferredShading.frag](../Assets/Shaders/Experimental/DeferredShading.frag)|
 
+### Scene Entities
+- Models: Sponza
+- Primitives:
+    - Cube Primitive: cube, elongated cube for glass.
+    - Plane/Quad Primitive: ground.
+    - Sphere Primitive.
 
 ##  G-Buffer 
 The G-Buffer uses a Multiple Render Target (MRT) setup to render the required properties of the scene in a single pass.
+
+```
+std::vector<FBO_TextureImageConfig> img_config = 
+{
+    //internalformat //datatype   //format
+    {RGBA16F,       GL_FLOAT,     RGBA}, //<----------- Base colour(RGB) specular power (A)
+    {RGB16F, GL_FLOAT, RGB}, //<----------------------- Normal attachment 
+    {RGB16F, GL_FLOAT, RGB} //<------------------------ Position attachment
+};
+m_GBuffer.Generate(screen_width, screen_height, img_config);
+```
 
 ### Memory Size
 
@@ -70,3 +92,105 @@ The G-Buffer uses a Multiple Render Target (MRT) setup to render the required pr
 - Total Memory Usage:
     - Without Multisampling or Double Buffering (Ping-Pong Rendering):
         - Grand Total: *70.31 MB (Colour) + 7.04 MB (Depth))* ~77.35 MB
+
+
+
+## Lights
+
+Types:
+- Directional Light 
+- Point Light (focus of the experiment)
+
+### GPU Structure & Size
+
+```
+struct PointLight
+{
+    vec3 colour; //<--------- 12 bytes r 4 
+    bool enable; //<--------- << 4 bytes 
+    vec3 position; //<------- 12 bytes r 4
+    float ambient; //<------- << 4 bytes
+    vec3 attenuation; //<---- 12 bytes r 4
+    float diffuse; //<------- << 4 bytes
+    float specular; //<------ 4 bytes r 12
+    float far; //<----------- << 4 bytes r 8
+    vec2 padding; //<-------- << 8 bytes
+};  //<--------------------------------------------- Total: 64 bytes
+
+struct DirectionalLight
+{
+    vec3 colour; //<------------ 12 bytes r 4
+    bool enable; //<------------ << 4 bytes
+    vec3 direction; //<--------- 12 bytes r 4
+    float ambinent; //<--------- << 4 bytes
+    float diffuse; //<---------- 4 bytes r 12
+    float specular; //<--------- << 4 bytes r 8
+    vec2 padding; //<----------- << 8 bytes
+}; //<----------------------------------------------- Total: 48 bytes
+
+uniform int u_PtLightCount = 0;
+const int MAX_POINT_LIGHTS = 1000; //<--------------- arbitrary value
+
+layout (std140) uniform u_LightBuffer
+{
+    DirectionalLight dirLight;                  //aligned
+    PointLight pointLights[MAX_POINT_LIGHTS];   //aligned
+};
+```
+Key Details:
+- `u_PtLightCount` governs the number of points in the scene. 
+- The `vec3 colour` represent a consistent base colour for ambinet, diffuse, and specular light components, while individual floats scale thier intensities independently. 
+- `Point Light - far` ominent for this experiment, but governs point light range perspective. 
+
+Memory Usage:
+- Directional Light: 48 bytes 
+- Point Lights: *MAX_POINT_LIGHTS * 64 bytes = 1000 * 64 bytes* = 64,000 bytes
+- *Total Size: 48 bytes + 64,000 bytes* = ~ 64 KB.
+
+## Models/Entities/Objects
+
+### Vertex Attributes
+
+```
+layout (location = 0) in vec4 pos;
+layout (location = 1) in vec4 col;
+layout (location = 2) in vec2 uv;
+layout (location = 3) in vec3 nor;
+
+layout (location = 4) in vec3 tangent;
+layout (location = 5) in vec3 biTangent;
+
+out VS_OUT
+{
+	vec3 fragPos; //<------------- Frag position
+	vec2 UVs;     //<------------- Texture coord
+	vec4 fragPosLightSpace; //<--- For Shadow mapping (not used in this experiment)
+	mat3 TBN;     //<------------- Tangent-Bitangent-Normal matrix
+	vec3 normal;  //<------------- Normal vector
+}vs_out;
+
+
+uniform mat4 u_Model; //<--------- model transformation matrix
+```
+
+### Fragment Attribute 
+```
+struct Material
+{
+	bool isTransparent;
+	vec4 baseColour;
+	
+	sampler2D baseMap;
+	sampler2D normalMap;
+	bool useNormal;
+	
+	sampler2D parallaxMap;
+	bool useParallax;
+	float parallax;
+	
+	sampler2D specularMap;
+	bool hasSpecularMap;
+	
+	int shinness;
+};
+```
