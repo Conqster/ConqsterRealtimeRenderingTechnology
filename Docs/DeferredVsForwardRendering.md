@@ -81,18 +81,18 @@ m_GBuffer.Generate(screen_width, screen_height, img_config);
     - 16-bit per channel (*1 byte = 8 bits*):
     - 2 x RGB16F Textures: *2 * (16 + 16 + 16) = 2 * 48 = 96 bits* = 12 bytes per pixel
     - 1 x RGBA16F Texture: *16 + 16 + 16 + 16 = 64 bits* = 8 bytes per pixel
-    - Total Colour Attachment Size per pixel: *12 bytes/pixel + 8bytes/pixel* = 20 bytes per pixel
+    - Total Colour Attachment Size per pixel: *12 bytes/pixel + 8 bytes/pixel* = 20 bytes per pixel
 - Resolution and Texture Size:
-    - Colour Attachment Total Size: *2560 * 1440 * 20 = 73,728,000 bytes* ~70.31 MB
+    - Colour Attachment Total Size: *2560 * 1440 * 20 = 73,728,000 bytes* = ~70.31 MB
 
 - Render Buffer Storage for Depth: 
     - Depth Component: *GL_DEPTH_COMPONMENT16*
     - 16-bit per channel *(2 bytes per pixel):*
-        - Depth Buffer Total Size: *2560 * 1440 * 2 = 7,372,800 bytes* ~ 7.04 MB
+        - Depth Buffer Total Size: *2560 * 1440 * 2 = 7,372,800 bytes* = ~ 7.04 MB
 
 - Total Memory Usage:
     - Without Multisampling or Double Buffering (Ping-Pong Rendering):
-        - Grand Total: *70.31 MB (Colour) + 7.04 MB (Depth))* ~ 77.35 MB
+        - Grand Total: *70.31 MB (Colour) + 7.04 MB (Depth))* = ~ 77.35 MB
 
 
 
@@ -108,7 +108,7 @@ Types:
 struct PointLight
 {
     vec3 colour; //<--------- 12 bytes r 4 
-    bool enable; //<--------- << 4 bytes 
+    bool enable; //<--------- << 4 bytes (store as smallest register size 32-bit int)
     vec3 position; //<------- 12 bytes r 4
     float ambient; //<------- << 4 bytes
     vec3 attenuation; //<---- 12 bytes r 4
@@ -121,7 +121,7 @@ struct PointLight
 struct DirectionalLight
 {
     vec3 colour; //<------------ 12 bytes r 4
-    bool enable; //<------------ << 4 bytes
+    bool enable; //<------------ << 4 bytes (as 32-bit int)
     vec3 direction; //<--------- 12 bytes r 4
     float ambinent; //<--------- << 4 bytes
     float diffuse; //<---------- 4 bytes r 12
@@ -230,4 +230,4 @@ The Lighting pass takes the following inputs:
 In the Deferred shader program, the geometric data stored in the colour attachment from the G-Buffer, are sampled and lighting calculations are performed in the fragment shader per pixel.
 
 #### Transparent Pass
-The transparent pass in deferred rendering path is similar to the transparent pass found in forward rendering path. However, prior to this pass, the depth buffer of teh default FBO is cleared. The depth informatin from the GBuffer's MRT is then blitted into the default FBO, allowing for a comparison between the previously rendered opaque objects and transparent objects that are about to be drawn. 
+The transparent pass in deferred rendering path is similar to the transparent pass found in forward rendering path. However, prior to this pass, the depth buffer of the default FBO is cleared. The depth informatin from the GBuffer's MRT is then blitted into the default FBO, allowing for a depth test comparison between the previously rendered opaque objects and transparent objects that are about to be drawn. 

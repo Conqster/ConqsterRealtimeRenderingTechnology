@@ -15,6 +15,13 @@
 #include "Renderer/ObjectBuffer/Framebuffer.h"
 #include "Util/ShaderHotReload.h"
 
+
+enum RenderingPath
+{
+	Forward,
+	Deferred
+};
+
 class Material;
 class Entity;
 class ForwardVsDeferredRenderingScene : public Scene
@@ -69,12 +76,8 @@ private:
 	//Using (Base Colour, Normal, Position, Depth)
 	MRTFramebuffer m_GBuffer;
 	Shader m_GBufferShader;
-	int m_PrevViewWidth;
-	int m_PrevViewHeight;
 	Shader m_DeferredShader;
 	std::shared_ptr<Mesh> m_QuadMesh;
-	Framebuffer m_ScreenFBO;
-	Shader m_ScreenPostShader;
 	ShaderHotReload  m_ShaderHotReload;
 	
 
@@ -84,50 +87,40 @@ private:
 	float m_SpawnZoneRadius = 310.0f;
 	float m_DesiredDistance = 200.0f;//based on entity_extra_scaleby
 	float m_OrbitSpeed = 20.0f;
-
-	bool m_DebugScene = false;
-	bool m_DebugPointLightRange = false;
-
-
-	//Shading
-	enum RenderingPath
-	{
-		Forward,
-		Deferred
-	}m_RenderingPath = Forward;
-	void ForwardShading();
-	void DeferredShading();
-
-	//Begin Scene Render
-	void BeginRenderScene();
-	void PreUpdateGPUUniformBuffers(Camera& cam); //camera ubo
-	void ShadowPass(Shader& depth_shader, const std::vector<std::weak_ptr<Entity>> renderable_meshes);
-
-	//Pre-Rendering
+	int m_PrevViewHeight;
+	int m_PrevViewWidth;
 	unsigned int frames_count = 0;
-	bool flag_rebuild_transparency = false;
-	bool flag_resort_transparency = false;
-	void BuildRenderableMeshes(const std::shared_ptr<Entity>& entity);
-	void BuildOpaqueTransparency(const std::vector<std::weak_ptr<Entity>> renderable_entities);
-	void SortByViewDistance(std::vector<std::weak_ptr<Entity>> sorting_list);
 
-	//Scene Render
+	//flag
+	bool b_DebugScene = false;
+	bool b_DebugPointLightRange = false;
+	bool b_rebuild_transparency = false;
+	bool b_FrameAsShadow = false;
+
+	//Scene Render Construction
+	void BuildRenderableMeshes(const std::shared_ptr<Entity>& entity);
+	void BuildOpaqueTransparency(const std::vector<std::weak_ptr<Entity>>& renderable_entities);
+	void SortByViewDistance(std::vector<std::weak_ptr<Entity>>& sorting_list);
+
+	//Uniform buffer update
+	void PreUpdateGPUUniformBuffers(Camera& cam); //camera ubo
 	void PostUpdateGPUUniformBuffers(); //light ubo after scene is sorted & light pass
 
-	//Passes
+	//Rendering/Shading Path
+	RenderingPath m_RenderingPath = Forward;
+	void ForwardRenderingPath();
+	void DeferredRenderingPath();
+
+	//Passes 
 	void OpaquePass(Shader& main_shader, const std::vector<std::weak_ptr<Entity>> opaque_entities);
 	void TransparencyPass(Shader& main_shader, const std::vector<std::weak_ptr<Entity>> transparent_entities);
-	//Deferred Pass
 	void GBufferPass();
-	void OldDeferredLightingPass();
 	void DeferredLightingPass();
+	void ShadowPass(Shader& depth_shader, const std::vector<std::weak_ptr<Entity>> renderable_meshes);
+
 	void SceneDebugger();
 
-	void ResetSceneFrame();
 
-	////////////////////////////////
-	// HAVE TO REMOVE THIS LATER 
-	////////////////////////////////
 	//---------------------------Lighting Utilities--------------------------/
 	//Directional Light data-------------------/
 	struct DirLightObject
@@ -146,15 +139,16 @@ private:
 	ShadowConfig m_PtShadowConfig;
 	std::vector<ShadowCube> m_PtDepthMapCubes;
 
-	bool m_FrameAsShadow = false;
 
 
 	//------------------------------Utility functions------------------------/
-	//need to take this out later
 	void ResizeBuffers(unsigned int width, unsigned int height);
 
 	void MaterialShaderBindHelper(Material& mat, Shader& shader);
 	bool AddPointLight(glm::vec3 location, glm::vec3 colour);
+	void ResetSceneFrame();
+
+	int UpdateLightCount(int step, int progression_base = 2, int scale_factor = 1);
 
 
 	//UIs
@@ -165,7 +159,5 @@ private:
 	void EntityDebugUI(Entity& entity);
 	void MaterialsUI();
 	void EntityModelMaterial(const Entity& entity);
-
 	void GBufferDisplayUI();
-	void ScreenFBODisplayUI();
 };

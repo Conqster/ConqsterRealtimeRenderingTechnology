@@ -64,6 +64,7 @@ in VS_OUT
 	vec4 fragPosLightSpace;
 	mat3 TBN;
 	vec3 normal;
+	vec3 viewPos;
 }fs_in;
 
 const int MAX_POINT_LIGHTS = 1000;
@@ -71,7 +72,6 @@ const int MAX_POINT_LIGHT_SHADOW = 10;
 //--------------uniform--------------/
 //Model specify 
 uniform Material u_Material;
-uniform vec3 u_ViewPos;
 uniform bool u_SceneAsShadow = false;
 //Hack 
 uniform int u_PtLightCount = 0;
@@ -141,7 +141,7 @@ void main()
 	}
 	
 	//cam - view direction
-	vec3 V = normalize(u_ViewPos - fs_in.fragPos);
+	vec3 V = normalize(fs_in.viewPos - fs_in.fragPos);
 	
 	vec3 commulated_light = vec3(0.0f);
 	//directional Light 
@@ -239,7 +239,7 @@ vec3 CalculatePointLights(vec3 base_colour, vec3 N, vec3 V)
 		float shadow = 0.0f;
 		if(u_SceneAsShadow)
 		{
-			float pixel_view_dist = length(u_ViewPos - fs_in.fragPos);
+			float pixel_view_dist = length(fs_in.viewPos - fs_in.fragPos);
 			shadow = CalculatePointShadow(u_PointShadowCubes[i], pointLights[i], pixel_view_dist);
 		}
 

@@ -3,9 +3,9 @@ m_HasLights: true
 m_HasShadow: false
 m_HasEnvironmentMap: true
 Main Camera:
-  m_Position: [1.2133464, 368.30466, 232.5377]
-  m_Yaw: -68.22142
-  m_Pitch: -18.748667
+  m_Position: [7.050925, 267.39154, 45.333824]
+  m_Yaw: 87.46826
+  m_Pitch: 41.93286
   m_Fov: 62.4
   m_Near: 0.1
   m_Far: 1500
@@ -71,7 +71,7 @@ Dir light:
 Point Lights:
   m_Counts: 65
   0:
-    m_Position: [178.76596, 276.6, 89.757225]
+    m_Position: [-196.03844, 276.6, 40.435204]
     m_Colour: [0.9362745, 0.33503944, 0.33503944]
     m_Attenuation: [1, 0.322, 0.005]
     m_CastShadow: false
@@ -80,7 +80,7 @@ Point Lights:
     m_DiffuseIntensity: 0.517
     m_SpecularIntensity: 0.595
   1:
-    m_Position: [24.077055, 15.4, 198.57977]
+    m_Position: [-142.10033, 15.4, -140.97363]
     m_Colour: [1, 1, 1]
     m_Attenuation: [1, 0.004, 0.002]
     m_CastShadow: false
@@ -89,7 +89,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   2:
-    m_Position: [105.07722, 2.5, -170.21283]
+    m_Position: [23.099295, 2.5, 198.8278]
     m_Colour: [0.90686274, 0, 0.88019025]
     m_Attenuation: [1, 0.023, 0.005]
     m_CastShadow: false
@@ -98,7 +98,7 @@ Point Lights:
     m_DiffuseIntensity: 1
     m_SpecularIntensity: 1
   3:
-    m_Position: [-8.765688, 49, -199.84192]
+    m_Position: [130.86249, 49, 151.46313]
     m_Colour: [0.17647028, 0, 1]
     m_Attenuation: [0.034, 0.023, 0.005]
     m_CastShadow: false
@@ -107,7 +107,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   4:
-    m_Position: [199.18657, 0, -18.393967]
+    m_Position: [-144.97517, 0, 138.01549]
     m_Colour: [1, 1, 1]
     m_Attenuation: [0.034, 0.023, 0.005]
     m_CastShadow: false
@@ -116,7 +116,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   5:
-    m_Position: [-182.56079, 265.90503, 81.76303]
+    m_Position: [92.60843, 265.90503, -177.45352]
     m_Colour: [0.35029146, 0.8959624, 0.82284003]
     m_Attenuation: [0.034, 0.023, 0.005]
     m_CastShadow: false
@@ -125,7 +125,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   6:
-    m_Position: [-52.59987, 227.30887, 192.99452]
+    m_Position: [-78.43479, 227.30887, -184.1577]
     m_Colour: [0.014984588, 0.09140293, 0.36445203]
     m_Attenuation: [0.034, 0.023, 0.005]
     m_CastShadow: false
@@ -134,7 +134,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   7:
-    m_Position: [-197.95439, 274.95255, 28.769615]
+    m_Position: [137.57074, 274.95255, -145.39725]
     m_Colour: [0.16623431, 0.6630451, 0.45078892]
     m_Attenuation: [0.034, 0.023, 0.005]
     m_CastShadow: false
@@ -143,7 +143,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   8:
-    m_Position: [-189.85893, 22.001, -62.985863]
+    m_Position: [188.13927, 22.001, -68.33516]
     m_Colour: [0.7833186, 0.8026063, 0.5198828]
     m_Attenuation: [0.034, 0.023, 0.022]
     m_CastShadow: false
@@ -152,7 +152,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   9:
-    m_Position: [0.99094963, 297.125, -200.03162]
+    m_Position: [123.320175, 297.125, 157.66486]
     m_Colour: [0.9559007, 0.92571795, 0.5393536]
     m_Attenuation: [0.034, 0.023, 0.005]
     m_CastShadow: false
@@ -161,7 +161,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   10:
-    m_Position: [164.71634, 199.5236, -113.49959]
+    m_Position: [-58.910248, 199.5236, 191.29993]
     m_Colour: [0.8622394, 0.20960112, 0.77965635]
     m_Attenuation: [0.034, 0.023, 0.005]
     m_CastShadow: false
@@ -170,7 +170,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   11:
-    m_Position: [163.78151, 161.91626, 114.84446]
+    m_Position: [-199.83784, 161.91626, 11.441545]
     m_Colour: [0.2972808, 0.84014404, 0.0237434]
     m_Attenuation: [0.034, 0.023, 0.005]
     m_CastShadow: false
@@ -179,7 +179,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   12:
-    m_Position: [-108.59229, 272.70578, 167.99208]
+    m_Position: [-18.962097, 272.70578, -199.26494]
     m_Colour: [0.35029146, 0.8959624, 0.82284003]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -188,7 +188,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   13:
-    m_Position: [-120.11069, 228.3917, 159.95952]
+    m_Position: [-4.93462, 228.3917, -200.10428]
     m_Colour: [0.014984588, 0.09140293, 0.36445203]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -197,7 +197,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   14:
-    m_Position: [11.347055, 283.09366, 199.71199]
+    m_Position: [-132.8089, 283.09366, -149.75938]
     m_Colour: [0.16623431, 0.6630451, 0.45078892]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -206,7 +206,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   15:
-    m_Position: [-174.61838, -54.635773, -97.58098]
+    m_Position: [197.63606, -54.635773, -31.718557]
     m_Colour: [0.7833186, 0.8026063, 0.5198828]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -215,7 +215,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   16:
-    m_Position: [-122.17933, 453.10315, 158.38512]
+    m_Position: [-2.3347902, 453.10315, -200.15152]
     m_Colour: [0.9559007, 0.92571795, 0.5393536]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -224,7 +224,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   17:
-    m_Position: [-195.11426, 196.49008, 44.09146]
+    m_Position: [125.83577, 196.49008, -155.66449]
     m_Colour: [0.8622394, 0.20960112, 0.77965635]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -233,7 +233,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   18:
-    m_Position: [-105.31918, 153.31126, 170.06322]
+    m_Position: [-22.817547, 153.31126, -198.86034]
     m_Colour: [0.2972808, 0.84014404, 0.0237434]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -242,7 +242,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   19:
-    m_Position: [199.76381, -32.57332, -10.394703]
+    m_Position: [-150.39148, -32.57332, 132.09268]
     m_Colour: [0.056215096, 0.008789331, 0.9187902]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -251,7 +251,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   20:
-    m_Position: [-78.958855, 79.19585, 183.79099]
+    m_Position: [-52.030277, 79.19585, -193.28456]
     m_Colour: [0.6911832, 0.837611, 0.7264931]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -260,7 +260,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   21:
-    m_Position: [198.90387, 37.322617, 21.234068]
+    m_Position: [-169.33801, 37.322617, 106.72727]
     m_Colour: [0.46845913, 0.45796075, 0.94915617]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -269,7 +269,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   22:
-    m_Position: [-71.41985, -22.866608, 186.84976]
+    m_Position: [-59.846706, -22.866608, -191.00902]
     m_Colour: [0.38523513, 0.73500776, 0.60896635]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -278,7 +278,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   23:
-    m_Position: [-154.11243, 134.03027, 127.52643]
+    m_Position: [41.881527, 134.03027, -195.73456]
     m_Colour: [0.22510453, 0.42515334, 0.80288094]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -287,7 +287,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   24:
-    m_Position: [-151.58846, 14.768219, -130.51654]
+    m_Position: [199.9876, 14.768219, 8.428139]
     m_Colour: [0.49189734, 0.063539535, 0.6997589]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -296,7 +296,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   25:
-    m_Position: [168.02638, 174.46548, 108.539246]
+    m_Position: [-199.25899, 174.46548, 19.02441]
     m_Colour: [0.96661276, 0.68318737, 0.15323344]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -305,7 +305,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   26:
-    m_Position: [15.532227, 6.4427643, 199.43015]
+    m_Position: [-135.9188, 6.4427643, -146.94269]
     m_Colour: [0.732017, 0.40559098, 0.27958006]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -314,7 +314,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   27:
-    m_Position: [80.20949, 332.9896, 183.24864]
+    m_Position: [-176.66066, 332.9896, -94.1121]
     m_Colour: [0.72191536, 0.47529528, 0.12302011]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -323,7 +323,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   28:
-    m_Position: [55.39076, 321.05014, 192.21211]
+    m_Position: [-162.7355, 321.05014, -116.54712]
     m_Colour: [0.10467849, 0.9493393, 0.92138433]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -332,7 +332,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   29:
-    m_Position: [-133.91232, 124.51277, 148.59717]
+    m_Position: [12.95002, 124.51277, -199.74576]
     m_Colour: [0.37498093, 0.8469802, 0.31687367]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -341,7 +341,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   30:
-    m_Position: [2.4988732, 368.2971, 200.01846]
+    m_Position: [-126.05188, 368.2971, -155.48955]
     m_Colour: [0.19598986, 0.76131475, 0.83944213]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -350,7 +350,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   31:
-    m_Position: [34.02788, 220.5582, -197.11858]
+    m_Position: [95.57414, 220.5582, 175.874]
     m_Colour: [0.027466659, 0.9946287, 0.57258826]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -359,7 +359,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   32:
-    m_Position: [-192.70705, 298.59036, 53.643505]
+    m_Position: [118.02051, 298.59036, -161.67014]
     m_Colour: [0.1978515, 0.84215826, 0.123325296]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -368,7 +368,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   33:
-    m_Position: [-84.60624, 370.73795, -181.26064]
+    m_Position: [178.87903, 370.73795, 89.8241]
     m_Colour: [0.94106877, 0.2860805, 0.33631396]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -377,7 +377,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   34:
-    m_Position: [25.285183, 282.14758, 198.42957]
+    m_Position: [-142.95592, 282.14758, -140.10596]
     m_Colour: [0.25272378, 0.14447463, 0.001617481]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -386,7 +386,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   35:
-    m_Position: [-134.00519, -18.32544, -148.51344]
+    m_Position: [197.34753, -18.32544, 33.466724]
     m_Colour: [0.014252144, 0.113773, 0.45451215]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -395,7 +395,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   36:
-    m_Position: [-170.80843, 335.41156, -104.10626]
+    m_Position: [198.69304, 335.41156, -24.231266]
     m_Colour: [0.073885314, 0.43671986, 0.20194098]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -404,7 +404,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   37:
-    m_Position: [-50.18442, 90.01892, 193.63666]
+    m_Position: [-80.7291, 90.01892, -183.16356]
     m_Colour: [0.23242897, 0.577868, 0.5325785]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -413,7 +413,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   38:
-    m_Position: [56.0508, 9.318832, 192.02066]
+    m_Position: [-163.13512, 9.318832, -115.9871]
     m_Colour: [0.9630421, 0.69576097, 0.92480236]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -422,7 +422,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   39:
-    m_Position: [-137.94926, 118.28761, -144.85727]
+    m_Position: [198.17587, 118.28761, 28.149605]
     m_Colour: [0.9951781, 0.45744193, 0.9980163]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -431,7 +431,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   40:
-    m_Position: [117.95417, 164.64523, -161.55632]
+    m_Position: [7.618805, 164.64523, 200.02008]
     m_Colour: [0.62807095, 0.6041444, 0.4516129]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -440,7 +440,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   41:
-    m_Position: [192.95427, 280.6528, 52.74731]
+    m_Position: [-184.21751, 280.6528, 78.29419]
     m_Colour: [0.85479295, 0.82879114, 0.62477493]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -449,7 +449,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   42:
-    m_Position: [-117.537994, 260.76633, 161.85934]
+    m_Position: [-8.134783, 260.76633, -199.99974]
     m_Colour: [0.18427075, 0.73790705, 0.5551317]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -458,7 +458,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   43:
-    m_Position: [177.75645, 343.07474, -91.74022]
+    m_Position: [-82.64619, 343.07474, 182.30655]
     m_Colour: [0.35129857, 0.49446088, 0.08038575]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -467,7 +467,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   44:
-    m_Position: [-19.317234, 289.4702, 199.09917]
+    m_Position: [-108.35312, 289.4702, -168.30232]
     m_Colour: [0.6911222, 0.80452895, 0.14911343]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -476,7 +476,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   45:
-    m_Position: [-129.45717, 99.61212, -152.49419]
+    m_Position: [196.24666, 99.61212, 39.412228]
     m_Colour: [0.10855434, 0.8690451, 0.8512223]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -485,7 +485,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   46:
-    m_Position: [124.09481, 6.0264893, 156.88885]
+    m_Position: [-194.76271, 6.0264893, -46.190533]
     m_Colour: [0.079348125, 0.07660146, 0.64098024]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -494,7 +494,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   47:
-    m_Position: [120.19727, 247.95648, 159.89449]
+    m_Position: [-193.56732, 247.95648, -50.968323]
     m_Colour: [0.40897855, 0.2987457, 0.46555987]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -503,7 +503,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   48:
-    m_Position: [-197.5357, 4.645233, -31.516155]
+    m_Position: [174.64302, 4.645233, -97.80536]
     m_Colour: [0.7379986, 0.31388286, 0.82668537]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -512,7 +512,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   49:
-    m_Position: [180.16377, 315.39264, 86.91748]
+    m_Position: [-195.37439, 315.39264, 43.53074]
     m_Colour: [0.10480056, 0.50505084, 0.22708823]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -521,7 +521,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   50:
-    m_Position: [-188.58513, 480.38788, -66.702934]
+    m_Position: [189.44536, 480.38788, -64.62607]
     m_Colour: [0.66280097, 0.114535965, 0.4925382]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -530,7 +530,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   51:
-    m_Position: [-178.44739, 218.0227, 90.38893]
+    m_Position: [84.0269, 218.0227, -181.6743]
     m_Colour: [0.5092624, 0.38236642, 0.68816185]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -539,7 +539,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   52:
-    m_Position: [149.91586, 285.89404, 132.43439]
+    m_Position: [-199.86421, 285.89404, -10.971217]
     m_Colour: [0.0058900723, 0.7078768, 0.100619525]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -548,7 +548,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   53:
-    m_Position: [145.65654, 445.2129, -137.10507]
+    m_Position: [-29.300915, 445.2129, 198.00893]
     m_Colour: [0.7473373, 0.49690238, 0.38010803]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -557,7 +557,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   54:
-    m_Position: [199.432, 252.74362, -15.508411]
+    m_Position: [-146.95839, 252.74362, 135.90182]
     m_Colour: [0.9557176, 0.6308481, 0.1765801]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -566,7 +566,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   55:
-    m_Position: [-134.42125, -8.391663, -148.13696]
+    m_Position: [197.44073, -8.391663, 32.912457]
     m_Colour: [0.9517197, 0.61198765, 0.02783288]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -575,7 +575,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   56:
-    m_Position: [-79.58538, -55.335846, 183.52057]
+    m_Position: [-51.369453, -55.335846, -193.46124]
     m_Colour: [0.13162634, 0.84707177, 0.86431473]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -584,7 +584,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   57:
-    m_Position: [32.013477, 357.41724, 197.45575]
+    m_Position: [-147.63474, 357.41724, -135.1668]
     m_Colour: [0.014679403, 0.1264687, 0.7079073]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -593,7 +593,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   58:
-    m_Position: [-179.62675, 296.94418, -88.02191]
+    m_Position: [195.63803, 296.94418, -42.330025]
     m_Colour: [0.31940672, 0.36756492, 0.6610004]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -602,7 +602,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   59:
-    m_Position: [195.36736, 410.26492, 42.95614]
+    m_Position: [-180.03766, 410.26492, 87.47867]
     m_Colour: [0.61110264, 0.7981811, 0.9006012]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -611,7 +611,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   60:
-    m_Position: [-199.25755, 300.70956, -17.608414]
+    m_Position: [167.36597, 300.70956, -109.793945]
     m_Colour: [0.25370038, 0.13653982, 0.8551897]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -620,7 +620,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   61:
-    m_Position: [-180.0951, 175.24124, 87.05967]
+    m_Position: [87.386116, 175.24124, -180.08261]
     m_Colour: [0.30228585, 0.5480514, 0.2255623]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -629,7 +629,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   62:
-    m_Position: [188.90746, 133.89783, 65.78454]
+    m_Position: [-189.12894, 133.89783, 65.54634]
     m_Colour: [0.22849208, 0.86358225, 0.22943816]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -638,7 +638,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   63:
-    m_Position: [197.99628, -31.305573, -28.479902]
+    m_Position: [-137.78398, -31.305573, 145.19519]
     m_Colour: [0.8915372, 0.23276468, 0.14654988]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false
@@ -647,7 +647,7 @@ Point Lights:
     m_DiffuseIntensity: 0.6
     m_SpecularIntensity: 0.5
   64:
-    m_Position: [-45.59251, 157.1334, -194.76897]
+    m_Position: [156.6288, 157.1334, 124.63344]
     m_Colour: [0.9461653, 0.8371838, 0.53422654]
     m_Attenuation: [0.017, 0.022, 0.002]
     m_CastShadow: false

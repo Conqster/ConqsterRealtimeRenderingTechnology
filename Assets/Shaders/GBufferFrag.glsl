@@ -4,7 +4,6 @@
 layout(location = 0) out vec4 o_BaseSpecBuffer;  
 layout(location = 1) out vec3 o_NormalBuffer;
 layout(location = 2) out vec3 o_PositionBuffer;
-layout(location = 3) out vec3 o_DepthBuffer;
 
 
 //--------------IN--------------/
@@ -37,13 +36,6 @@ struct Material
 };
 //--------------uniform--------------/
 uniform Material u_Material;
-uniform float u_Far = 150.0f;
-
-float LinearizeDepth(float depth, float near, float far)
-{
-	float z = depth * 2.0f - 1.0f;
-	return (2.0f * near * far) /(far + near - z * (far - near));
-}
 void main()
 {
 	//////////
@@ -86,6 +78,4 @@ void main()
 	//for now add the specular value with material shiness /power;
 	o_BaseSpecBuffer.a = specular_value + u_Material.shinness;
 	
-	float linear_depth = LinearizeDepth(gl_FragCoord.z, 0.1f,  u_Far) /u_Far;
-	o_DepthBuffer = vec4(vec3(linear_depth), 1.0f).rgb;
 }

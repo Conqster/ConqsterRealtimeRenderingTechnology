@@ -2,6 +2,7 @@
 out vec4 o_FragColour;
 
 in vec2 vs_TexCoords;
+in vec3 vs_ViewPos;
 
 //--------------------Point Light------------------------------
 struct PointLight
@@ -48,7 +49,6 @@ layout(binding = 3) uniform sampler2D u_GDepth;
 const int MAX_POINT_LIGHTS = 1000;
 const int MAX_POINT_LIGHT_SHADOW = 10;
 //--------------uniform--------------/
-uniform vec3 u_ViewPos;
 uniform int u_PtLightCount = 0;
 
 //Light specify
@@ -75,7 +75,7 @@ void main()
 	float mat_shinness = texture(u_GBaseColourSpec, vs_TexCoords).a;
 	
 	vec3 commulated_light = vec3(0.0f);
-	vec3 view_dir = normalize(u_ViewPos - frag_pos);
+	vec3 view_dir = normalize(vs_ViewPos - frag_pos);
 	if(dirLight.enable)
 	{
 		//0.0f -> no shadow calculation yet.......
@@ -149,7 +149,7 @@ vec3 CalculatePointLights(vec3 base_colour, vec3 N, vec3 V, vec3 frag_pos, float
 		float shadow = 0.0f;
 		//if(u_SceneAsShadow)
 		//{
-		//	float pixel_view_dist = length(u_ViewPos - fs_in.fragPos);
+		//	float pixel_view_dist = length(vs_ViewPos - fs_in.fragPos);
 		//	shadow = CalculatePointShadow(u_PointShadowCubes[i], pointLights[i], pixel_view_dist);
 		//}
 

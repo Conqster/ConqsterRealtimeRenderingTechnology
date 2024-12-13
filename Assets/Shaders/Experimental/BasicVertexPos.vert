@@ -12,6 +12,8 @@ layout (location = 5) in vec3 biTangent;
 //--------------uniform--------------/
 layout (std140) uniform u_CameraMat
 {
+	vec3 viewPos;
+	float far;
 	mat4 proj;
 	mat4 view;
 };

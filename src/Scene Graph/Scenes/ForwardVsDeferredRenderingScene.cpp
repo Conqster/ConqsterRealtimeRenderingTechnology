@@ -21,7 +21,7 @@
 #include <fstream>
 
 
-#define MAT_TEXTURE_COUNT 4
+//#define MAT_TEXTURE_COUNT 4
 
 void ForwardVsDeferredRenderingScene::SetWindow(Window* window)
 {
@@ -101,18 +101,11 @@ void ForwardVsDeferredRenderingScene::OnUpdate(float delta_time)
 
 
 	m_ShaderHotReload.Update();
-
-
-	//m_ForwardShader.Bind();
-	//m_ForwardShader.SetUniformBlockIdx("u_CameraMat", 0);
-	//m_ForwardShader.SetUniformBlockIdx("u_LightBuffer", 1);
-	//m_ForwardShader.SetUniformBlockIdx("u_EnvironmentBuffer", 2);
 }
 
 void ForwardVsDeferredRenderingScene::OnRender()
 {
 	//Pre Rendering
-	BeginRenderScene();
 	PreUpdateGPUUniformBuffers(*m_Camera);
 	//naive flat out self - children - children into list/collection, easy mutilple interation
 
@@ -129,29 +122,39 @@ void ForwardVsDeferredRenderingScene::OnRender()
 
 
 
-	if (flag_rebuild_transparency)
+	if (b_rebuild_transparency)
 	{
 		BuildOpaqueTransparency(m_RenderableEntities);
 		SortByViewDistance(m_TransparentEntities);
 	}
 
-	if (flag_resort_transparency)
-		SortByViewDistance(m_TransparentEntities);
+
+	SortByViewDistance(m_TransparentEntities);
+
+
+	//shadow data retrival
+	if (m_EnableShadows)
+		ShadowPass(m_ShadowDepthShader, m_RenderableEntities); //<----- important for storing shadow data in texture 2D & texture cube map probab;y move to renderer and data is sent back 
+
+
+	//Later remove forward shader from the PostUpdate buffer function 
+	PostUpdateGPUUniformBuffers();
+
 
 	switch (m_RenderingPath)
 	{
 	case Forward:
-		ForwardShading();
+		ForwardRenderingPath();
 		break;
 	case Deferred:
-		DeferredShading();
+		DeferredRenderingPath();
 		break;
 	}
 
 
 	frames_count++;
 
-	if(m_DebugScene)
+	if(b_DebugScene)
 		SceneDebugger();
 
 	//return;
@@ -192,7 +195,6 @@ void ForwardVsDeferredRenderingScene::OnDestroy()
 		m_QuadMesh = nullptr;
 	}
 
-	m_ScreenFBO.Delete();
 }
 
 void ForwardVsDeferredRenderingScene::InitRenderer()
@@ -203,22 +205,15 @@ void ForwardVsDeferredRenderingScene::InitRenderer()
 	RenderCommand::CullBack();
 
 	RenderCommand::DepthTestMode(DepthMode::LEEQUAL);
-	//Other render behaivour / Data
-	//Resolution setting 
-	//Shadow config modification
-	//etc 
 
 	///////////////////////////////////////
 	// GBUFFER
 	///////////////////////////////////////
 	std::vector<FBO_TextureImageConfig> fbo_img_config =
 	{
-		{FBO_Format::RGBA16F, GL_FLOAT},	//Basecolour-specular power buffer vec4
+		{FBO_Format::RGBA16F, GL_FLOAT, FBO_Format::RGBA},	//Basecolour-specular power buffer vec4
 		{FBO_Format::RGB16F, GL_FLOAT, FBO_Format::RGB},	//Normal buffer
 		{FBO_Format::RGB16F, GL_FLOAT, FBO_Format::RGB},	//Position buffer 
-		//{FBO_Format::RGBA, GL_UNSIGNED_INT},	//Depth buffer with alpha as model mat shinness
-		//use float for now and fix later
-		{FBO_Format::RGB, GL_FLOAT, FBO_Format::RGB},	//Depth buffer with alpha as model mat shinness
 	};
 	m_GBuffer.Generate(window->GetWidth(), window->GetHeight(), fbo_img_config);
 
@@ -226,11 +221,7 @@ void ForwardVsDeferredRenderingScene::InitRenderer()
 	///////////////////////////////////////
 	// Deferred Rendering Properties
 	///////////////////////////////////////
-	/*Shader m_DeferredShader;
-	std::shared_ptr<Mesh> m_QuadMesh;
-	Framebuffer m_ScreenFBO;*/
 	m_QuadMesh = CRRT::PrimitiveMeshFactory::Instance().CreateQuad();
-	m_ScreenFBO.Generate(window->GetWidth(), window->GetHeight(), FBO_Format::RGBA16F);
 	ShaderFilePath shader_file_path
 	{
 		"Assets/Shaders/Experimental/DeferredShading.vert",
@@ -238,17 +229,6 @@ void ForwardVsDeferredRenderingScene::InitRenderer()
 	};
 	m_DeferredShader.Create("deferred_shading", shader_file_path);
 
-
-
-	//screen shader / post process 
-	//Post Process shader
-	ShaderFilePath screen_shader_file_path
-	{
-		//"Assets/Shaders/Learning/MSAA/AA_PostProcess_Vertex.glsl",
-		"Assets/Shaders/Learning/Post Process/QuadScreenVertex.glsl",
-		"Assets/Shaders/Learning/Post Process/PostProcessHDRfrag.glsl"
-	};
-	m_ScreenPostShader.Create("screen_post_shading", screen_shader_file_path);
 }
 
 void ForwardVsDeferredRenderingScene::CreateEntities(const SceneData&  scene_data)
@@ -412,7 +392,7 @@ void ForwardVsDeferredRenderingScene::SetRenderingConfiguration(const SceneRende
 	m_ForwardShader.Create(scene_render_config.m_ForwardShader.m_Name, shader_file_path);
 	m_ForwardShader.Bind();
 	//texture unit Material::TextureCount + 1 >> 5
-	m_ForwardShader.SetUniform1i("u_SkyboxMap", MAT_TEXTURE_COUNT + 1);
+	m_ForwardShader.SetUniform1i("u_SkyboxMap", Material::MAX_MAP_COUNT + 1);
 
 	auto& shader_data = scene_render_config.m_GBufferShader;
 	m_GBufferShader.Create(shader_data.m_Name, shader_data.m_Vertex,
@@ -431,7 +411,9 @@ void ForwardVsDeferredRenderingScene::CreateGPUDatas()
 	// UNIFORM BUFFERs
 	////////////////////////////////////////
 	//------------------Camera Matrix Data UBO-----------------------------/
-	long long int buf_size = 2 * sizeof(glm::mat4);// +sizeof(glm::vec2);   //to store view, projection
+	long long int buf_size = sizeof(glm::vec3);//for view pos
+	buf_size += sizeof(float);// camera far
+	buf_size += 2 * sizeof(glm::mat4);// +sizeof(glm::vec2);   //to store view, projection
 	m_CamMatUBO.Generate(buf_size);
 	m_CamMatUBO.BindBufferRndIdx(0, buf_size, 0);
 
@@ -467,6 +449,7 @@ void ForwardVsDeferredRenderingScene::CreateGPUDatas()
 	m_GBufferShader.SetUniformBlockIdx("u_CameraMat", 0);
 
 	m_DeferredShader.Bind();
+	m_DeferredShader.SetUniformBlockIdx("u_CameraMat", 0);
 	m_DeferredShader.SetUniformBlockIdx("u_LightBuffer", 1);
 }
 
@@ -603,22 +586,16 @@ void ForwardVsDeferredRenderingScene::SerialiseScene()
 
 
 
-void ForwardVsDeferredRenderingScene::ForwardShading()
+void ForwardVsDeferredRenderingScene::ForwardRenderingPath()
 {
-	//shadow data retrival
-	if (m_EnableShadows)
-		ShadowPass(m_ShadowDepthShader, m_RenderableEntities); //<----- important for storing shadow data in texture 2D & texture cube map probab;y move to renderer and data is sent back 
-
 	//Start Rendering
+	RenderCommand::ClearColour(m_ClearScreenColour);
 	RenderCommand::Clear();
-	//update uniform buffers with light current state data, e.t.c LightPass
-	PostUpdateGPUUniformBuffers(); //<------- Not really necessary yet
 
 	m_ForwardShader.Bind();
-	m_ForwardShader.SetUniformVec3("u_ViewPos", m_Camera->GetPosition());
 
 	//m_ForwardShader.SetUniform1i("u_EnableSceneShadow", m_EnableShadows);
-	if (m_EnableShadows && m_FrameAsShadow)
+	if (m_EnableShadows && b_FrameAsShadow)
 	{
 		m_ForwardShader.SetUniformMat4f("u_DirLightSpaceMatrix", dirLightObject.dirLightShadow.GetLightSpaceMatrix());
 		//tex unit 0 >> texture (base map)
@@ -628,8 +605,8 @@ void ForwardVsDeferredRenderingScene::ForwardShading()
 		//tex unit 4 >> shadow map (dir Light)
 		//tex unit 5 >> skybox cube map
 		//tex unit 6 >> shadow cube (pt Light)
-		dirDepthMap.Read(MAT_TEXTURE_COUNT);
-		m_ForwardShader.SetUniform1i("u_DirShadowMap", MAT_TEXTURE_COUNT);
+		dirDepthMap.Read(Material::MAX_MAP_COUNT);
+		m_ForwardShader.SetUniform1i("u_DirShadowMap", Material::MAX_MAP_COUNT);
 
 		//point light shadow starts at  Material::TextureCount + 2 >> 6
 		for (int i = 0; i < m_PtLightCount; i++)
@@ -637,43 +614,38 @@ void ForwardVsDeferredRenderingScene::ForwardShading()
 			if (i > MAX_POINT_LIGHT_SHADOW)
 				break;
 
-			m_PtDepthMapCubes[i].Read(MAT_TEXTURE_COUNT + 2 + i);
-			m_ForwardShader.SetUniform1i(("u_PointShadowCubes[" + std::to_string(i) + "]").c_str(), MAT_TEXTURE_COUNT + 2 + i);
+			m_PtDepthMapCubes[i].Read(Material::MAX_MAP_COUNT + 2 + i);
+			m_ForwardShader.SetUniform1i(("u_PointShadowCubes[" + std::to_string(i) + "]").c_str(), Material::MAX_MAP_COUNT + 2 + i);
 		}
 	}
 
 
 	m_ForwardShader.SetUniform1i("u_PtLightCount", m_PtLightCount);
-	m_ForwardShader.SetUniform1i("u_SceneAsShadow", m_FrameAsShadow);
+	m_ForwardShader.SetUniform1i("u_SceneAsShadow", b_FrameAsShadow);
 
 	//Draw Skybox
 	if (m_EnableSkybox)
 		m_Skybox.Draw(m_SkyboxShader, m_SceneRenderer);
+
 	//Render Opaques entities
-	//OpaquePass(m_ForwardShader, m_RenderableEntities);
 	OpaquePass(m_ForwardShader, m_OpaqueEntities);
 
 	//Transparent enitties
 	TransparencyPass(m_ForwardShader, m_TransparentEntities);
 }
 
-void ForwardVsDeferredRenderingScene::DeferredShading()
+void ForwardVsDeferredRenderingScene::DeferredRenderingPath()
 {
-	//Later remove forward shader from the PostUpdate buffer function 
-	PostUpdateGPUUniformBuffers();
-
 	//Using (Base Colour, Normal, Position, Depth)
 	//Write into the Gbuffer
 	GBufferPass();
-	//OldDeferredLightingPass();
+
+	//Perform Lighting Calculation on Geometric out images
 	DeferredLightingPass();
 
 	//Use forward shader for transparency pass 
 	if (m_TransparentEntities.size() > 0)
 	{
-		//set up required data 
-		m_ForwardShader.Bind();
-		m_ForwardShader.SetUniformVec3("u_ViewPos", m_Camera->GetPosition());
 		//clear screen image texture depth created by deferred light padd
 		RenderCommand::ClearDepthOnly();
 		//get depth from gbuffer draw on default frame 
@@ -684,22 +656,22 @@ void ForwardVsDeferredRenderingScene::DeferredShading()
 
 }
 
-void ForwardVsDeferredRenderingScene::BeginRenderScene()
-{
-	RenderCommand::ClearColour(m_ClearScreenColour);
-	RenderCommand::Clear();
-}
-
 void ForwardVsDeferredRenderingScene::PreUpdateGPUUniformBuffers(Camera& cam)
 {
 	//------------------Camera Matrix Data UBO-----------------------------/
-	m_CamMatUBO.SetSubDataByID(&(cam.CalculateProjMatrix(window->GetAspectRatio())[0][0]), sizeof(glm::mat4), 0);
-	m_CamMatUBO.SetSubDataByID(&(cam.CalViewMat()[0][0]), sizeof(glm::mat4), sizeof(glm::mat4));
+	unsigned int offset_ptr = 0;
+	m_CamMatUBO.SetSubDataByID(&(cam.GetPosition()[0]), sizeof(glm::vec3), offset_ptr);
+	offset_ptr += sizeof(glm::vec3);
+	m_CamMatUBO.SetSubDataByID(cam.Ptr_Far(), sizeof(float), offset_ptr);
+	offset_ptr += sizeof(float);
+	m_CamMatUBO.SetSubDataByID(&(cam.CalculateProjMatrix(window->GetAspectRatio())[0][0]), sizeof(glm::mat4), offset_ptr);
+	offset_ptr += sizeof(glm::mat4);
+	m_CamMatUBO.SetSubDataByID(&(cam.CalViewMat()[0][0]), sizeof(glm::mat4), offset_ptr);
 }
 
 void ForwardVsDeferredRenderingScene::ShadowPass(Shader& depth_shader, const std::vector<std::weak_ptr<Entity>> renderable_meshes)
 {
-	m_FrameAsShadow = true;
+	b_FrameAsShadow = true;
 	//need sorted data
 	//material is not need only mesh geometry 
 	dirDepthMap.Write();
@@ -709,11 +681,7 @@ void ForwardVsDeferredRenderingScene::ShadowPass(Shader& depth_shader, const std
 	depth_shader.Bind();
 	m_ShadowDepthShader.SetUniform1i("u_IsOmnidir", 0);
 	m_ShadowDepthShader.SetUniformMat4f("u_LightSpaceMat", dirLightObject.dirLightShadow.GetLightSpaceMatrix());
-	//Draw Objects with material 
-	//Renderer::DrawMesh(Mesh)
 
-
-	
 	for (const auto& e : renderable_meshes)
 	{
 		if (!e.expired())
@@ -807,7 +775,7 @@ void ForwardVsDeferredRenderingScene::BuildRenderableMeshes(const std::shared_pt
 }
 
 
-void ForwardVsDeferredRenderingScene::BuildOpaqueTransparency(const std::vector<std::weak_ptr<Entity>> renderable_entities)
+void ForwardVsDeferredRenderingScene::BuildOpaqueTransparency(const std::vector<std::weak_ptr<Entity>>& renderable_entities)
 {
 	m_TransparentEntities.clear();
 	m_OpaqueEntities.clear();
@@ -832,18 +800,16 @@ void ForwardVsDeferredRenderingScene::BuildOpaqueTransparency(const std::vector<
 		}
 	}
 
-	flag_rebuild_transparency = false;
+	b_rebuild_transparency = false;
 }
 
-void ForwardVsDeferredRenderingScene::SortByViewDistance(std::vector<std::weak_ptr<Entity>> sorting_list)
+void ForwardVsDeferredRenderingScene::SortByViewDistance(std::vector<std::weak_ptr<Entity>>& sorting_list)
 {
 	//probably move later
 	for (const auto& e : sorting_list)
 		e.lock()->UpdateViewSqrDist(m_Camera->GetPosition());
 
 	std::sort(sorting_list.begin(), sorting_list.end(), Entity::CompareDistanceToView);
-
-	flag_resort_transparency = false;
 }
 
 
@@ -940,11 +906,10 @@ void ForwardVsDeferredRenderingScene::GBufferPass()
 	//Using (Base Colour, Normal, Position, Depth)
 	//Write into the Gbuffer
 	m_GBuffer.Bind();
+	RenderCommand::ClearColour(m_ClearScreenColour);
 	RenderCommand::Clear();
 	RenderCommand::DisableBlend();
 	m_GBufferShader.Bind();
-	m_GBufferShader.SetUniform1f("u_Far", *m_Camera->Ptr_Far());
-	//OpaquePass(m_GBufferShader, m_RenderableEntities);
 	OpaquePass(m_GBufferShader, m_OpaqueEntities);
 	RenderCommand::EnableBlend();
 	m_GBuffer.UnBind();
@@ -952,66 +917,8 @@ void ForwardVsDeferredRenderingScene::GBufferPass()
 
 }
 
-void ForwardVsDeferredRenderingScene::OldDeferredLightingPass()
-{
-	//Draw output to Screen buffer
-	//what is required 
-	//uniform sampler2D u_GBaseColour;
-	//uniform sampler2D u_GNormal;
-	//uniform sampler2D u_GPosition;
-	//uniform sampler2D u_GDepth_MatShinness;
-
-
-	//const int MAX_POINT_LIGHTS = 1000;
-	//const int MAX_POINT_LIGHT_SHADOW = 10;
-	////--------------uniform--------------/
-	//uniform vec3 u_ViewPos;
-	//uniform int u_PtLightCount = 0;
-
-	////Light specify
-	//layout(std140) uniform u_LightBuffer
-	//{
-	//	DirectionalLight dirLight;                  //aligned
-	//	PointLight pointLights[MAX_POINT_LIGHTS];   //aligned
-	//};
-
-	m_DeferredShader.Bind();
-	m_DeferredShader.SetUniform1i("u_GBaseColourSpec", 0);
-	m_GBuffer.BindTextureIdx(0, 0);
-	m_DeferredShader.SetUniform1i("u_GNormal", 1);
-	m_GBuffer.BindTextureIdx(1, 1);
-	m_DeferredShader.SetUniform1i("u_GPosition", 2);
-	m_GBuffer.BindTextureIdx(2, 2);
-	m_DeferredShader.SetUniform1i("u_GDepth", 3);
-	m_GBuffer.BindTextureIdx(3, 3);
-
-	m_DeferredShader.SetUniformVec3("u_ViewPos", m_Camera->GetPosition());
-	m_DeferredShader.SetUniform1i("u_PtLightCount", m_PtLightCount);
-
-	///m_Scre
-	m_SceneRenderer.DrawMesh(m_QuadMesh);
-
-	m_DeferredShader.UnBind();
-}
-
 void ForwardVsDeferredRenderingScene::DeferredLightingPass()
 {
-
-	//bool render_2_Screen_fbo = false;
-	//if (render_2_Screen_fbo)
-	//{
-	//	m_ScreenFBO.Bind();
-	//}
-
-	//clear only stencil without the depth 
-	//because the previous depth is important for extra object passes
-	//like transparent pass etc
-	//RenderCommand::Clear();
-
-	//RenderCommand::ClearStencilOnly();
-
-
-
 	m_DeferredShader.Bind();
 	m_DeferredShader.SetUniform1i("u_GBaseColourSpec", 0);
 	m_GBuffer.BindTextureIdx(0, 0);
@@ -1019,51 +926,18 @@ void ForwardVsDeferredRenderingScene::DeferredLightingPass()
 	m_GBuffer.BindTextureIdx(1, 1);
 	m_DeferredShader.SetUniform1i("u_GPosition", 2);
 	m_GBuffer.BindTextureIdx(2, 2);
-	//not in use at the moment 
-	//m_DeferredShader.SetUniform1i("u_GDepth", 3);
-	//m_GBuffer.BindTextureIdx(3, 3);
 
-	m_DeferredShader.SetUniformVec3("u_ViewPos", m_Camera->GetPosition());
 	m_DeferredShader.SetUniform1i("u_PtLightCount", m_PtLightCount);
 
-	///m_Scre
 	m_SceneRenderer.DrawMesh(m_QuadMesh);
 
 	m_DeferredShader.UnBind();
-
-	////clear screen image texture
-	//RenderCommand::ClearDepthOnly();
-	////get depth from gbuffer
-	//m_GBuffer.BlitDepth();
-
-	//m_ForwardShader.Bind();
-	//m_ForwardShader.SetUniform1i("u_HasDepthMap", 0);
-	//m_ForwardShader.SetUniform1i("u_GBufferMap", 6);
-	//m_GBuffer.BindTextureIdx(1, 6);
-	//auto& mesh = m_RenderableEntities[0].lock()->GetMesh();
-	//auto& mat = m_RenderableEntities[0].lock()->GetMaterial();
-
-
-	//if (mesh)
-	//{
-	//	if (mat)
-	//		MaterialShaderBindHelper(*mat, m_ForwardShader);
-	//	else//if no material, use first scene mat as default
-	//		MaterialShaderBindHelper(*defaultFallBackMaterial, m_ForwardShader);
-
-
-	//	m_ForwardShader.SetUniformMat4f("u_Model", m_RenderableEntities[0].lock()->GetWorldTransform());
-	//	m_SceneRenderer.DrawMesh(mesh);
-	//}
-	//m_ForwardShader.SetUniform1i("u_HasDepthMap", 0);
-	//m_ForwardShader.UnBind();
-
 }
 
 void ForwardVsDeferredRenderingScene::SceneDebugger()
 {
 
-	if (m_DebugPointLightRange)
+	if (b_DebugPointLightRange)
 	{
 		for (const auto& pt : m_PtLights)
 		{
@@ -1114,7 +988,15 @@ void ForwardVsDeferredRenderingScene::SceneDebugger()
 
 void ForwardVsDeferredRenderingScene::ResetSceneFrame()
 {
-	m_FrameAsShadow = false;
+	b_FrameAsShadow = false;
+}
+
+int ForwardVsDeferredRenderingScene::UpdateLightCount(int step, int progression_base, int scale_factor)
+{
+	int power = (scale_factor * step) - 1;
+	int value = glm::pow(progression_base, power);
+	printf("Output count: %d", value);
+	return value;
 }
 
 void ForwardVsDeferredRenderingScene::ResizeBuffers(unsigned int width, unsigned int height)
@@ -1122,7 +1004,6 @@ void ForwardVsDeferredRenderingScene::ResizeBuffers(unsigned int width, unsigned
 	m_PrevViewWidth = width;
 	m_PrevViewHeight = height;
 	m_GBuffer.ResizeBuffer(width, height);
-	m_ScreenFBO.ResizeBuffer(width, height);
 }
 
 void ForwardVsDeferredRenderingScene::MaterialShaderBindHelper(Material& mat, Shader& shader)
@@ -1154,8 +1035,6 @@ void ForwardVsDeferredRenderingScene::MaterialShaderBindHelper(Material& mat, Sh
 	//Ignore Specular Map
 	shader.SetUniform1i("u_Material.hasSpecularMap", (mat.specularMap != nullptr));
 	shader.SetUniform1i("u_Material.shinness", mat.shinness);
-	//shader.SetUniform1i("u_Material.useParallax", mat.useParallax);
-	//shader.SetUniform1f("u_Material.parallax", mat.heightScale);
 }
 
 bool ForwardVsDeferredRenderingScene::AddPointLight(glm::vec3 pos, glm::vec3 col)
@@ -1242,6 +1121,16 @@ void ForwardVsDeferredRenderingScene::MainUI()
 	ImGui::Text("Entities counts %d", m_RenderableEntities.size());
 	ImGui::Text("Opaque entities %d", m_OpaqueEntities.size());
 	ImGui::Text("Transparent entities %d", m_TransparentEntities.size());
+	ImGui::Text("Transparent count:");
+	for (const auto& e : m_TransparentEntities)
+	{
+		ImGui::SameLine();
+		ImGui::Text("%d", e.lock()->GetID());
+	}
+	static int v = 0;
+	ImGui::SliderInt("Test Progression", &v, 0, 10);
+	ImGui::SameLine();
+	ImGui::Text("%d", UpdateLightCount(v));
 	ExternalMainUI_LightTreeNode();
 
 
@@ -1380,10 +1269,10 @@ void ForwardVsDeferredRenderingScene::ExternalMainUI_SceneDebugTreeNode()
 	ImGui::Spacing();
 	if (ImGui::TreeNode("Debug Scene"))
 	{
-		ImGui::Checkbox("Allow Scene Debug Gizmos", &m_DebugScene);
-		if (m_DebugScene)
+		ImGui::Checkbox("Allow Scene Debug Gizmos", &b_DebugScene);
+		if (b_DebugScene)
 		{
-			ImGui::Checkbox("Draw Point Light Range", &m_DebugPointLightRange);
+			ImGui::Checkbox("Draw Point Light Range", &b_DebugPointLightRange);
 			ImGui::Checkbox("Debug Dir Shadow Para", &dirLightObject.dirLightShadow.debugPara);
 		}
 		else
@@ -1425,9 +1314,6 @@ void ForwardVsDeferredRenderingScene::EntityDebugUI(Entity& entity)
 		entity.SetLocalTransform(glm::translate(glm::mat4(1.0f), translate) *
 			glm::toMat4(glm::quat(glm::radians(euler))) *
 			glm::scale(glm::mat4(1.0f), scale));
-
-		if (entity.GetMaterial())
-			flag_resort_transparency |= (entity.GetMaterial()->renderMode == CRRT_Mat::RenderingMode::Transparent);
 	}
 	if (entity.GetMaterial())
 		ImGui::Text("Material Name: %s", entity.GetMaterial()->name);
@@ -1477,7 +1363,7 @@ void ForwardVsDeferredRenderingScene::EntityModelMaterial(const Entity& entity)
 		if (ImGui::Combo("Rendering Mode", &curr_sel, CRRT_Mat::GetAllRenderingModesAsName(), (int)CRRT_Mat::RenderingMode::Count))
 		{
 			mat->renderMode = (CRRT_Mat::RenderingMode)curr_sel;
-			flag_rebuild_transparency |= true;
+			b_rebuild_transparency |= true;
 		}
 		ImGui::ColorEdit4("Colour", &mat->baseColour[0]);
 		tex_id = (mat->baseMap) ? mat->baseMap->GetID() : blank_tex_id;
@@ -1522,24 +1408,5 @@ void ForwardVsDeferredRenderingScene::GBufferDisplayUI()
 		}
 
 	}
-	ImGui::End();
-}
-
-
-
-
-/// <summary>
-/// Just for debugging Screen frame buffer output
-/// </summary>
-void ForwardVsDeferredRenderingScene::ScreenFBODisplayUI()
-{
-	ImGui::Begin("Screen FBO");
-	static int scale = 1;
-	ImGui::SliderInt("image scale", &scale, 1, 5);
-	ImVec2 img_size(500.0f * scale, 500.0f * scale);
-	img_size.y *= (m_ScreenFBO.GetSize().y / m_ScreenFBO.GetSize().x); //invert
-	ImGui::Separator();
-	ImGui::Image((ImTextureID)(intptr_t)m_ScreenFBO.GetColourAttachment(), img_size, ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f));
-
 	ImGui::End();
 }
