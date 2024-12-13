@@ -49,6 +49,8 @@ struct Material
 	std::shared_ptr<Texture> specularMap = nullptr; //3
 	float heightScale = 0.0f; //parallax scale
 	int shinness = 64;
+
+	static const unsigned int MAX_MAP_COUNT = 4;
 };
 
 

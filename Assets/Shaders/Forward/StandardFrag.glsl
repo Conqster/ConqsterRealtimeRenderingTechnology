@@ -84,9 +84,9 @@ layout (std140) uniform u_LightBuffer
 };
 //-------------------------Shadow Map Sampler---------------------------
 uniform bool u_EnableSceneShadow;
-layout(binding = 3) uniform sampler2D u_DirShadowMap;
-layout(binding = 4) uniform samplerCube u_SkyboxMap;
-layout(binding = 5) uniform samplerCube u_PointShadowCubes[MAX_POINT_LIGHT_SHADOW];
+layout(binding = 4) uniform sampler2D u_DirShadowMap;
+layout(binding = 5) uniform samplerCube u_SkyboxMap;
+layout(binding = 6) uniform samplerCube u_PointShadowCubes[MAX_POINT_LIGHT_SHADOW];
 
 
 //--------------------Environment-----------------------------------------

@@ -12,6 +12,9 @@
 
 #include "Renderer/ObjectBuffer/UniformBuffer.h"
 
+#include "Renderer/RendererConfig.h"
+#include "Renderer/ObjectBuffer/ShadowMap.h"
+
 struct LearnVertex
 {
 	unsigned int VAO;
@@ -58,6 +61,8 @@ protected:
 	bool b_EnableSkybox;
 	bool b_ResortTransparency = false;
 	bool b_RebuildTransparency = false;
+	bool b_FrameHasShadow = false;
+	bool b_EnableShadow = false;
 
 	//Default Scene Properties
 	float m_SkyboxInfluencity = 0.2f;
@@ -65,24 +70,28 @@ protected:
 	//Scene Config
 	RenderingPath m_RenderingPath = Forward;
 	float m_FrameCount = 0;
+	//util
+	int m_PrevViewWidth;
+	int m_PrevViewHeight;
 
 
 
 	//Buffers 
 	void PreUpdateGPUUniformBuffers(Camera& cam);
-	void IntermidateUpdateGPUUniformBuffers(DirectionalLight& d_light, std::vector<PointLight>& m_PtLights, const unsigned int& max_light);
+	void IntermidateUpdateGPUUniformBuffers();
 
 
 	//Shading Paths 
-	void ForwardShading(std::vector<std::weak_ptr<RenderableMesh>> opaque_entities, std::vector<std::weak_ptr<RenderableMesh>> transparent_entities);
-	void DeferredShading(std::vector<std::weak_ptr<RenderableMesh>> opaque_entities, std::vector<std::weak_ptr<RenderableMesh>> transparent_entities);
+	void ForwardShading(std::vector<std::weak_ptr<RenderableMesh>>& opaque_entities, std::vector<std::weak_ptr<RenderableMesh>>& transparent_entities);
+	void DeferredShading(std::vector<std::weak_ptr<RenderableMesh>>& opaque_entities, std::vector<std::weak_ptr<RenderableMesh>>& transparent_entities);
 
 
 	//Passes
-	void OpaquePass(Shader& o_shader, std::vector<std::weak_ptr<RenderableMesh>> o_enitites);
-	void TransparencyPass(Shader& t_shader, std::vector<std::weak_ptr<RenderableMesh>> t_entities);
-	void GBufferPass(Shader& g_shader, std::vector<std::weak_ptr<RenderableMesh>> g_entities);
+	void OpaquePass(Shader& o_shader, std::vector<std::weak_ptr<RenderableMesh>>& o_enitites);
+	void TransparencyPass(Shader& t_shader, std::vector<std::weak_ptr<RenderableMesh>>& t_entities);
+	void GBufferPass(Shader& g_shader, std::vector<std::weak_ptr<RenderableMesh>>& g_entities);
 	void DeferredLightingPass(Shader& d_shader, MRTFramebuffer& g_render_targets);
+	void DefaultShadowPass(Shader& sh_depht_shader, std::vector<std::shared_ptr<RenderableMesh>>& entities, ShadowConfig& config);
 
 	//Default Resources
 	//std::vector<std::weak_ptr<Entity>> def_RenderableEntities;
@@ -96,16 +105,26 @@ protected:
 	std::shared_ptr<Mesh> def_QuadMesh;	
 	Skybox def_Skybox;
 	Shader def_SkyboxShader;
+	Shader def_ShadowDepthShader;
 	UniformBuffer def_CamMatUBO;
 	UniformBuffer m_LightDataUBO;
 	UniformBuffer m_EnviUBO;
 	std::shared_ptr<Material> def_MeshMaterial;
 
 
+	////Light Resource
+	static const int MAX_POINT_LIGHT = 1000;
+	static const int MAX_POINT_LIGHT_SHADOW = 10;
+	DirectionalLight def_DirLight;
+	std::vector<PointLight> def_PtLights;
+	ShadowConfig def_SceneShadowConfig;
+	ShadowMap def_DirDepthMap;
+	std::vector<ShadowCube>def_PtDepthCubes;
+
 	//Utilites 
 	void DefMaterialShaderBindHelper(Material& mat, Shader& shader);
 	void BuildRenderableMeshes(const std::shared_ptr<Entity>& entity);
-	void BuildOpaqueTransparency(const std::vector<std::shared_ptr<RenderableMesh>> renderable_entities);
+	void BuildOpaqueTransparency(const std::vector<std::shared_ptr<RenderableMesh>>& renderable_entities);
 	void SortByViewDistance(std::vector<std::weak_ptr<RenderableMesh>>& sorting_list);
 
 	//setters
@@ -113,4 +132,9 @@ protected:
 
 	void UpdateShadersUniformBuffers();
 
+	void RefreshFrame();
+	void ResizeBuffers(unsigned int width, unsigned int height);
+
+
+	void DebugDisplayDirectionalLightUIPanel(unsigned int scale = 1);
 };

@@ -48,14 +48,10 @@ private:
 
 
 	//Scene Properties 
-	bool m_EnableShadows = true;
 
 	//Scene Resources
 	//std::shared_ptr<Material> defaultFallBackMaterial; //shared_ptr, just in case to take ownership if other ref gets deleted
 	std::vector<std::shared_ptr<Entity>> m_SceneEntities;
-	Shader m_ShadowDepthShader;  //this is not scene deoth shader
-	int m_PrevViewWidth;
-	int m_PrevViewHeight;
 	
 
 	//Utilities
@@ -70,11 +66,7 @@ private:
 
 	//Begin Scene Render
 	void BeginRenderScene();
-	void ShadowPass(Shader& depth_shader, const std::vector<std::weak_ptr<Entity>> renderable_meshes);
 
-
-	
-	void ResetSceneFrame();
 
 	////////////////////////////////
 	// HAVE TO REMOVE THIS LATER 
@@ -85,24 +77,18 @@ private:
 	{
 		glm::vec3 sampleWorldPos = glm::vec3(0.0f);
 		float cam_offset = 5.0f;
-		DirectionalLight dirlight;  //Directional light
+		//use default direction in Base Class {Scene}
 		DirShadowCalculation dirLightShadow; //direction light shadow data
 	}dirLightObject;
 	ShadowMap dirDepthMap;
-	//Point Light data
-	static const int MAX_POINT_LIGHT = 1000;
-	static const int MAX_POINT_LIGHT_SHADOW = 10;
-	std::vector<PointLight> m_PtLights;
 	unsigned int m_PtLightCount = 0;
 	ShadowConfig m_PtShadowConfig;
-	std::vector<ShadowCube> m_PtDepthMapCubes;
+	//std::vector<ShadowCube> m_PtDepthMapCubes;
 
 	bool m_FrameAsShadow = false;
 
 
 	//------------------------------Utility functions------------------------/
-	//need to take this out later
-	void ResizeBuffers(unsigned int width, unsigned int height);
 
 	bool AddPointLight(glm::vec3 location, glm::vec3 colour);
 

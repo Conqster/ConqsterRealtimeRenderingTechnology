@@ -11,6 +11,11 @@
 
 #include "Renderer/Meshes/PrimitiveMeshFactory.h"
 
+#include "Renderer/ObjectBuffer/ShadowMap.h"
+#include "Renderer/RendererConfig.h"
+
+#include "libs/imgui/imgui.h"
+
 void Scene::SetWindow(Window* window)
 {
 	this->window = window;
@@ -123,11 +128,11 @@ void Scene::PreUpdateGPUUniformBuffers(Camera& cam)
 	def_CamMatUBO.SetSubDataByID(&(cam.CalViewMat()[0][0]), sizeof(glm::mat4), offset_ptr);
 }
 
-void Scene::IntermidateUpdateGPUUniformBuffers(DirectionalLight& d_light, std::vector<PointLight>& m_PtLights, const unsigned int& max_light)
+void Scene::IntermidateUpdateGPUUniformBuffers()
 {
 	unsigned int offset_pointer = 0;
 	offset_pointer = 0;
-	d_light.UpdateUniformBufferData(m_LightDataUBO, offset_pointer);
+	def_DirLight.UpdateUniformBufferData(m_LightDataUBO, offset_pointer);
 	//for (int i = 0; i < MAX_POINT_LIGHT; i++)
 		//ptLight[i].UpdateUniformBufferData(m_LightDataUBO, offset_pointer);
 
@@ -135,11 +140,11 @@ void Scene::IntermidateUpdateGPUUniformBuffers(DirectionalLight& d_light, std::v
 	//has point light is dynamic, but the max light data are updated every frame
 	//if only one light is available, we only update the available light 
 	//and perform directional light before keeps the Light uniform buffer integrity 
-	for (int i = 0; i < m_PtLights.size(); i++)
-		if (i < max_light)
-			m_PtLights[i].UpdateUniformBufferData(m_LightDataUBO, offset_pointer);
+	for (int i = 0; i < def_PtLights.size(); i++)
+		if (i < MAX_POINT_LIGHT)
+			def_PtLights[i].UpdateUniformBufferData(m_LightDataUBO, offset_pointer);
 
-
+	return;
 	//environment
 	offset_pointer = 0;
 	m_EnviUBO.SetSubDataByID(&b_EnableSkybox, sizeof(bool), offset_pointer);
@@ -147,18 +152,52 @@ void Scene::IntermidateUpdateGPUUniformBuffers(DirectionalLight& d_light, std::v
 	m_EnviUBO.SetSubDataByID(&m_SkyboxInfluencity, sizeof(float), offset_pointer);
 	offset_pointer += sizeof(float);
 	m_EnviUBO.SetSubDataByID(&m_SkyboxReflectivity, sizeof(float), offset_pointer);
-	//m_SceneShader.SetUniform1i("u_SkyboxMap", 4);
+	//m_SceneShader.SetUniform1i("u_SkyboxMap", 4);MAX_
 }
 
-void Scene::ForwardShading(std::vector<std::weak_ptr<RenderableMesh>> opaque_entities, std::vector<std::weak_ptr<RenderableMesh>> transparent_entities)
+void Scene::ForwardShading(std::vector<std::weak_ptr<RenderableMesh>>& opaque_entities, std::vector<std::weak_ptr<RenderableMesh>>& transparent_entities)
 {
 	//Start Rendering
 	RenderCommand::Clear();
 
 	def_ForwardShader.Bind();
 
+	//////////////////////////////////////////////
+	// Only Forward Rendering Path as Shadow
+	//////////////////////////////////////////////
+	//m_ForwardShader.SetUniform1i("u_EnableSceneShadow", m_EnableShadows);
+	if (b_EnableShadow && b_FrameHasShadow)
+	{
+		def_ForwardShader.SetUniform1i("u_SceneAsShadow", 1);
+		glm::mat4 proj = glm::ortho(-def_SceneShadowConfig.cam_size, def_SceneShadowConfig.cam_size,
+			-def_SceneShadowConfig.cam_size, def_SceneShadowConfig.cam_size,
+			def_SceneShadowConfig.cam_near, def_SceneShadowConfig.cam_far);
+		//                                    //offset from focus
+		glm::mat4 view = glm::lookAt(def_DirLight.direction * 64.0f, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		def_ForwardShader.SetUniformMat4f("u_DirLightSpaceMatrix", proj * view);
+		//tex unit 0 >> texture (base map)
+		//tex unit 1 >> potenially normal map
+		//tex unit 2 >> potenially parallax map
+		//tex unit 3 >> potenially specular map
+		//tex unit 4 >> shadow map (dir Light)
+		//tex unit 5 >> skybox cube map
+		//tex unit 6 >> shadow cube (pt Light)
+		def_DirDepthMap.Read(Material::MAX_MAP_COUNT);
+		def_ForwardShader.SetUniform1i("u_DirShadowMap", Material::MAX_MAP_COUNT);
+
+		//point light shadow starts at  Material::TextureCount + 2 >> 6
+		for (int i = 0; i < def_PtLights.size(); i++)
+		{
+			if (i > MAX_POINT_LIGHT_SHADOW)
+				break;
+
+			def_PtDepthCubes[i].Read(Material::MAX_MAP_COUNT + 2 + i);
+			def_ForwardShader.SetUniform1i(("u_PointShadowCubes[" + std::to_string(i) + "]").c_str(), Material::MAX_MAP_COUNT + 2 + i);
+		}
+	}
+
 	//move this to light uniform buffer
-	def_ForwardShader.SetUniform1i("u_PtLightCount", 65);
+	def_ForwardShader.SetUniform1i("u_PtLightCount", def_PtLights.size());
 	def_ForwardShader.SetUniform1i("u_SceneAsShadow", 0);
 
 	//Draw Skybox
@@ -172,7 +211,7 @@ void Scene::ForwardShading(std::vector<std::weak_ptr<RenderableMesh>> opaque_ent
 	TransparencyPass(def_ForwardShader, transparent_entities);
 }
 
-void Scene::DeferredShading(std::vector<std::weak_ptr<RenderableMesh>> opaque_entities, std::vector<std::weak_ptr<RenderableMesh>> transparent_entities)
+void Scene::DeferredShading(std::vector<std::weak_ptr<RenderableMesh>>& opaque_entities, std::vector<std::weak_ptr<RenderableMesh>>& transparent_entities)
 {
 	//Write scene opaque entities geometry attributes
 	//into gbuffer (Base colour, Normal, Position)
@@ -196,7 +235,7 @@ void Scene::DeferredShading(std::vector<std::weak_ptr<RenderableMesh>> opaque_en
 	}
 }
 
-void Scene::OpaquePass(Shader& o_shader, std::vector<std::weak_ptr<RenderableMesh>> o_enitites)
+void Scene::OpaquePass(Shader& o_shader, std::vector<std::weak_ptr<RenderableMesh>>& o_enitites)
 {
 	o_shader.Bind();
 	for (const auto& e : o_enitites)
@@ -223,7 +262,7 @@ void Scene::OpaquePass(Shader& o_shader, std::vector<std::weak_ptr<RenderableMes
 	}
 }
 
-void Scene::TransparencyPass(Shader& t_shader, std::vector<std::weak_ptr<RenderableMesh>> t_entities)
+void Scene::TransparencyPass(Shader& t_shader, std::vector<std::weak_ptr<RenderableMesh>>& t_entities)
 {
 	t_shader.Bind();
 	RenderCommand::EnableBlend();
@@ -254,7 +293,7 @@ void Scene::TransparencyPass(Shader& t_shader, std::vector<std::weak_ptr<Rendera
 	RenderCommand::DisableBlend();
 }
 
-void Scene::GBufferPass(Shader& g_shader, std::vector<std::weak_ptr<RenderableMesh>> g_entities)
+void Scene::GBufferPass(Shader& g_shader, std::vector<std::weak_ptr<RenderableMesh>>& g_entities)
 {
 	//Write entities geometry attributes
 	//into gbuffer (Base colour, Normal, Position)
@@ -283,7 +322,7 @@ void Scene::DeferredLightingPass(Shader& d_shader, MRTFramebuffer& g_render_targ
 
 	//move this to camera uniform buffer
 	//move this to light uniform buffer
-	d_shader.SetUniform1i("u_PtLightCount", 65);
+	d_shader.SetUniform1i("u_PtLightCount", def_PtLights.size());
 
 	///m_Scre
 	if (!def_QuadMesh)
@@ -292,6 +331,79 @@ void Scene::DeferredLightingPass(Shader& d_shader, MRTFramebuffer& g_render_targ
 	m_SceneRenderer.DrawMesh(def_QuadMesh);
 
 	d_shader.UnBind();
+}
+
+void Scene::DefaultShadowPass(Shader& depth_shader, std::vector<std::shared_ptr<RenderableMesh>>& entities, ShadowConfig& config)
+{
+
+
+	////////////////////////
+	// Directional Shadow
+	////////////////////////
+	def_DirDepthMap.Write();
+	RenderCommand::CullFront();
+	RenderCommand::ClearDepthOnly();
+	depth_shader.Bind();
+	depth_shader.SetUniform1i("u_IsOmnidir", 0);
+	//ditrectional ligth projection and view
+	glm::mat4 proj = glm::ortho(-config.cam_size, config.cam_size,
+					  -config.cam_size, config.cam_size, 
+					  config.cam_near, config.cam_far);
+	//                                    //offset from focus
+	glm::mat4 view = glm::lookAt(def_DirLight.direction * 64.0f, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	glm::mat light_mat = proj * view;
+	depth_shader.SetUniformMat4f("u_LightSpaceMat", light_mat);
+
+	for (const auto& m : entities)
+	{
+		depth_shader.SetUniformMat4f("u_Model", *m->transform);
+		m_SceneRenderer.DrawMesh(m->mesh.lock());
+	}
+
+
+	return;
+	////////////////////////////
+	// Point Light Shadow
+	////////////////////////////
+
+	if (def_PtLights.size() > 0)
+	{
+		std::vector<glm::mat4> shadow_mats = PointShadowCalculation::PointLightSpaceMatrix(def_PtLights[0].position);
+		depth_shader.SetUniform1i("u_IsOmnidir", 1);
+		depth_shader.SetUniform1f("u_FarPlane", def_PtLights[0].shadow_far);
+
+		for (unsigned int i = 1; i < def_PtLights.size(); i++)
+		{
+			if (i > MAX_POINT_LIGHT_SHADOW)
+				break;
+
+			depth_shader.SetUniformVec3("u_LightPos", def_PtLights[i].position);
+			shadow_mats = PointShadowCalculation::PointLightSpaceMatrix(def_PtLights[i].position);
+			for (int f = 0; f < 6; ++f)
+			{
+				depth_shader.SetUniformMat4f(("u_ShadowMatrices[" + std::to_string(f) + "]").c_str(), shadow_mats[f]);
+			}
+
+			def_PtDepthCubes[i].Write();//ready to write in the depth cube framebuffer for light "i"
+			RenderCommand::ClearDepthOnly();//clear the depth buffer 
+
+			//draw renderable meshes 
+			for (const auto& m : entities)
+			{
+				depth_shader.SetUniformMat4f("u_Model", *m->transform);
+				m_SceneRenderer.DrawMesh(m->mesh.lock());
+			}
+			//unbind current point light shadow cube
+			def_PtDepthCubes[i].UnBind();
+		}
+	}
+
+
+	//done with shadow calcultaion 
+	depth_shader.UnBind();
+	RenderCommand::CullBack();
+	RenderCommand::Viewport(0, 0, window->GetWidth(), window->GetHeight());
+	b_FrameHasShadow = true;
 }
 
 void Scene::DefMaterialShaderBindHelper(Material& mat, Shader& shader)
@@ -366,7 +478,7 @@ void Scene::BuildRenderableMeshes(const std::shared_ptr<Entity>& entity)
 		BuildRenderableMeshes(c);
 }
 
-void Scene::BuildOpaqueTransparency(const std::vector<std::shared_ptr<RenderableMesh>> renderable_entities)
+void Scene::BuildOpaqueTransparency(const std::vector<std::shared_ptr<RenderableMesh>>& renderable_entities)
 {
 	def_TransparentEntities.clear();
 	def_OpaqueEntities.clear();
@@ -423,4 +535,29 @@ void Scene::UpdateShadersUniformBuffers()
 	def_DeferredShader.Bind();
 	def_DeferredShader.SetUniformBlockIdx("u_CameraMat", def_CamMatUBO.GetBindBlockIdx());
 	def_DeferredShader.SetUniformBlockIdx("u_LightBuffer", m_LightDataUBO.GetBindBlockIdx());
+}
+
+void Scene::RefreshFrame()
+{	
+	b_FrameHasShadow = false;
+}
+
+void Scene::ResizeBuffers(unsigned int width, unsigned int height)
+{
+	m_PrevViewWidth = width;
+	m_PrevViewHeight = height;
+	def_GBuffer.ResizeBuffer(width, height);
+}
+
+void Scene::DebugDisplayDirectionalLightUIPanel(unsigned int scale)
+{
+	if (ImGui::TreeNode("Directional Shadow Depth"))
+	{
+		scale = (scale == 0) ? 1 : scale;
+		ImVec2 img_size(500.0f * scale, 500.0f * scale);
+		//img_size.y *= (def_DirDepthMap.GetSize().y / def_DirDepthMap.GetSize()); //invert
+		ImGui::SeparatorText("Direction light shadow depth view");
+		ImGui::Image((ImTextureID)(intptr_t)def_DirDepthMap.GetColourAttactment(), img_size, ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f));
+		ImGui::TreePop();
+	}
 }

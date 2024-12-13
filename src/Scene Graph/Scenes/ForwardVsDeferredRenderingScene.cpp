@@ -50,18 +50,11 @@ void ForwardVsDeferredRenderingScene::OnInit(Window* window)
 
 void ForwardVsDeferredRenderingScene::OnUpdate(float delta_time)
 {
-	//definately need to move this out
-	if (m_EnableShadows)
-	{
-		dirLightObject.dirLightShadow.UpdateProjMat();
-		dirLightObject.dirLightShadow.UpdateViewMatrix(dirLightObject.sampleWorldPos,
-			dirLightObject.dirlight.direction,
-			dirLightObject.cam_offset);
-	}
+	
 	//point shadow far update 
 	float shfar = m_PtShadowConfig.cam_far;
 	for (int i = 0; i < m_PtLightCount; i++)
-		m_PtLights[i].shadow_far = shfar;
+		def_PtLights[i].shadow_far = shfar;
 
 	glm::vec3 world_up = glm::vec3(0.0f, 1.0f, 0.0f);
 	glm::vec3 desired_move_dir;
@@ -74,7 +67,7 @@ void ForwardVsDeferredRenderingScene::OnUpdate(float delta_time)
 
 	for (int i = 0; i < m_PtLightCount; i++)
 	{
-		pt_orbit_dir_xz = m_PtOrbitOrigin - m_PtLights[i].position;
+		pt_orbit_dir_xz = m_PtOrbitOrigin - def_PtLights[i].position;
 		pt_orbit_dir_xz.y = 0.0f; //no difference on y axis
 
 		//check if not too far
@@ -84,20 +77,22 @@ void ForwardVsDeferredRenderingScene::OnUpdate(float delta_time)
 		//12.442357, 15.3, 15.658475
 		//adjust / force to required 
 		if (init_dist > m_DesiredDistance)
-			m_PtLights[i].position += pt_orbit_dir_xz * (init_dist - m_DesiredDistance);
+			def_PtLights[i].position += pt_orbit_dir_xz * (init_dist - m_DesiredDistance);
 
 
 		desired_move_dir = glm::cross(world_up, pt_orbit_dir_xz);
-		m_PtLights[i].position += desired_move_dir * m_OrbitSpeed * delta_time * 5.0f; // based on entity_extra_scaleby
+		def_PtLights[i].position += desired_move_dir * m_OrbitSpeed * delta_time * 5.0f; // based on entity_extra_scaleby
 	}
 
+
+
+	RefreshFrame();
 
 	OnRender();
 
 	if (m_PrevViewWidth != window->GetWidth() || m_PrevViewHeight != window->GetHeight())
 		ResizeBuffers(window->GetWidth(), window->GetHeight());
 
-	ResetSceneFrame();
 
 
 	//m_ShaderHotReload.Update();
@@ -140,7 +135,11 @@ void ForwardVsDeferredRenderingScene::OnRender()
 		
 	SortByViewDistance(def_TransparentEntities);
 
-	IntermidateUpdateGPUUniformBuffers(dirLightObject.dirlight, m_PtLights, MAX_POINT_LIGHT);
+
+	if (b_EnableShadow)
+		DefaultShadowPass(def_ShadowDepthShader, def_RenderableEntities, dirLightObject.dirLightShadow.config);
+
+	IntermidateUpdateGPUUniformBuffers();
 
 	switch (m_RenderingPath)
 	{
@@ -155,6 +154,7 @@ void ForwardVsDeferredRenderingScene::OnRender()
 
 	m_FrameCount++;
 
+	return;
 	if(m_DebugScene)
 		OnSceneDebug();
 
@@ -271,7 +271,7 @@ void ForwardVsDeferredRenderingScene::CreateEntities(const SceneData&  scene_dat
 
 	//TEST TEST TEST TEST 
 	//kind of like world scale
-	float entity_extra_scaleby = 5.0f;
+	float entity_extra_scaleby = 1.0f;
 
 	glm::mat4 temp_trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f)) *
 						   glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) *
@@ -327,7 +327,7 @@ void ForwardVsDeferredRenderingScene::CreateLightsAndShadowDatas(const SceneLigh
 	m_PtLightCount = light_data.m_PtLightCount;
 
 	if (m_PtLightCount > 0)
-		m_PtLights = light_data.ptLights;
+		def_PtLights = light_data.ptLights;
 
 	//shadow map
 	dirDepthMap.Generate(shadow_data.m_DirDepthResQuality);
@@ -338,20 +338,20 @@ void ForwardVsDeferredRenderingScene::CreateLightsAndShadowDatas(const SceneLigh
 	dirLightObject.dirLightShadow.config.cam_size = shadow_data.m_DirOrthoSize;
 
 
-	m_ShadowDepthShader.Create("point_shadow_depth", shadow_data.m_depthVerShader,
+	def_ShadowDepthShader.Create("point_shadow_depth", shadow_data.m_depthVerShader,
 		shadow_data.m_depthFragShader, shadow_data.m_depthGeoShader);
 
-
+	return;
 	//point light shadow map 
 	unsigned int count = 0;
-	for (auto& pt : m_PtLights)
+	for (auto& pt : def_PtLights)
 	{
 		if (count > MAX_POINT_LIGHT_SHADOW)
 			break;
 		//using push_back instead of emplace_back 
 		//to create a copy when storing in vector 
-		m_PtDepthMapCubes.push_back(ShadowCube(shadow_data.m_PtDepthResQuality));
-		m_PtDepthMapCubes.back().Generate();
+		def_PtDepthCubes.push_back(ShadowCube(shadow_data.m_PtDepthResQuality));
+		def_PtDepthCubes.back().Generate();
 		count++;
 	}
 
@@ -374,6 +374,11 @@ void ForwardVsDeferredRenderingScene::SetRenderingConfiguration(const SceneRende
 	def_ForwardShader.SetUniform1i("u_SkyboxMap", MAT_TEXTURE_COUNT + 1);
 
 
+	auto& shader_data = scene_render_config.m_GBufferShader;
+	def_GBufferShader.Create(shader_data.m_Name, shader_data.m_Vertex,
+		shader_data.m_Fragment, shader_data.m_Geometry);
+
+	return;
 	///////////////////////////////////////
 	// GBUFFER
 	///////////////////////////////////////
@@ -388,9 +393,6 @@ void ForwardVsDeferredRenderingScene::SetRenderingConfiguration(const SceneRende
 	};
 	def_GBuffer.Generate(window->GetWidth(), window->GetHeight(), fbo_img_config);
 
-	auto& shader_data = scene_render_config.m_GBufferShader;
-	def_GBufferShader.Create(shader_data.m_Name, shader_data.m_Vertex,
-		shader_data.m_Fragment, shader_data.m_Geometry);
 
 	//Track forward shader for hot reloading
 	//m_ShaderHotReload.TrackShader(&m_ForwardShader);
@@ -422,28 +424,25 @@ void ForwardVsDeferredRenderingScene::CreateGPUDatas()
 	m_LightDataUBO.BindBufferRndIdx(1, light_buffer_size, 0);
 
 
-
+	UpdateShadersUniformBuffers();
+	return;
 	//------------------Enviroment Data UBO-----------------------------/
 	long long int envi_buffer_size = CRRT::EnvironmentData::GetGPUSize();
 	m_EnviUBO.Generate(envi_buffer_size);
 	m_EnviUBO.BindBufferRndIdx(2, envi_buffer_size, 0);
 
 	//Assign UBO, if necessary 
-	UpdateShadersUniformBuffers();
 }
 
 SceneData ForwardVsDeferredRenderingScene::LoadSceneFromFile()
 {
 	//--------------------Light--------------------------------/
-	//Dir light
-	auto& dl = dirLightObject.dirlight;
-
 	SceneData scene_data{};
 	if (!SceneSerialiser::Instance().LoadScene("Assets/Scene/experiment.crrtscene", scene_data))
 		printf("[SCENE FILE LOADING]: Failed to retrive all data from file!!!!!!!\n");
 
 
-	m_EnableShadows = scene_data.m_HasShadow;
+	b_EnableShadow = scene_data.m_HasShadow;
 
 	//Overwrite Scene camera for now
 	//its better to change the address because other
@@ -469,7 +468,7 @@ void ForwardVsDeferredRenderingScene::SerialiseScene()
 	{
 		"Forward Vs Deferred Scene",
 		true,	//m_HasLight;
-		m_EnableShadows, //true,	//m_HasShadow = true;
+		b_EnableShadow, //true,	//m_HasShadow = true;
 		true,	//m_HasEnivornmentMap = true;
 		//camera 
 		{
@@ -534,8 +533,8 @@ void ForwardVsDeferredRenderingScene::SerialiseScene()
 		},
 		//lights 
 		{
-			dirLightObject.dirlight, //directional Light
-			m_PtLights,
+			def_DirLight, //direction light
+			def_PtLights,
 			m_PtLightCount,
 		},
 		//shadow quality
@@ -549,13 +548,13 @@ void ForwardVsDeferredRenderingScene::SerialiseScene()
 			dirLightObject.dirLightShadow.config.cam_size,
 			//omni shadow
 			//in might for generate value for all shadow
-			m_PtDepthMapCubes[0].GetSize(),
+			def_PtDepthCubes[0].GetSize(),
 			m_PtShadowConfig.cam_near,
 			m_PtShadowConfig.cam_far,
 			//REALLY BAD,
-			(m_ShadowDepthShader.GetShaderFilePath(GL_VERTEX_SHADER)),
-			(m_ShadowDepthShader.GetShaderFilePath(GL_FRAGMENT_SHADER)),
-			(m_ShadowDepthShader.GetShaderFilePath(GL_GEOMETRY_SHADER)),
+			(def_ShadowDepthShader.GetShaderFilePath(GL_VERTEX_SHADER)),
+			(def_ShadowDepthShader.GetShaderFilePath(GL_FRAGMENT_SHADER)),
+			(def_ShadowDepthShader.GetShaderFilePath(GL_GEOMETRY_SHADER)),
 		},
 	};
 	SceneSerialiser::Instance().SerialiseScene("Assets/Scene/experiment.crrtscene", scene_info_data);
@@ -571,82 +570,6 @@ void ForwardVsDeferredRenderingScene::BeginRenderScene()
 	RenderCommand::Clear();
 }
 
-void ForwardVsDeferredRenderingScene::ShadowPass(Shader& depth_shader, const std::vector<std::weak_ptr<Entity>> renderable_meshes)
-{
-	m_FrameAsShadow = true;
-	//need sorted data
-	//material is not need only mesh geometry 
-	dirDepthMap.Write();
-	RenderCommand::CullFront();
-	RenderCommand::ClearDepthOnly();//clear the depth buffer 
-	//directional light
-	depth_shader.Bind();
-	m_ShadowDepthShader.SetUniform1i("u_IsOmnidir", 0);
-	m_ShadowDepthShader.SetUniformMat4f("u_LightSpaceMat", dirLightObject.dirLightShadow.GetLightSpaceMatrix());
-	//Draw Objects with material 
-	//Renderer::DrawMesh(Mesh)
-
-
-	
-	for (const auto& e : renderable_meshes)
-	{
-		if (!e.expired())
-		{
-			auto entity = e.lock();
-			if (entity->CanCastShadow())
-			{
-				depth_shader.SetUniformMat4f("u_Model", entity->GetWorldTransform());
-				m_SceneRenderer.DrawMesh(entity->GetMesh());
-			}
-		}
-	}
-
-	dirDepthMap.UnBind();
-
-	//point light shadows
-	std::vector<glm::mat4> shadowMats = PointShadowCalculation::PointLightSpaceMatrix(m_PtLights[0].position, m_PtShadowConfig);
-	//general shadowing values
-	depth_shader.SetUniform1i("u_IsOmnidir", 1);
-	depth_shader.SetUniform1f("u_FarPlane", m_PtShadowConfig.cam_far);
-
-	
-	for (unsigned int i = 0; i < m_PtLightCount; i++)
-	{
-		if (i > MAX_POINT_LIGHT_SHADOW)
-			break;
-
-		depth_shader.SetUniformVec3("u_LightPos", m_PtLights[i].position);
-		shadowMats = PointShadowCalculation::PointLightSpaceMatrix(m_PtLights[i].position, m_PtShadowConfig);
-		for (int f = 0; f < 6; ++f)
-		{
-			depth_shader.SetUniformMat4f(("u_ShadowMatrices[" + std::to_string(f) + "]").c_str(), shadowMats[f]);
-		}
-
-		m_PtDepthMapCubes[i].Write();//ready to write in the depth cube framebuffer for light "i"
-		RenderCommand::ClearDepthOnly();//clear the depth buffer 
-
-		//draw renderable meshes 
-		for (const auto& e : renderable_meshes)
-		{
-			if (!e.expired())
-			{
-				auto entity = e.lock();
-				if (entity->CanCastShadow())
-				{
-					depth_shader.SetUniformMat4f("u_Model", entity->GetWorldTransform());
-					m_SceneRenderer.DrawMesh(entity->GetMesh());
-				}
-			}
-		}
-		//unbind current point light shadow cube
-		m_PtDepthMapCubes[i].UnBind();
-	}
-
-	//done with shadow calculation
-	depth_shader.UnBind();
-	RenderCommand::CullBack();
-	RenderCommand::Viewport(0, 0, window->GetWidth(), window->GetHeight());
-}
 
 
 void ForwardVsDeferredRenderingScene::OnSceneDebug()
@@ -654,7 +577,7 @@ void ForwardVsDeferredRenderingScene::OnSceneDebug()
 
 	if (m_DebugPointLightRange)
 	{
-		for (const auto& pt : m_PtLights)
+		for (const auto& pt : def_PtLights)
 		{
 			DebugGizmos::DrawWireSphere(pt.position, pt.CalculateLightRadius(0.02f), pt.colour);
 		}
@@ -669,10 +592,10 @@ void ForwardVsDeferredRenderingScene::OnSceneDebug()
 	{
 		auto& ds = dirLightObject.dirLightShadow;
 		float dcv = dirLightObject.cam_offset + ds.config.cam_near * 0.5f; //dcv is the center/value between the near & far plane 
-		glm::vec3 orthCamPos = dirLightObject.sampleWorldPos + (dirLightObject.dirlight.direction * dirLightObject.cam_offset);
-		glm::vec3 farPlane = orthCamPos + (glm::normalize(-dirLightObject.dirlight.direction) * ds.config.cam_far);
-		glm::vec3 nearPlane = orthCamPos + (glm::normalize(dirLightObject.dirlight.direction) * ds.config.cam_near);
-		DebugGizmos::DrawOrthoCameraFrustrm(orthCamPos, dirLightObject.dirlight.direction,
+		glm::vec3 orthCamPos = dirLightObject.sampleWorldPos + (def_DirLight.direction * dirLightObject.cam_offset);
+		glm::vec3 farPlane = orthCamPos + (glm::normalize(-def_DirLight.direction) * ds.config.cam_far);
+		glm::vec3 nearPlane = orthCamPos + (glm::normalize(def_DirLight.direction) * ds.config.cam_near);
+		DebugGizmos::DrawOrthoCameraFrustrm(orthCamPos, def_DirLight.direction,
 			ds.config.cam_near, ds.config.cam_far, ds.config.cam_size,
 			glm::vec3(0.0f, 1.0f, 0.0f));
 
@@ -686,31 +609,19 @@ void ForwardVsDeferredRenderingScene::OnSceneDebug()
 	{
 		for (int i = 0; i < m_PtLightCount; i++)
 		{
-			if (m_EnableShadows)
+			if (b_EnableShadow)
 			{
-				DebugGizmos::DrawWireThreeDisc(m_PtLights[i].position, m_PtShadowConfig.cam_far, 10, m_PtLights[i].colour, 1.0f);
-				DebugGizmos::DrawCross(m_PtLights[i].position);
+				DebugGizmos::DrawWireThreeDisc(def_PtLights[i].position, m_PtShadowConfig.cam_far, 10, def_PtLights[i].colour, 1.0f);
+				DebugGizmos::DrawCross(def_PtLights[i].position);
 			}
 
 			//EXTRA 
-			DebugGizmos::DrawLine(m_PtLights[i].position, m_PtOrbitOrigin, m_PtLights[i].colour);
-			DebugGizmos::DrawSphere(m_PtLights[i].position, 1.0f, m_PtLights[i].colour);
+			DebugGizmos::DrawLine(def_PtLights[i].position, m_PtOrbitOrigin, def_PtLights[i].colour);
+			DebugGizmos::DrawSphere(def_PtLights[i].position, 1.0f, def_PtLights[i].colour);
 		}
 	}
 
 
-}
-
-void ForwardVsDeferredRenderingScene::ResetSceneFrame()
-{
-	m_FrameAsShadow = false;
-}
-
-void ForwardVsDeferredRenderingScene::ResizeBuffers(unsigned int width, unsigned int height)
-{
-	m_PrevViewWidth = width;
-	m_PrevViewHeight = height;
-	def_GBuffer.ResizeBuffer(width, height);
 }
 
 
@@ -719,11 +630,11 @@ bool ForwardVsDeferredRenderingScene::AddPointLight(glm::vec3 pos, glm::vec3 col
 	if (m_PtLightCount > MAX_POINT_LIGHT)
 		return false;
 	
-	m_PtLights.emplace_back(PointLight(pos, col));
-	m_PtLights.back().enable = true;
-	m_PtLights.back().attenuation[0] = 0.017f;
-	m_PtLights.back().attenuation[1] = 0.022f;
-	m_PtLights.back().attenuation[2] = 0.002f;
+	def_PtLights.emplace_back(PointLight(pos, col));
+	def_PtLights.back().enable = true;
+	def_PtLights.back().attenuation[0] = 0.017f;
+	def_PtLights.back().attenuation[1] = 0.022f;
+	def_PtLights.back().attenuation[2] = 0.002f;
 
 	m_PtLightCount++;
 	return true;
@@ -823,7 +734,7 @@ void ForwardVsDeferredRenderingScene::ExternalMainUI_LightTreeNode()
 		//////////////////////////////////////
 		ImGui::Spacing();
 		ImGui::SeparatorText("Light Global Properties");
-		ImGui::Checkbox("Enable Scene Shadow", &m_EnableShadows);
+		ImGui::Checkbox("Enable Scene Shadow", &b_EnableShadow);
 
 		//////////////////////////////////////
 		// ENVIRONMENT SKYBOX
@@ -846,16 +757,16 @@ void ForwardVsDeferredRenderingScene::ExternalMainUI_LightTreeNode()
 		ImGui::SeparatorText("Directional Light");
 		if(ImGui::TreeNode("Directional Light"))
 		{
-			ImGui::Checkbox("Enable Directional", &dirLightObject.dirlight.enable);
+			ImGui::Checkbox("Enable Directional", &def_DirLight.enable);
 			//ImGui::SameLine();
-			//ImGui::Checkbox("Cast Shadow", &dirLightObject.dirlight.castShadow);
-			ImGui::DragFloat3("Light Direction", &dirLightObject.dirlight.direction[0], 0.05f, -5.0f, 5.0f);
-			//ImGui::DragFloat3("Light Direction", &dirLightObject.dirlight.direction[0], 0.1f, -1.0f, 1.0f);
-			ImGui::ColorEdit3("Dir Light colour", &dirLightObject.dirlight.colour[0]);
-			ImGui::SliderFloat("Light ambinentIntensity", &dirLightObject.dirlight.ambientIntensity, 0.0f, 1.0f);
-			ImGui::SliderFloat("Light diffuseIntensity", &dirLightObject.dirlight.diffuseIntensity, 0.0f, 1.0f);
-			ImGui::SliderFloat("Light specIntensity", &dirLightObject.dirlight.specularIntensity, 0.0f, 1.0f);
-			if (dirLightObject.dirlight.castShadow)
+			//ImGui::Checkbox("Cast Shadow", &def_DirLight.castShadow);
+			ImGui::DragFloat3("Light Direction", &def_DirLight.direction[0], 0.05f, -5.0f, 5.0f);
+			//ImGui::DragFloat3("Light Direction", &def_DirLight.direction[0], 0.1f, -1.0f, 1.0f);
+			ImGui::ColorEdit3("Dir Light colour", &def_DirLight.colour[0]);
+			ImGui::SliderFloat("Light ambinentIntensity", &def_DirLight.ambientIntensity, 0.0f, 1.0f);
+			ImGui::SliderFloat("Light diffuseIntensity", &def_DirLight.diffuseIntensity, 0.0f, 1.0f);
+			ImGui::SliderFloat("Light specIntensity", &def_DirLight.specularIntensity, 0.0f, 1.0f);
+			if (def_DirLight.castShadow)
 			{
 				if (ImGui::TreeNode("Shadow Camera Info"))
 				{
@@ -921,17 +832,17 @@ void ForwardVsDeferredRenderingScene::ExternalMainUI_LightTreeNode()
 
 				std::string label = "point light: " + std::to_string(i);
 				ImGui::SeparatorText(label.c_str());
-				ImGui::Checkbox((label + " Enable light").c_str(), &m_PtLights[i].enable);
+				ImGui::Checkbox((label + " Enable light").c_str(), &def_PtLights[i].enable);
 
-				ImGui::DragFloat3((label + " position").c_str(), &m_PtLights[i].position[0], 0.1f);
+				ImGui::DragFloat3((label + " position").c_str(), &def_PtLights[i].position[0], 0.1f);
 
-				ImGui::ColorEdit3((label + " colour").c_str(), &m_PtLights[i].colour[0]);
-				ImGui::SliderFloat((label + " ambinentIntensity").c_str(), &m_PtLights[i].ambientIntensity, 0.0f, 1.0f);
-				ImGui::SliderFloat((label + " diffuseIntensity").c_str(), &m_PtLights[i].diffuseIntensity, 0.0f, 1.0f);
-				ImGui::SliderFloat((label + " specIntensity").c_str(), &m_PtLights[i].specularIntensity, 0.0f, 1.0f);
-				ImGui::SliderFloat((label + " constant attenuation").c_str(), &m_PtLights[i].attenuation[0], 0.0f, 1.0f);
-				ImGui::SliderFloat((label + " linear attenuation").c_str(), &m_PtLights[i].attenuation[1], 0.0f, 1.0f);
-				ImGui::SliderFloat((label + " quadratic attenuation").c_str(), &m_PtLights[i].attenuation[2], 0.0f, 1.0f);
+				ImGui::ColorEdit3((label + " colour").c_str(), &def_PtLights[i].colour[0]);
+				ImGui::SliderFloat((label + " ambinentIntensity").c_str(), &def_PtLights[i].ambientIntensity, 0.0f, 1.0f);
+				ImGui::SliderFloat((label + " diffuseIntensity").c_str(), &def_PtLights[i].diffuseIntensity, 0.0f, 1.0f);
+				ImGui::SliderFloat((label + " specIntensity").c_str(), &def_PtLights[i].specularIntensity, 0.0f, 1.0f);
+				ImGui::SliderFloat((label + " constant attenuation").c_str(), &def_PtLights[i].attenuation[0], 0.0f, 1.0f);
+				ImGui::SliderFloat((label + " linear attenuation").c_str(), &def_PtLights[i].attenuation[1], 0.0f, 1.0f);
+				ImGui::SliderFloat((label + " quadratic attenuation").c_str(), &def_PtLights[i].attenuation[2], 0.0f, 1.0f);
 			}
 			ImGui::TreePop();
 		}
@@ -1074,6 +985,9 @@ void ForwardVsDeferredRenderingScene::GBufferDisplayUI()
 	{
 		static int scale = 1;
 		ImGui::SliderInt("image scale", &scale, 1, 5);
+		
+		DebugDisplayDirectionalLightUIPanel(scale);
+
 		ImVec2 img_size(500.0f * scale, 500.0f * scale);
 		img_size.y *= (def_GBuffer.GetSize().y / def_GBuffer.GetSize().x); //invert
 		ImGui::Text("Colour Attachment Count: %d", def_GBuffer.GetColourAttachmentCount());

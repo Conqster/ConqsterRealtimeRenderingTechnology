@@ -21,8 +21,8 @@ void Game::OnStart()
 	m_Time.Init(100);
 
 
-	m_WindowProp.width = 1000;
-	m_WindowProp.height = 700;
+	m_WindowProp.width = 1080;
+	m_WindowProp.height = 720;
 
 	if (m_UseFullScreen)
 		m_WindowProp.width = GetSystemMetrics(SM_CXSCREEN), m_WindowProp.height = GetSystemMetrics(SM_CYSCREEN);

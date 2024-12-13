@@ -20,6 +20,7 @@ public:
 	void Clear();
 
 	inline unsigned int GetSize() { return m_Width; }
+	inline unsigned int GetColourAttactment() { return m_TexMapId; }
 protected:
 	unsigned int m_Id = 0;
 	unsigned int m_Height = 2048;// 1024;// 4096;//2048;
