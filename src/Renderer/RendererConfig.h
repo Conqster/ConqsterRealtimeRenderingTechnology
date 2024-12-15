@@ -24,9 +24,13 @@ struct ShadowConfig
 	int debugCubeFaceIdx = 0;
 };
 
+
 struct DirShadowCalculation
 {
 	ShadowConfig config;
+
+	glm::vec3 samplePos = glm::vec3(0.0f);
+	float camOffset = 1.0f;
 
 	bool debugPara = true;  //debug pos & parameters
 
@@ -51,6 +55,11 @@ struct DirShadowCalculation
 	{
 		view = glm::lookAt(sample_pos + (dir * offset),
 			sample_pos, glm::vec3(0.0f, 1.0f, 0.0f)); //world up 0, 1, 0
+	}
+
+	void UpdateViewMatrix(glm::vec3 dir)
+	{
+		view = glm::lookAt(samplePos + (dir * camOffset), samplePos, glm::vec3(0.0f, 1.0f, 0.0f));
 	}
 
 };

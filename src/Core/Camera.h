@@ -58,7 +58,7 @@ private:
 	glm::vec3 m_Up;
 	glm::vec3 m_Right;
 
-	float m_FOV = 45.0f;
+	float m_FOV = 60.0f;
 	float m_Near = 0.1f;
 	float m_Far = 150.0f;
 

@@ -4,7 +4,8 @@
 
 void ShadowMap::Generate(unsigned int res)
 {
-	Generate(res, res);
+	m_Width = m_Height = res;
+	Generate();
 }
 
 void ShadowMap::Generate(unsigned int width, unsigned int height)
@@ -32,9 +33,9 @@ void ShadowMap::Generate()
 
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_Id));
 	GLCall(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_TexMapId, 0));
+	//GLCall(glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, m_TexMapId, 0));
 	GLCall(glDrawBuffer(GL_NONE));
 	GLCall(glReadBuffer(GL_NONE));
-
 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 	{
@@ -43,13 +44,22 @@ void ShadowMap::Generate()
 		return;
 	}
 
-	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+	//GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+
+	GLCall(glBindTexture(GL_TEXTURE_2D, 0));
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void ShadowMap::Write()
 {
 	glViewport(0, 0, m_Width, m_Height);
 	glBindFramebuffer(GL_FRAMEBUFFER, m_Id);
+
+	if(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_UNSUPPORTED)
+	{
+		printf("[FRAMEBUFFER WRITE]: Shadow frame buffer is not suppported, i.e probably not generated!!!!!!\n");
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	}
 }
 
 void ShadowMap::Read(unsigned int slot)

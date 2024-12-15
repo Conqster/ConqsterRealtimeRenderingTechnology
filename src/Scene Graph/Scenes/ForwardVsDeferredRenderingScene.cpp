@@ -33,24 +33,27 @@ void ForwardVsDeferredRenderingScene::OnInit(Window* window)
 	Scene::OnInit(window);
 	window->UpdateProgramTitle("Forward vs Deferred Rendering Scene");
 
-	//Need to move out 
-	if (!m_Camera)
-		m_Camera = new Camera(glm::vec3(0.0f, /*5.0f*/7.0f, -36.0f), glm::vec3(0.0f, 1.0f, 0.0f), 90.0f, 0.0f, 20.0f, 1.0f/*0.5f*/);
-
-
-	InitRenderer();
-	SceneData scene_data = LoadSceneFromFile();
-	//Load entities
-	SetRenderingConfiguration(scene_data.m_RenderingConfig);
-	CreateLightsAndShadowDatas(scene_data.m_Light, scene_data.m_Shadow);
-	CreateEntities(scene_data);
-	//all generate and scene data should be ready before creating GPU specific datas
-	CreateGPUDatas();
+ 
+	DefaultSetup();
+	//InitRenderer();
+	//SceneData scene_data = LoadSceneFromFile();
+	////Load entities
+	//SetRenderingConfiguration(scene_data.m_RenderingConfig);
+	//CreateLightsAndShadowDatas(scene_data.m_Light, scene_data.m_Shadow);
+	//CreateEntities(scene_data);
+	////all generate and scene data should be ready before creating GPU specific datas
+	//CreateGPUDatas();
 }
 
 void ForwardVsDeferredRenderingScene::OnUpdate(float delta_time)
 {
 	
+	if (b_EnableShadow)
+	{
+		def_DirShadowConfig.UpdateProjMat();
+		def_DirShadowConfig.UpdateViewMatrix(def_DirLight.direction);
+	}
+
 	//point shadow far update 
 	float shfar = m_PtShadowConfig.cam_far;
 	for (int i = 0; i < m_PtLightCount; i++)
@@ -106,56 +109,22 @@ void ForwardVsDeferredRenderingScene::OnUpdate(float delta_time)
 
 void ForwardVsDeferredRenderingScene::OnRender()
 {
-	//Pre Rendering
-	BeginRenderScene();
-	PreUpdateGPUUniformBuffers(*m_Camera);
-	//naive flat out self - children - children into list/collection, easy mutilple interation
 
-	if (m_FrameCount < 1)
-	{
-		for (const auto& e : m_SceneEntities)
-			BuildRenderableMeshes(e);
+	//if (m_FrameCount < 1)
+	//{
+	//	for (const auto& e : m_SceneEntities)
+	//		BuildRenderableMeshes(e);
 
-		////Build renderable meshes flats out the mesh and sort by grp {Opaque, Transparency}
-		////so if transparent lets sort by view. 
-		if (def_TransparentEntities.size() > 1)
-			SortByViewDistance(def_TransparentEntities);
-	}
+	//	////Build renderable meshes flats out the mesh and sort by grp {Opaque, Transparency}
+	//	////so if transparent lets sort by view. 
+	//	if (def_TransparentEntities.size() > 1)
+	//		SortByViewDistance(def_TransparentEntities);
+	//}
+
+	DefaultSceneRendering();
 
 
-
-	if (b_RebuildTransparency)
-	{
-		BuildOpaqueTransparency(def_RenderableEntities);
-		SortByViewDistance(def_TransparentEntities);
-	}
-
-	if (b_ResortTransparency)
-		SortByViewDistance(def_TransparentEntities);
-		
-	SortByViewDistance(def_TransparentEntities);
-
-
-	if (b_EnableShadow)
-		DefaultShadowPass(def_ShadowDepthShader, def_RenderableEntities, dirLightObject.dirLightShadow.config);
-
-	IntermidateUpdateGPUUniformBuffers();
-
-	switch (m_RenderingPath)
-	{
-	case Forward:
-		ForwardShading(def_OpaqueEntities, def_TransparentEntities);
-		break;
-	case Deferred:
-		DeferredShading(def_OpaqueEntities, def_TransparentEntities);
-		break;
-	}
-
-
-	m_FrameCount++;
-
-	return;
-	if(m_DebugScene)
+	if(b_DebugScene)
 		OnSceneDebug();
 
 	//return;
@@ -163,6 +132,8 @@ void ForwardVsDeferredRenderingScene::OnRender()
 
 void ForwardVsDeferredRenderingScene::OnRenderUI()
 {
+	SceneDefaultUI();
+	return;
 	MainUI();
 	EnititiesUI();
 	MaterialsUI();
@@ -329,19 +300,21 @@ void ForwardVsDeferredRenderingScene::CreateLightsAndShadowDatas(const SceneLigh
 	if (m_PtLightCount > 0)
 		def_PtLights = light_data.ptLights;
 
+	def_DirLight = light_data.dir_Light;
+
 	//shadow map
-	dirDepthMap.Generate(shadow_data.m_DirDepthResQuality);
-	dirLightObject.dirLightShadow.config.cam_far = shadow_data.m_DirZFar;
-	dirLightObject.sampleWorldPos = shadow_data.m_DirSamplePos;
-	dirLightObject.dirLightShadow.config.cam_far = shadow_data.m_DirZFar;
-	dirLightObject.cam_offset = shadow_data.m_DirSampleOffset;
-	dirLightObject.dirLightShadow.config.cam_size = shadow_data.m_DirOrthoSize;
+	def_DirDepthMap.Generate(shadow_data.m_DirDepthResQuality);
+	def_DirShadowConfig.config.cam_far = shadow_data.m_DirZFar;
+	def_DirShadowConfig.samplePos = shadow_data.m_DirSamplePos;
+	def_DirShadowConfig.config.cam_far = shadow_data.m_DirZFar;
+	def_DirShadowConfig.camOffset = shadow_data.m_DirSampleOffset;
+	def_DirShadowConfig.config.cam_size = shadow_data.m_DirOrthoSize;
 
 
 	def_ShadowDepthShader.Create("point_shadow_depth", shadow_data.m_depthVerShader,
 		shadow_data.m_depthFragShader, shadow_data.m_depthGeoShader);
+	
 
-	return;
 	//point light shadow map 
 	unsigned int count = 0;
 	for (auto& pt : def_PtLights)
@@ -378,7 +351,8 @@ void ForwardVsDeferredRenderingScene::SetRenderingConfiguration(const SceneRende
 	def_GBufferShader.Create(shader_data.m_Name, shader_data.m_Vertex,
 		shader_data.m_Fragment, shader_data.m_Geometry);
 
-	return;
+	
+
 	///////////////////////////////////////
 	// GBUFFER
 	///////////////////////////////////////
@@ -425,7 +399,8 @@ void ForwardVsDeferredRenderingScene::CreateGPUDatas()
 
 
 	UpdateShadersUniformBuffers();
-	return;
+
+
 	//------------------Enviroment Data UBO-----------------------------/
 	long long int envi_buffer_size = CRRT::EnvironmentData::GetGPUSize();
 	m_EnviUBO.Generate(envi_buffer_size);
@@ -540,12 +515,12 @@ void ForwardVsDeferredRenderingScene::SerialiseScene()
 		//shadow quality
 		{
 			//dir shadow 
-			dirDepthMap.GetSize(),
-			dirLightObject.sampleWorldPos,
-			dirLightObject.dirLightShadow.config.cam_far,
-			dirLightObject.dirLightShadow.config.cam_near,
-			dirLightObject.cam_offset,
-			dirLightObject.dirLightShadow.config.cam_size,
+			def_DirDepthMap.GetSize(),
+			def_DirShadowConfig.samplePos,
+			def_DirShadowConfig.config.cam_far,
+			def_DirShadowConfig.config.cam_near,
+			def_DirShadowConfig.camOffset,
+			def_DirShadowConfig.config.cam_size,
 			//omni shadow
 			//in might for generate value for all shadow
 			def_PtDepthCubes[0].GetSize(),
@@ -588,11 +563,11 @@ void ForwardVsDeferredRenderingScene::OnSceneDebug()
 	DebugGizmos::DrawWireThreeDisc(m_PtOrbitOrigin, m_SpawnZoneRadius);
 
 
-	if (dirLightObject.dirLightShadow.debugPara)
+	if (def_DirShadowConfig.debugPara)
 	{
-		auto& ds = dirLightObject.dirLightShadow;
-		float dcv = dirLightObject.cam_offset + ds.config.cam_near * 0.5f; //dcv is the center/value between the near & far plane 
-		glm::vec3 orthCamPos = dirLightObject.sampleWorldPos + (def_DirLight.direction * dirLightObject.cam_offset);
+		auto& ds = def_DirShadowConfig;
+		float dcv = def_DirShadowConfig.camOffset + ds.config.cam_near * 0.5f; //dcv is the center/value between the near & far plane 
+		glm::vec3 orthCamPos = def_DirShadowConfig.samplePos + (def_DirLight.direction * def_DirShadowConfig.camOffset);
 		glm::vec3 farPlane = orthCamPos + (glm::normalize(-def_DirLight.direction) * ds.config.cam_far);
 		glm::vec3 nearPlane = orthCamPos + (glm::normalize(def_DirLight.direction) * ds.config.cam_near);
 		DebugGizmos::DrawOrthoCameraFrustrm(orthCamPos, def_DirLight.direction,
@@ -600,7 +575,7 @@ void ForwardVsDeferredRenderingScene::OnSceneDebug()
 			glm::vec3(0.0f, 1.0f, 0.0f));
 
 		//Shadow Camera Sample Position 
-		DebugGizmos::DrawCross(dirLightObject.sampleWorldPos);
+		DebugGizmos::DrawCross(def_DirShadowConfig.samplePos);
 	}
 
 
@@ -766,16 +741,17 @@ void ForwardVsDeferredRenderingScene::ExternalMainUI_LightTreeNode()
 			ImGui::SliderFloat("Light ambinentIntensity", &def_DirLight.ambientIntensity, 0.0f, 1.0f);
 			ImGui::SliderFloat("Light diffuseIntensity", &def_DirLight.diffuseIntensity, 0.0f, 1.0f);
 			ImGui::SliderFloat("Light specIntensity", &def_DirLight.specularIntensity, 0.0f, 1.0f);
+			ImGui::Checkbox("Light Can Shadow", &def_DirLight.castShadow);
 			if (def_DirLight.castShadow)
 			{
 				if (ImGui::TreeNode("Shadow Camera Info"))
 				{
-					auto& shadow = dirLightObject.dirLightShadow;
+					auto& shadow = def_DirShadowConfig;
 					ImGui::SliderFloat("Camera Near", &shadow.config.cam_near, 0.0f, shadow.config.cam_far - 0.5f);
 					ImGui::SliderFloat("Camera Far", &shadow.config.cam_far, shadow.config.cam_near + 0.5f, 1000.0f);
 					ImGui::SliderFloat("Camera Size", &shadow.config.cam_size, 0.0f, 200.0f);
-					ImGui::DragFloat3("Sample Pos", &dirLightObject.sampleWorldPos[0], 0.1f);
-					ImGui::SliderFloat("Light Proj Offset", &dirLightObject.cam_offset, 0.0f, 100.0f);
+					ImGui::DragFloat3("Sample Pos", &def_DirShadowConfig.samplePos[0], 0.1f);
+					ImGui::SliderFloat("Light Proj Offset", &def_DirShadowConfig.camOffset, 0.0f, 100.0f);
 					ImGui::Checkbox("Debug Dir Shadow Para", &shadow.debugPara);
 
 					ImGui::TreePop();
@@ -856,11 +832,11 @@ void ForwardVsDeferredRenderingScene::ExternalMainUI_SceneDebugTreeNode()
 	ImGui::Spacing();
 	if (ImGui::TreeNode("Debug Scene"))
 	{
-		ImGui::Checkbox("Allow Scene Debug Gizmos", &m_DebugScene);
-		if (m_DebugScene)
+		ImGui::Checkbox("Allow Scene Debug Gizmos", &b_DebugScene);
+		if (b_DebugScene)
 		{
 			ImGui::Checkbox("Draw Point Light Range", &m_DebugPointLightRange);
-			ImGui::Checkbox("Debug Dir Shadow Para", &dirLightObject.dirLightShadow.debugPara);
+			ImGui::Checkbox("Debug Dir Shadow Para", &def_DirShadowConfig.debugPara);
 		}
 		else
 			ImGui::Text("Check Allow Scene Debug Gizmos");

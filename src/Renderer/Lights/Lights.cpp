@@ -4,9 +4,9 @@
 
 #include "../ObjectBuffer/UniformBuffer.h"
 
-	Light::Light(const glm::vec3& colour, float amb_inten, float diff_inten)
+	Light::Light(const glm::vec3& colour, float amb_inten, float diff_inten, float spec)
 			    : colour(colour), ambientIntensity(amb_inten), 
-				  diffuseIntensity(diff_inten), specularIntensity(0.5f)
+				  diffuseIntensity(diff_inten), specularIntensity(spec)
 	{
 	}
 
@@ -27,8 +27,8 @@
 	//------------------------------------DIRECTIONAL LIGHT-----------------------------------------/
 	
 
-	DirectionalLight::DirectionalLight(const glm::vec3& dir, const glm::vec3& col, float amb_inten, float diff_inten)
-						: direction(dir), Light(col, amb_inten, diff_inten)
+	DirectionalLight::DirectionalLight(const glm::vec3& dir, const glm::vec3& col, float amb_inten, float diff_inten, float spec)
+						: direction(dir), Light(col, amb_inten, diff_inten, spec)
 	{
 		type = LightType::lightType_DIRECTIONAL;
 	}

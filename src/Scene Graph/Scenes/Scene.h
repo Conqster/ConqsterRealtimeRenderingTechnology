@@ -63,6 +63,7 @@ protected:
 	bool b_RebuildTransparency = false;
 	bool b_FrameHasShadow = false;
 	bool b_EnableShadow = false;
+	bool b_DebugScene = false;
 
 	//Default Scene Properties
 	float m_SkyboxInfluencity = 0.2f;
@@ -74,7 +75,8 @@ protected:
 	int m_PrevViewWidth;
 	int m_PrevViewHeight;
 
-
+	void DefaultSetup();
+	void DefaultSceneRendering();
 
 	//Buffers 
 	void PreUpdateGPUUniformBuffers(Camera& cam);
@@ -91,10 +93,10 @@ protected:
 	void TransparencyPass(Shader& t_shader, std::vector<std::weak_ptr<RenderableMesh>>& t_entities);
 	void GBufferPass(Shader& g_shader, std::vector<std::weak_ptr<RenderableMesh>>& g_entities);
 	void DeferredLightingPass(Shader& d_shader, MRTFramebuffer& g_render_targets);
-	void DefaultShadowPass(Shader& sh_depht_shader, std::vector<std::shared_ptr<RenderableMesh>>& entities, ShadowConfig& config);
+	void DefaultShadowPass(Shader& sh_depht_shader, std::vector<std::shared_ptr<RenderableMesh>>& entities);
 
 	//Default Resources
-	//std::vector<std::weak_ptr<Entity>> def_RenderableEntities;
+	std::vector<std::shared_ptr<Entity>> m_entities;
 	std::vector<std::shared_ptr<RenderableMesh>> def_RenderableEntities;
 	std::vector<std::weak_ptr<RenderableMesh>> def_OpaqueEntities;
 	std::vector<std::weak_ptr<RenderableMesh>> def_TransparentEntities;
@@ -118,6 +120,7 @@ protected:
 	DirectionalLight def_DirLight;
 	std::vector<PointLight> def_PtLights;
 	ShadowConfig def_SceneShadowConfig;
+	DirShadowCalculation def_DirShadowConfig;
 	ShadowMap def_DirDepthMap;
 	std::vector<ShadowCube>def_PtDepthCubes;
 
@@ -137,4 +140,20 @@ protected:
 
 
 	void DebugDisplayDirectionalLightUIPanel(unsigned int scale = 1);
+
+
+
+	//UIs
+	void SceneDefaultUI();
+	void DefaultMainUI();
+	void DefaultGBufferDisplayUI();
+
+	//Uis Panels
+	void WindowInfoUIPanel();
+	void CameraUIPanel();
+	void ScenePropUIPanel();
+
+	//Sub trees 
+	void Ext_MainUI_LightTree();
+	void Ext_MainUI_SceneTree();
 };

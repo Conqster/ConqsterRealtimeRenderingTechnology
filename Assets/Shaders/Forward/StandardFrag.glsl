@@ -196,6 +196,7 @@ vec3 CalculateDirectionalLight(DirectionalLight light, vec3 base_colour, vec3 N,
 	}
 	
 	vec3 lighting = (ambinent + (1.0f - shadow) * (diffuse + specular));// * base_colour;
+	//lighting *= (1.0f - shadow);
 	return lighting;
 }
 

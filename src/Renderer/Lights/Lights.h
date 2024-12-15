@@ -37,7 +37,7 @@ struct Light
 
 	const char* LightTypeToString();
 
-	Light(const glm::vec3& colour = glm::vec3(1.0f), float amb_inten = 0.5f, float diff_inten = 0.6f);
+	Light(const glm::vec3& colour = glm::vec3(1.0f), float amb_inten = 0.5f, float diff_inten = 0.6f, float spec = 0.5f);
 	virtual void UpdateUniformBufferData(class UniformBuffer& ubo, unsigned int& offset_pointer) {};
 	virtual ~Light() = default;
 };
@@ -56,7 +56,7 @@ struct DirectionalLight : public Light
 
 	glm::vec3 direction;
 
-	DirectionalLight(const glm::vec3& dir = glm::vec3(-1.0f, 1.0f, 1.0f), const glm::vec3& col = glm::vec3(1.0f), float amb_inten = 0.5f, float diff_inten = 0.6f);
+	DirectionalLight(const glm::vec3& dir = glm::vec3(-1.0f, 1.0f, 1.0f), const glm::vec3& col = glm::vec3(1.0f), float amb_inten = 0.5f, float diff_inten = 0.6f, float spec = 0.5f);
 
 	static long long int GetGPUSize()
 	{

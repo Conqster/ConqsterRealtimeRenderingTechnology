@@ -3,9 +3,9 @@ m_HasLights: true
 m_HasShadow: true
 m_HasEnvironmentMap: true
 Main Camera:
-  m_Position: [5.576745, 26.069157, -18.96673]
-  m_Yaw: 96.017654
-  m_Pitch: -16.40057
+  m_Position: [-0.03543508, 18.327349, -29.047754]
+  m_Yaw: 87.911514
+  m_Pitch: -10.864211
   m_Fov: 62.4
   m_Near: 0.1
   m_Far: 1500
@@ -48,7 +48,7 @@ Shadow Setting:
   Directional Shadow:
     m_ResolutionQuality: 2048
     m_OrthoSize: 95
-    m_SamplePos: [0, 0, 0]
+    m_SamplePos: [10, 10, 10]
     m_zFar: 300
     m_zNear: 0.1
     m_SampleOffset: 64
@@ -61,17 +61,17 @@ Shadow Setting:
     m_FragmentShader: Assets/Shaders/ShadowMapping/ShadowDepthFrag.glsl
     m_GeometryShader: Assets/Shaders/ShadowMapping/ShadowDepthGeometry.glsl
 Dir light:
-  m_Direction: [-1, 1, 1]
+  m_Direction: [-0.650, 3.450, -0.900]
   m_Colour: [1, 1, 1]
   m_CastShadow: false
-  m_Enable: false
-  m_AmbinentIntensity: 0.5
-  m_DiffuseIntensity: 0.6
+  m_Enable: true
+  m_AmbinentIntensity: 0.086
+  m_DiffuseIntensity: 0.966
   m_SpecularIntensity: 0.5
 Point Lights:
-  m_Counts: 2
+  m_Counts: 0
   0:
-    m_Position: [157.45126, 276.6, -123.35689]
+    m_Position: [-180.391, 276.6, 86.43024]
     m_Colour: [0.9362745, 0.33503944, 0.33503944]
     m_Attenuation: [1, 0.322, 0.005]
     m_CastShadow: false
@@ -80,7 +80,7 @@ Point Lights:
     m_DiffuseIntensity: 0.517
     m_SpecularIntensity: 0.595
   1:
-    m_Position: [189.84962, 15.4, 62.967773]
+    m_Position: [-171.76884, 15.4, -102.50154]
     m_Colour: [1, 1, 1]
     m_Attenuation: [1, 0.004, 0.002]
     m_CastShadow: false

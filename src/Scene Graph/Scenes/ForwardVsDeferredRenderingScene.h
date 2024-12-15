@@ -61,7 +61,6 @@ private:
 	float m_DesiredDistance = 200.0f;//based on entity_extra_scaleby
 	float m_OrbitSpeed = 20.0f;
 
-	bool m_DebugScene = false;
 	bool m_DebugPointLightRange = false;
 
 	//Begin Scene Render
@@ -73,17 +72,8 @@ private:
 	////////////////////////////////
 	//---------------------------Lighting Utilities--------------------------/
 	//Directional Light data-------------------/
-	struct DirLightObject
-	{
-		glm::vec3 sampleWorldPos = glm::vec3(0.0f);
-		float cam_offset = 5.0f;
-		//use default direction in Base Class {Scene}
-		DirShadowCalculation dirLightShadow; //direction light shadow data
-	}dirLightObject;
-	ShadowMap dirDepthMap;
 	unsigned int m_PtLightCount = 0;
 	ShadowConfig m_PtShadowConfig;
-	//std::vector<ShadowCube> m_PtDepthMapCubes;
 
 	bool m_FrameAsShadow = false;
 
