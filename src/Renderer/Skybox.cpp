@@ -26,8 +26,8 @@ void Skybox::Create(const std::vector<std::string> faces_image_path)
 	m_TextureMap.LoadTexture(faces_image_path);
 
 	ShaderFilePath skybox_shader_file_path{ 
-		"Assets/Shaders/Utilities/Skybox/SkyboxVertex(deprecated).glsl",
-		"Assets/Shaders/Utilities/Skybox/SkyboxFragment.glsl" };
+		CRRT_ASSETS_PATH"/Shaders/Utilities/Skybox/SkyboxVertex(deprecated).glsl",
+		CRRT_ASSETS_PATH"/Shaders/Utilities/Skybox/SkyboxFragment.glsl" };
 
 	m_Shader.Create("default_skybox_shader", skybox_shader_file_path);
 

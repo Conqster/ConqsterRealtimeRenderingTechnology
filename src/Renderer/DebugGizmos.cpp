@@ -782,8 +782,8 @@ void DebugGizmos::Generate()
 {
 	ShaderFilePath debug_shader_file_path
 	{
-		"Assets/Shaders/Utilities/Debugger/PrimitiveVertex.glsl", //vertex shader
-		"Assets/Shaders/Utilities/Debugger/PrimitiveFrag.glsl", //fragment shader
+		CRRT_ASSETS_PATH"/Shaders/Utilities/Debugger/PrimitiveVertex.glsl", //vertex shader
+		CRRT_ASSETS_PATH"/Shaders/Utilities/Debugger/PrimitiveFrag.glsl", //fragment shader
 	};
 	m_Shader.Create("debug_shader", debug_shader_file_path);
 

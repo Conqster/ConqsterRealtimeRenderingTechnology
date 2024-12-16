@@ -155,16 +155,16 @@ void Scene::DefaultSetup()
 
 
 
-	def_ForwardShader.Create("model_forward_shading", "Assets/Shaders/Forward/StandardVertex.glsl", 
-							"Assets/Shaders/Forward/StandardFrag.glsl", "");
+	def_ForwardShader.Create("model_forward_shading", CRRT_ASSETS_PATH"/Shaders/Forward/StandardVertex.glsl",
+								CRRT_ASSETS_PATH"/Shaders/Forward/StandardFrag.glsl", "");
 	def_ForwardShader.Bind();
 	//texture unit Material::TextureCount + 1 >> 5
 	def_ForwardShader.SetUniform1i("u_SkyboxMap", Material::MAX_MAP_COUNT + 1);
 
 
 	
-	def_GBufferShader.Create("gbuffer_shading", "Assets/Shaders/Deferred/GBuffer.vert",
-									"Assets/Shaders/Deferred/GBuffer.frag", "");
+	def_GBufferShader.Create("gbuffer_shading", CRRT_ASSETS_PATH"/Shaders/Deferred/GBuffer.vert",
+								CRRT_ASSETS_PATH"/Shaders/Deferred/GBuffer.frag", "");
 
 
 
@@ -187,8 +187,8 @@ void Scene::DefaultSetup()
 
 
 	//Lights 
-	def_DirLight = DirectionalLight(glm::vec3(-0.65f, 3.45f, -0.9f), 
-									glm::vec3(1.0f), 0.086f, 0.966f, 0.5f);
+	def_DirLight = DirectionalLight(glm::vec3(-0.65f, 3.45f, -0.9f),
+		glm::vec3(1.0f), 0.086f, 0.966f, 0.5f);
 	def_DirLight.enable = true;
 	b_EnableShadow = true;
 
@@ -201,8 +201,8 @@ void Scene::DefaultSetup()
 	def_DirShadowConfig.config.cam_size = 60.0f;
 
 
-	def_ShadowDepthShader.Create("point_shadow_depth", "Assets/Shaders/ShadowMapping/ShadowDepthVertex.glsl",
-		"Assets/Shaders/ShadowMapping/ShadowDepthFrag.glsl", "Assets/Shaders/ShadowMapping/ShadowDepthGeometry.glsl");
+	def_ShadowDepthShader.Create("point_shadow_depth", CRRT_ASSETS_PATH"/Shaders/ShadowMapping/ShadowDepthVertex.glsl",
+		CRRT_ASSETS_PATH"/Shaders/ShadowMapping/ShadowDepthFrag.glsl", CRRT_ASSETS_PATH"/Shaders/ShadowMapping/ShadowDepthGeometry.glsl");
 
 
 	//point light shadow map 
@@ -228,18 +228,18 @@ void Scene::DefaultSetup()
 	///////////////////////////////////////////////////////////////////////
 	std::vector<std::string> def_skybox_faces
 	{
-		"Assets/Textures/Skyboxes/default_skybox/right.jpg",
-		"Assets/Textures/Skyboxes/default_skybox/left.jpg",
-		"Assets/Textures/Skyboxes/default_skybox/top.jpg",
-		"Assets/Textures/Skyboxes/default_skybox/bottom.jpg",
-		"Assets/Textures/Skyboxes/default_skybox/front.jpg",
-		"Assets/Textures/Skyboxes/default_skybox/back.jpg"
+		CRRT_ASSETS_PATH"/Textures/Skyboxes/default_skybox/right.jpg",
+		CRRT_ASSETS_PATH"/Textures/Skyboxes/default_skybox/left.jpg",
+		CRRT_ASSETS_PATH"/Textures/Skyboxes/default_skybox/top.jpg",
+		CRRT_ASSETS_PATH"/Textures/Skyboxes/default_skybox/bottom.jpg",
+		CRRT_ASSETS_PATH"/Textures/Skyboxes/default_skybox/front.jpg",
+		CRRT_ASSETS_PATH"/Textures/Skyboxes/default_skybox/back.jpg"
 	};
 	def_Skybox.Create(def_skybox_faces);
 	def_Skybox.ActivateMap(4);
 	//skybox shading
-	def_SkyboxShader.Create("skybox_shader", "Assets/Shaders/Utilities/Skybox/SkyboxVertex.glsl",
-		"Assets/Shaders/Utilities/Skybox/SkyboxFragment.glsl", "");
+	def_SkyboxShader.Create("skybox_shader", CRRT_ASSETS_PATH"/Shaders/Utilities/Skybox/SkyboxVertex.glsl",
+		CRRT_ASSETS_PATH"/Shaders/Utilities/Skybox/SkyboxFragment.glsl", "");
 
 
 	////////////////////////////////////////

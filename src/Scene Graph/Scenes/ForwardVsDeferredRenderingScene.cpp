@@ -174,8 +174,8 @@ void ForwardVsDeferredRenderingScene::InitRenderer()
 	SetQuadMesh(CRRT::PrimitiveMeshFactory::Instance().CreateQuad());
 	ShaderFilePath shader_file_path
 	{
-		"Assets/Shaders/Deferred/DeferredShading.vert",
-		"Assets/Shaders/Deferred/DeferredShading.frag"
+		CRRT_ASSETS_PATH"/Shaders/Deferred/DeferredShading.vert",
+		CRRT_ASSETS_PATH"/Shaders/Deferred/DeferredShading.frag"
 	};
 	def_DeferredShader.Create("deferred_shading", shader_file_path);
 
@@ -413,7 +413,7 @@ SceneData ForwardVsDeferredRenderingScene::LoadSceneFromFile()
 {
 	//--------------------Light--------------------------------/
 	SceneData scene_data{};
-	if (!SceneSerialiser::Instance().LoadScene("Assets/Scene/experiment.crrtscene", scene_data))
+	if (!SceneSerialiser::Instance().LoadScene(CRRT_ASSETS_PATH"/Scene/experiment.crrtscene", scene_data))
 		printf("[SCENE FILE LOADING]: Failed to retrive all data from file!!!!!!!\n");
 
 
@@ -532,7 +532,7 @@ void ForwardVsDeferredRenderingScene::SerialiseScene()
 			(def_ShadowDepthShader.GetShaderFilePath(GL_GEOMETRY_SHADER)),
 		},
 	};
-	SceneSerialiser::Instance().SerialiseScene("Assets/Scene/experiment.crrtscene", scene_info_data);
+	SceneSerialiser::Instance().SerialiseScene(CRRT_ASSETS_PATH"/Scene/experiment.crrtscene", scene_info_data);
 	
 	//SceneSerialiser::Instance().SerialiseShader("Assets/Scene/shadowdepth.crrtshader", m_ShadowDepthShader);
 }

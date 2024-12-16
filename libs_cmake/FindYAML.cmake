@@ -4,7 +4,7 @@ message(STATUS "Checking for YAML package for ${PROJECT_NAME}")
 set(YAML_FLODER_NAME "yaml-cpp-installed-experiment")
 find_path(YAML_ROOT_DIR 
 		  NAMES debug/include 
-		  HINTS ${CMAKE_SOURCE_DIR}/libs/${YAML_FLODER_NAME})
+		  HINTS ${CMAKE_CURRENT_SOURCE_DIR}/libs/${YAML_FLODER_NAME})
 
 
 if(YAML_ROOT_DIR)

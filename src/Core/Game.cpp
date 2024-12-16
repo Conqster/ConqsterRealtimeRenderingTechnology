@@ -38,37 +38,37 @@ void Game::OnStart()
 	{
 		TimeTaken FilePathRegistation("File Path Registeration");
 		//Register file path
-		FilePaths::Instance().RegisterPath("brick", "Assets/Textures/brick.png");
-		FilePaths::Instance().RegisterPath("manchester-image", "Assets/Textures/At Manchester.jpg");
-		FilePaths::Instance().RegisterPath("container", "Assets/Textures/container.png");
-		FilePaths::Instance().RegisterPath("container-specular", "Assets/Textures/container_specular.png");
-		FilePaths::Instance().RegisterPath("dirt", "Assets/Textures/dirt.png");
-		FilePaths::Instance().RegisterPath("grass", "Assets/Textures/grass.png");
-		FilePaths::Instance().RegisterPath("marble", "Assets/Textures/marble.jpeg");
-		FilePaths::Instance().RegisterPath("metal", "Assets/Textures/metal.jpeg");
-		FilePaths::Instance().RegisterPath("plain", "Assets/Textures/plain64.png");
-		FilePaths::Instance().RegisterPath("blank-image", "Assets/Textures/BlankPlane.png");
-		FilePaths::Instance().RegisterPath("floor-brick-diff", "Assets/Textures/floor_brick/patterned_brick_floor_diff.jpg");
-		FilePaths::Instance().RegisterPath("floor-brick-nor", "Assets/Textures/floor_brick/patterned_brick_floor_nor.jpg");
+		FilePaths::Instance().RegisterPath("brick", CRRT_ASSETS_PATH"/Textures/brick.png");
+		FilePaths::Instance().RegisterPath("manchester-image", CRRT_ASSETS_PATH"/Textures/At Manchester.jpg");
+		FilePaths::Instance().RegisterPath("container", CRRT_ASSETS_PATH"/Textures/container.png");
+		FilePaths::Instance().RegisterPath("container-specular", CRRT_ASSETS_PATH"/Textures/container_specular.png");
+		FilePaths::Instance().RegisterPath("dirt", CRRT_ASSETS_PATH"/Textures/dirt.png");
+		FilePaths::Instance().RegisterPath("grass", CRRT_ASSETS_PATH"/Textures/grass.png");
+		FilePaths::Instance().RegisterPath("marble", CRRT_ASSETS_PATH"/Textures/marble.jpeg");
+		FilePaths::Instance().RegisterPath("metal", CRRT_ASSETS_PATH"/Textures/metal.jpeg");
+		FilePaths::Instance().RegisterPath("plain", CRRT_ASSETS_PATH"/Textures/plain64.png");
+		FilePaths::Instance().RegisterPath("blank-image", CRRT_ASSETS_PATH"/Textures/BlankPlane.png");
+		FilePaths::Instance().RegisterPath("floor-brick-diff", CRRT_ASSETS_PATH"/Textures/floor_brick/patterned_brick_floor_diff.jpg");
+		FilePaths::Instance().RegisterPath("floor-brick-nor", CRRT_ASSETS_PATH"/Textures/floor_brick/patterned_brick_floor_nor.jpg");
 
-		FilePaths::Instance().RegisterPath("para-brick-diff", "Assets/Textures/Parallax/bricks.jpg");
-		FilePaths::Instance().RegisterPath("para-brick-nor", "Assets/Textures/Parallax/bricks_normal.jpg");
-		FilePaths::Instance().RegisterPath("para-brick-disp", "Assets/Textures/Parallax/bricks_disp.jpg");
+		FilePaths::Instance().RegisterPath("para-brick-diff", CRRT_ASSETS_PATH"/Textures/Parallax/bricks.jpg");
+		FilePaths::Instance().RegisterPath("para-brick-nor", CRRT_ASSETS_PATH"/Textures/Parallax/bricks_normal.jpg");
+		FilePaths::Instance().RegisterPath("para-brick-disp", CRRT_ASSETS_PATH"/Textures/Parallax/bricks_disp.jpg");
 
-		FilePaths::Instance().RegisterPath("cobblestone-diff", "Assets/Textures/cobblestone/patterned_cobblestone_02_diff_4k.jpg");
-		FilePaths::Instance().RegisterPath("cobblestone-nor", "Assets/Textures/cobblestone/patterned_cobblestone_02_nor_gl_4k.jpg");
-		FilePaths::Instance().RegisterPath("cobblestone-disp", "Assets/Textures/cobblestone/patterned_cobblestone_02_disp_4k.jpg");
-		
-		FilePaths::Instance().RegisterPath("old_plank", "Assets/Textures/old_planks_diff.jpg");
-		FilePaths::Instance().RegisterPath("glass", "Assets/Textures/glass-background-with-frosted-pattern.jpg");
+		FilePaths::Instance().RegisterPath("cobblestone-diff", CRRT_ASSETS_PATH"/Textures/cobblestone/patterned_cobblestone_02_diff_4k.jpg");
+		FilePaths::Instance().RegisterPath("cobblestone-nor", CRRT_ASSETS_PATH"/Textures/cobblestone/patterned_cobblestone_02_nor_gl_4k.jpg");
+		FilePaths::Instance().RegisterPath("cobblestone-disp", CRRT_ASSETS_PATH"/Textures/cobblestone/patterned_cobblestone_02_disp_4k.jpg");
+
+		FilePaths::Instance().RegisterPath("old_plank", CRRT_ASSETS_PATH"/Textures/old_planks_diff.jpg");
+		FilePaths::Instance().RegisterPath("glass", CRRT_ASSETS_PATH"/Textures/glass-background-with-frosted-pattern.jpg");
 
 
 
-		FilePaths::Instance().RegisterPath("bunny", "Assets/Models/stanford-bunny.obj");
-		FilePaths::Instance().RegisterPath("backpack", "Assets/Models/backpack/backpack.obj");
-		FilePaths::Instance().RegisterPath("shapes", "Assets/Models/blendershapes/blend_shapes.obj");
-		FilePaths::Instance().RegisterPath("sponza", "Assets/Models/Sponza/sponza.obj");
-		FilePaths::Instance().RegisterPath("electrical-charger", "Assets/Textures/sci-fi_electrical_charger/scene.gltf");
+		FilePaths::Instance().RegisterPath("bunny", CRRT_ASSETS_PATH"/Models/stanford-bunny.obj");
+		FilePaths::Instance().RegisterPath("backpack", CRRT_ASSETS_PATH"/Models/backpack/backpack.obj");
+		FilePaths::Instance().RegisterPath("shapes", CRRT_ASSETS_PATH"/Models/blendershapes/blend_shapes.obj");
+		FilePaths::Instance().RegisterPath("sponza", CRRT_ASSETS_PATH"/Models/Sponza/sponza.obj");
+		FilePaths::Instance().RegisterPath("electrical-charger", CRRT_ASSETS_PATH"/Textures/sci-fi_electrical_charger/scene.gltf");
 	}
 
 
