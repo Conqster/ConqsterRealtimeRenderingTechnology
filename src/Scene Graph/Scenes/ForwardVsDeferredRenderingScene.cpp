@@ -157,6 +157,8 @@ void ForwardVsDeferredRenderingScene::OnRender()
 	if(b_DebugScene)
 		SceneDebugger();
 
+	DebugGizmos::DrawAllBatches();
+
 	//return;
 }
 
