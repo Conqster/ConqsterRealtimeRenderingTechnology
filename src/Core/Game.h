@@ -43,4 +43,8 @@ public:
 
 private: 
 	GameTime m_Time;
+
+
+	void SceneSetup();
+	void RegisterFilePaths();
 };

@@ -7,18 +7,7 @@
 #include "Camera.h"
 #include <windows.h>
 
-#include "Scene Graph/Scenes/MainScene.h"
-#include "Scene Graph/Scenes/Light&ModelScene.h"
-#include "Scene Graph/Scenes/AdvanceOpenGLScene.h"
-#include "Scene Graph/Scenes/FaceCullingScene.h"
-#include "Scene Graph/Scenes/Textures_FrameBufferScene.h"
-#include "Scene Graph/Scenes/GeometryScene.h"
-#include "Scene Graph/Scenes/InstancingScene.h"
-#include "Scene Graph/Scenes/AntiAliasingScene.h"
-//#include "Scene Graph/Scenes/AdvanceLightingScene.h"
-//#include "Scene Graph/Scenes/ParallaxExperimentalScene.h"
-#include "Scene Graph/Scenes/ExperimentScene.h"
-#include "Scene Graph/Scenes/ForwardVsDeferredRenderingScene.h"
+#include "Scene Graph/Scenes/AvailableScenes.h"
 
 //FOR TESTING: Remove later
 #include "libs/imgui/imgui.h"
@@ -41,109 +30,29 @@ void Game::OnStart()
 
 
 	m_Window = new Window(m_WindowProp);
+	if (!m_Window)
+		std::cout << "[GAME INIT]: Failed, window null!!\n";
+
+	m_UI = new UIManager(*m_Window);
+	if (!m_UI)
+		std::cout << "[GAME INIT]: Failed, UI null!!\n";
+
+	//Register file path
+	RegisterFilePaths();
 
 
-	/////////////////////////
-	// FILE PATHS
-	/////////////////////////
-	{
-		TimeTaken FilePathRegistation("File Path Registeration");
-		//Register file path
-		FilePaths::Instance().RegisterPath("brick", "Assets/Textures/brick.png");
-		FilePaths::Instance().RegisterPath("manchester-image", "Assets/Textures/At Manchester.jpg");
-		FilePaths::Instance().RegisterPath("container", "Assets/Textures/container.png");
-		FilePaths::Instance().RegisterPath("container-specular", "Assets/Textures/container_specular.png");
-		FilePaths::Instance().RegisterPath("dirt", "Assets/Textures/dirt.png");
-		FilePaths::Instance().RegisterPath("grass", "Assets/Textures/grass.png");
-		FilePaths::Instance().RegisterPath("marble", "Assets/Textures/marble.jpeg");
-		FilePaths::Instance().RegisterPath("metal", "Assets/Textures/metal.jpeg");
-		FilePaths::Instance().RegisterPath("plain", "Assets/Textures/plain64.png");
-		FilePaths::Instance().RegisterPath("blank-image", "Assets/Textures/BlankPlane.png");
-		FilePaths::Instance().RegisterPath("floor-brick-diff", "Assets/Textures/floor_brick/patterned_brick_floor_diff.jpg");
-		FilePaths::Instance().RegisterPath("floor-brick-nor", "Assets/Textures/floor_brick/patterned_brick_floor_nor.jpg");
+	m_GameState = State::LOADSCENE;
+	//Register Scenes & Load a scene
+	SceneSetup();
 
-		FilePaths::Instance().RegisterPath("para-brick-diff", "Assets/Textures/Parallax/bricks.jpg");
-		FilePaths::Instance().RegisterPath("para-brick-nor", "Assets/Textures/Parallax/bricks_normal.jpg");
-		FilePaths::Instance().RegisterPath("para-brick-disp", "Assets/Textures/Parallax/bricks_disp.jpg");
-
-		FilePaths::Instance().RegisterPath("cobblestone-diff", "Assets/Textures/cobblestone/patterned_cobblestone_02_diff_4k.jpg");
-		FilePaths::Instance().RegisterPath("cobblestone-nor", "Assets/Textures/cobblestone/patterned_cobblestone_02_nor_gl_4k.jpg");
-		FilePaths::Instance().RegisterPath("cobblestone-disp", "Assets/Textures/cobblestone/patterned_cobblestone_02_disp_4k.jpg");
-		
-		FilePaths::Instance().RegisterPath("old_plank", "Assets/Textures/old_planks_diff.jpg");
-		FilePaths::Instance().RegisterPath("glass", "Assets/Textures/glass-background-with-frosted-pattern.jpg");
+	
+	if (m_CurrentScene)
+		m_GameState = State::RUNNINGSCENE;
 
 
 
-		FilePaths::Instance().RegisterPath("bunny", "Assets/Models/stanford-bunny.obj");
-		FilePaths::Instance().RegisterPath("backpack", "Assets/Models/backpack/backpack.obj");
-		FilePaths::Instance().RegisterPath("shapes", "Assets/Models/blendershapes/blend_shapes.obj");
-		FilePaths::Instance().RegisterPath("sponza", "Assets/Models/Sponza/sponza.obj");
-		FilePaths::Instance().RegisterPath("electrical-charger", "Assets/Textures/sci-fi_electrical_charger/scene.gltf");
-	}
-
-
-
-
-	//Register scenes
-	m_SceneManager = new SceneManager();
-	//m_SceneManager->RegisterNewScene<MainScene>("Main Scene");
-	m_SceneManager->RegisterNewScene<Texture_FrameBufferScene>("Texture_FrameBufferScene");
-	//m_SceneManager->RegisterNewScene<Light_ModelScene>("Light Model");
-	//m_SceneManager->RegisterNewScene<AdvanceOpenGLScene>("Advance Scene");
-	m_SceneManager->RegisterNewScene<FaceCullingScene>("Face Culling");
-	m_SceneManager->RegisterNewScene<GeometryScene>("Geometry Scene");
-	//m_SceneManager->RegisterNewScene<InstancingScene>("Instance Scene");
-	m_SceneManager->RegisterNewScene<AntiAliasingScene>("AntiAliasing Scene");
-	//m_SceneManager->RegisterNewScene<AdvanceLightingScene>("Advance Lighting Scene");
-	//m_SceneManager->RegisterNewScene<ParallaxExperimentalScene>("Parallax Scene");
-	m_SceneManager->RegisterNewScene<ExperimentScene>("ReWorking_Scene_Rendering");
-	m_SceneManager->RegisterNewScene<ForwardVsDeferredRenderingScene>("ForwardVsDeferredRendering_Scene");
-
-	//Load
-	//m_CurrentScene = m_SceneManager->LoadScene("Instance Scene", m_Window);
-	//m_CurrentScene = m_SceneManager->LoadScene("Advance Lighting Scene", m_Window);
-	//m_CurrentScene = m_SceneManager->LoadScene("Parallax Scene", m_Window);
-	//m_CurrentScene = m_SceneManager->LoadScene("ReWorking_Scene_Rendering", m_Window);
-	m_CurrentScene = m_SceneManager->LoadScene("ForwardVsDeferredRendering_Scene", m_Window);
-	//m_CurrentScene = m_SceneManager->LoadScene("Face Culling", m_Window);
-	//m_CurrentScene = m_SceneManager->LoadScene("Texture_FrameBufferScene", m_Window);
-	//m_CurrentScene = m_SceneManager->LoadScene("AntiAliasing Scene", m_Window);
-	//m_CurrentScene = m_SceneManager->LoadScene("Main Scene", m_Window);
-
-
-
-
-
-
-
-	//Sample to get file path with key
-	std::cout << FilePaths::Instance().GetPath("bunny") << "\n";
-
-	if (m_Window)
-	{
-		
-		//UIManager
-		m_UI = new UIManager(*m_Window);
-		//m_UI->OnInit(*m_Window);
-
-		m_Running = true;
-		m_GameState = State::LOADSCENE;
-
-		if (m_CurrentScene)
-		{
-			//m_CurrentScene->OnInit(m_Window);
-			m_GameState = State::RUNNINGSCENE;
-		}
-
-
-		std::cout << "/////////////////////////////////////////////////////////////////////\n";
-		std::cout << "LOAD COMPLETION\n";
-		std::cout << "/////////////////////////////////////////////////////////////////////\n";
-
-		return;
-	}
-	std::cout << "Failed to init window &/ Scene!!!!!\n";
+	m_Running = true;
+	std::cout << "[GAME INIT]: Complete!!\n";
 }
 
 void Game::OnLoadSceneUI(const char* label, bool can_load)
@@ -165,7 +74,6 @@ void Game::OnLoadSceneUI(const char* label, bool can_load)
 			m_CurrentScene = nullptr;
 		}
 
-		//m_CurrentScene = m_SceneManager->LoadScene(m_SceneManager->ScenesByName()[cur_sel], m_Window);
 		m_CurrentScene = m_SceneManager->LoadScene(m_SceneManager->ScenesByNamePtr()[cur_sel], m_Window);
 		if (m_CurrentScene)
 			m_GameState = State::RUNNINGSCENE;
@@ -178,7 +86,6 @@ void Game::OnLoadSceneUI(const char* label, bool can_load)
 	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
 	ImGui::SameLine();
 	ImGui::Checkbox("VSync", m_Window->GetVSync());
-	//ImGui::Text("Game Time: %f", del);
 	ImGui::Text("Mouse Pos: %f, %f", m_Window->GetMouseScreenPosition().x, m_Window->GetMouseScreenPosition().y);
 	ImGui::Text("Event Mouse Pos: %f, %f", EventHandle::MousePosition().x, EventHandle::MousePosition().y);
 	ImGui::Text("Screen Size: %d, %d", m_Window->GetWidth(), m_Window->GetHeight());
@@ -186,21 +93,13 @@ void Game::OnLoadSceneUI(const char* label, bool can_load)
 	ImGui::Text("Mouse Change X: %.1f, Y: %.1f", EventHandle::MouseXChange(), EventHandle::MouseYChange());
 
 	ImGui::End();
-
-
-
-	
 }
 
 
 void Game::Run()
 {
-
-
-
 	while (m_Running)
 	{
-
 		m_Time.Update();
 
 		Input();
@@ -214,17 +113,13 @@ void Game::Run()
 			m_UI->OnStartFrame();
 			OnLoadSceneUI("load scene", true);
 			m_UI->OnEndFrame();
-			//m_Window->OnUpdate();
-			//std::cout << "Loading scene\n";
 
 			EventHandle::Flush();
 			break;
 		case State::RUNNINGSCENE:
-		
-		
+
 			m_CurrentScene->OnUpdate(m_Time.DeltaTime());
 
-			//std::cout << "running scene\n";
 			m_UI->OnStartFrame();
 			m_CurrentScene->OnRenderUI();
 			OnLoadSceneUI("switch scene", false);
@@ -232,7 +127,6 @@ void Game::Run()
 
 			EventHandle::Flush();
 			m_Window->OnUpdate();
-
 			break;
 		}
 
@@ -346,6 +240,66 @@ void Game::Input()
 		}
 	}
 	
+}
+
+void Game::SceneSetup()
+{
+	//Register scenes
+	m_SceneManager = new SceneManager();
+	m_SceneManager->RegisterNewScene<MainScene>("Main Scene");
+	m_SceneManager->RegisterNewScene<Texture_FrameBufferScene>("Texture_FrameBufferScene");
+	m_SceneManager->RegisterNewScene<AdvanceOpenGLScene>("Advance Scene");
+	m_SceneManager->RegisterNewScene<FaceCullingScene>("Face Culling");
+	m_SceneManager->RegisterNewScene<GeometryScene>("Geometry Scene");
+	m_SceneManager->RegisterNewScene<InstancingScene>("Instance Scene");
+	m_SceneManager->RegisterNewScene<AntiAliasingScene>("AntiAliasing Scene");
+	m_SceneManager->RegisterNewScene<AdvanceLightingScene>("Advance Lighting Scene");
+	m_SceneManager->RegisterNewScene<ParallaxExperimentalScene>("Parallax Scene");
+	m_SceneManager->RegisterNewScene<ExperimentScene>("ReWorking_Scene_Rendering");
+	m_SceneManager->RegisterNewScene<ForwardVsDeferredRenderingScene>("ForwardVsDeferredRendering_Scene");
+
+	//Load
+	m_CurrentScene = m_SceneManager->LoadScene("ForwardVsDeferredRendering_Scene", m_Window);
+}
+
+void Game::RegisterFilePaths()
+{
+	TimeTaken FilePathRegistation("File Path Registeration");
+
+	//Register file path
+	FilePaths::Instance().RegisterPath("brick", "Assets/Textures/brick.png");
+	FilePaths::Instance().RegisterPath("manchester-image", "Assets/Textures/At Manchester.jpg");
+	FilePaths::Instance().RegisterPath("container", "Assets/Textures/container.png");
+	FilePaths::Instance().RegisterPath("container-specular", "Assets/Textures/container_specular.png");
+	FilePaths::Instance().RegisterPath("dirt", "Assets/Textures/dirt.png");
+	FilePaths::Instance().RegisterPath("grass", "Assets/Textures/grass.png");
+	FilePaths::Instance().RegisterPath("marble", "Assets/Textures/marble.jpeg");
+	FilePaths::Instance().RegisterPath("metal", "Assets/Textures/metal.jpeg");
+	FilePaths::Instance().RegisterPath("plain", "Assets/Textures/plain64.png");
+	FilePaths::Instance().RegisterPath("blank-image", "Assets/Textures/BlankPlane.png");
+	FilePaths::Instance().RegisterPath("floor-brick-diff", "Assets/Textures/floor_brick/patterned_brick_floor_diff.jpg");
+	FilePaths::Instance().RegisterPath("floor-brick-nor", "Assets/Textures/floor_brick/patterned_brick_floor_nor.jpg");
+
+	FilePaths::Instance().RegisterPath("para-brick-diff", "Assets/Textures/Parallax/bricks.jpg");
+	FilePaths::Instance().RegisterPath("para-brick-nor", "Assets/Textures/Parallax/bricks_normal.jpg");
+	FilePaths::Instance().RegisterPath("para-brick-disp", "Assets/Textures/Parallax/bricks_disp.jpg");
+
+	FilePaths::Instance().RegisterPath("cobblestone-diff", "Assets/Textures/cobblestone/patterned_cobblestone_02_diff_4k.jpg");
+	FilePaths::Instance().RegisterPath("cobblestone-nor", "Assets/Textures/cobblestone/patterned_cobblestone_02_nor_gl_4k.jpg");
+	FilePaths::Instance().RegisterPath("cobblestone-disp", "Assets/Textures/cobblestone/patterned_cobblestone_02_disp_4k.jpg");
+
+	FilePaths::Instance().RegisterPath("old_plank", "Assets/Textures/old_planks_diff.jpg");
+	FilePaths::Instance().RegisterPath("glass", "Assets/Textures/glass-background-with-frosted-pattern.jpg");
+
+
+
+	FilePaths::Instance().RegisterPath("bunny", "Assets/Models/stanford-bunny.obj");
+	FilePaths::Instance().RegisterPath("backpack", "Assets/Models/backpack/backpack.obj");
+	FilePaths::Instance().RegisterPath("shapes", "Assets/Models/blendershapes/blend_shapes.obj");
+	FilePaths::Instance().RegisterPath("sponza", "Assets/Models/Sponza/sponza.obj");
+	FilePaths::Instance().RegisterPath("electrical-charger", "Assets/Textures/sci-fi_electrical_charger/scene.gltf");
+	
+
 }
 
 
