@@ -183,6 +183,8 @@ void Game::OnLoadSceneUI(const char* label, bool can_load)
 	ImGui::Text("Event Mouse Pos: %f, %f", EventHandle::MousePosition().x, EventHandle::MousePosition().y);
 	ImGui::Text("Screen Size: %d, %d", m_Window->GetWidth(), m_Window->GetHeight());
 
+	ImGui::Text("Mouse Change X: %.1f, Y: %.1f", EventHandle::MouseXChange(), EventHandle::MouseYChange());
+
 	ImGui::End();
 
 
@@ -215,6 +217,7 @@ void Game::Run()
 			//m_Window->OnUpdate();
 			//std::cout << "Loading scene\n";
 
+			EventHandle::Flush();
 			break;
 		case State::RUNNINGSCENE:
 		
@@ -227,6 +230,7 @@ void Game::Run()
 			OnLoadSceneUI("switch scene", false);
 			m_UI->OnEndFrame();
 
+			EventHandle::Flush();
 			m_Window->OnUpdate();
 
 			break;
@@ -269,9 +273,6 @@ void Game::Input()
 {
 	bool* keys = EventHandle::GetKeys();
 	bool (*mouse_buttons)[3] = EventHandle::GetMouseButton();
-	//bool(*key_codes)[3] = EventHandle::GetKeyCodes();
-
-
 
 	bool program_should_close = m_Window->WindowShouldClose();
 
@@ -279,12 +280,6 @@ void Game::Input()
 	if ((keys[GLFW_KEY_LEFT_ALT] && keys[GLFW_KEY_F4]) || program_should_close)
 		m_Running = false;
 
-	//if (keys[GLFW_KEY_ESCAPE] || program_should_close)
-	//{
-	//	m_Running = false;
-	//}
-
-	//int state = EventHandle::GetKeyState(Graphics::GetWindow(), GLFW_KEY_T);
 
 	if(m_CurrentScene)
 	{
@@ -307,16 +302,11 @@ void Game::Input()
 			lock_cooldown -= m_Time.DeltaTime();
 
 
-
-		//if (*m_Window->Ptr_LockCursorFlag())
-		//	m_CurrentScene->GetCamera()->Rotate(EventHandle::MousePosition(), (float)m_Window->GetWidth(), (float)m_Window->GetHeight());
-
-		if (*m_Window->Ptr_LockCursorFlag())
-			m_CurrentScene->GetCamera()->Rotate(EventHandle::MousePosition(), (float)m_Window->GetWidth(), (float)m_Window->GetHeight());
-		//m_CurrentScene->GetCamera()->Rotate(EventHandle::MouseXChange(), EventHandle::MouseYChange());
+		if(*m_Window->Ptr_LockCursorFlag())
+			m_CurrentScene->GetCamera()->Rotate(EventHandle::MouseXChange() * m_Time.DeltaTime(), EventHandle::MouseYChange() * m_Time.DeltaTime());
 		else
 		{
-			if (mouse_buttons[GLFW_MOUSE_BUTTON_LEFT][GLFW_RELEASE] && !*m_UI->ImGuiWantCaptureMouse())
+			if (mouse_buttons[GLFW_MOUSE_BUTTON_LEFT][GLFW_PRESS] && !*m_UI->ImGuiWantCaptureMouse())
 				m_Window->ToggleLockCursor();
 		}
 

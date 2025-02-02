@@ -41,14 +41,14 @@ int EventHandle::GetKeyState(GLFWwindow* window, int key)
 float EventHandle::MouseXChange()
 {
 	float dt = xChange;
-	xChange = 0.0f;
+	//xChange = 0.0f;
 	return dt;
 }
 
 float EventHandle::MouseYChange()
 {
 	float dt = yChange;
-	yChange = 0.0f;
+	//yChange = 0.0f;
 	return dt;
 }
 
@@ -69,6 +69,12 @@ void EventHandle::WaitPollEvents()
 {
 	memset(mouseButton, 0, sizeof(mouseButton));
 	glfwWaitEvents();
+}
+
+void EventHandle::Flush()
+{
+	xChange = 0.0f;
+	yChange = 0.0f;
 }
 
 
@@ -101,9 +107,6 @@ void EventHandle::HandleMouse(GLFWwindow* window, double xPos, double yPos)
 		mouseFirstMoved = false;
 	}
 
-	xChange = (float)xPos - lastX;
-	yChange = lastY - (float)yPos;
-
 	xChange += (float)xPos - lastX;
 	yChange += lastY - (float)yPos;
 
@@ -121,7 +124,5 @@ void EventHandle::HandleMouseButton(GLFWwindow* window, int button, int action, 
 	{
 		mouseButton[button][action] = true;
 	}
-
-
 }
 

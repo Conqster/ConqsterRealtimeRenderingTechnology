@@ -622,21 +622,10 @@ void Texture_FrameBufferScene::DrawObjects(bool depth_test, bool use_rear)
 	if (use_rear)
 	{
 		Camera new_camera = *m_Camera;
-		*(new_camera.New_Yaw()) += 180.0f;
+		*(new_camera.Ptr_Yaw()) += 180.0f;
 		m_DefaultSkybox.Draw(new_camera, *window);
 	}
 	else
 		m_DefaultSkybox.Draw(*m_Camera, *window);
 
 }
-
-//
-//void Texture_FrameBufferScene::RegisterScene(const char* name)
-//{
-//	SceneManager::Instance().RegisterScene(name, []() -> Scene*
-//		{
-//			return new Texture_FrameBufferScene();
-//		});
-//
-//	std::cout << "register Texture_FrameBufferScene!!!!!!!!!!!!\n";
-//}

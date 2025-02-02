@@ -20,8 +20,8 @@ class Window
 {
 public:
 	Window();
-	Window(uint32_t width, uint32_t height);
-	Window(uint32_t width, uint32_t height, const char* program_name);
+	Window(unsigned int width, unsigned int height);
+	Window(unsigned int width, unsigned int height, const char* program_name);
 
 	Window(const WindowProperties& window_prop);
 
@@ -63,7 +63,7 @@ private:
 	static int m_Width;
 	static int m_Height;
 
-	WindowProperties m_InitProp;
+	WindowProperties m_InitProp = WindowProperties();
 
 	GLFWwindow* m_Window = nullptr;
 	const char* m_ProgramName = "default";

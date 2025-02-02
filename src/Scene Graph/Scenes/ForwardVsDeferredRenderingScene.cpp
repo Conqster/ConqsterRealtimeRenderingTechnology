@@ -35,7 +35,7 @@ void ForwardVsDeferredRenderingScene::OnInit(Window* window)
 
 	//Need to move out 
 	if (!m_Camera)
-		m_Camera = new Camera(glm::vec3(0.0f, /*5.0f*/7.0f, -36.0f), glm::vec3(0.0f, 1.0f, 0.0f), 90.0f, 0.0f, 20.0f, 1.0f/*0.5f*/);
+		m_Camera = new Camera(glm::vec3(0.0f, /*5.0f*/7.0f, -36.0f), glm::vec3(0.0f, 1.0f, 0.0f), 90.0f, 0.0f, 20.0f, 5.0f/*0.5f*/);
 
 
 	InitRenderer();
@@ -497,8 +497,8 @@ void ForwardVsDeferredRenderingScene::SerialiseScene()
 		//camera 
 		{
 			m_Camera->GetPosition(),
-			m_Camera->Ptr_Yaw(),
-			m_Camera->Ptr_Pitch(),
+			*m_Camera->Ptr_Yaw(),
+			*m_Camera->Ptr_Pitch(),
 			*m_Camera->Ptr_FOV(),
 			*m_Camera->Ptr_Near(),
 			*m_Camera->Ptr_Far(),
@@ -997,7 +997,6 @@ int ForwardVsDeferredRenderingScene::UpdateLightCount(int step, int progression_
 {
 	int power = (scale_factor * step) - 1;
 	int value = glm::pow(progression_base, power);
-	printf("Output count: %d", value);
 	return value;
 }
 
@@ -1075,14 +1074,14 @@ void ForwardVsDeferredRenderingScene::MainUI()
 		m_Camera->GetPosition().y,
 		m_Camera->GetPosition().z);
 
-	ImGui::Text("Pitch: %f", m_Camera->Ptr_Pitch());
-	ImGui::Text("Yaw: %f", m_Camera->Ptr_Yaw());
+	ImGui::Text("Pitch: %f", *m_Camera->Ptr_Pitch());
+	ImGui::Text("Yaw: %f", *m_Camera->Ptr_Yaw());
 
 
 	if (ImGui::TreeNode("Camera Properties"))
 	{
 		ImGui::SliderFloat("Move Speed", m_Camera->Ptr_MoveSpeed(), 5.0f, 250.0f);
-		ImGui::SliderFloat("Rot Speed", m_Camera->Ptr_RotSpeed(), 0.0f, 2.0f);
+		ImGui::SliderFloat("Rot Speed", m_Camera->Ptr_RotSpeed(), 0.0f, 10.0f, "%.1f");
 
 		float window_width = (float)window->GetWidth();
 		float window_height = (float)window->GetHeight();

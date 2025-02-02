@@ -4,18 +4,18 @@
 #include <iostream>
 
 
-Camera::Camera(glm::vec3 startPosition, glm::vec3 startUp, GLfloat startYaw, GLfloat startPitch, GLfloat moveSpeed, GLfloat rotSpeed)
-	:  m_Position(startPosition), m_WorldUp(startUp), m_Yaw(startYaw),
+Camera::Camera(glm::vec3 startPosition, glm::vec3 worldUp, float startYaw, float startPitch, float moveSpeed, float rotSpeed)
+	:  m_Position(startPosition), m_WorldUp(worldUp), m_Yaw(startYaw),
 	   m_Pitch(startPitch), m_MoveSpeed(moveSpeed), m_RotSpeed(rotSpeed)
 {
-
-	m_Front = glm::vec3(0.0f, 0.0f, -1.0f);
-	m_Up = glm::vec3(0.0f);
-	m_Right = glm::vec3(0.0f);
-
 	Update();
 }
 
+
+Camera::Camera()
+{
+	Update();
+}
 
 Camera::~Camera()
 {
@@ -35,18 +35,16 @@ glm::mat4 Camera::CalculateProjMatrix(float aspect_ratio) const
 
 void Camera::Translate(glm::vec3 direction, float dt)
 {
-	//m_Position += (m_Front * displacement * m_MoveSpeed * dt);
-
 	glm::vec3 dir(direction.x, direction.y, direction.z);
 	m_Position += (dir * m_MoveSpeed * dt);
 }
 
-void Camera::Rotate(float dt_yaw, float dt_pitch)
+void Camera::Rotate(float dt_x, float dt_y)
 {
 	float sensitivity = 0.1f;
 
-	m_Yaw += dt_yaw * m_RotSpeed * sensitivity;
-	m_Pitch += dt_pitch * m_RotSpeed * sensitivity;
+	m_Yaw += dt_x * m_RotSpeed * sensitivity;
+	m_Pitch += dt_y * m_RotSpeed * sensitivity;
 
 
 	if (m_Yaw > 360.0f)
@@ -62,37 +60,6 @@ void Camera::Rotate(float dt_yaw, float dt_pitch)
 
 	Update();
 }
-
-void Camera::Rotate(glm::vec2 mouse_pos, float height, float width)
-{
-
-	glm::vec2 mouse_movement = mouse_pos - (glm::vec2(width, height) / 2.0f);
-
-	m_Pitch = m_Front.x - (int)mouse_movement.y * 0.1f;
-	m_Yaw = m_Front.y + (int)mouse_movement.x * 0.1f;
-
-	//Just an hack should not affect the system 
-
-	//if (m_Yaw > 360.0f)
-	//	m_Yaw = m_Yaw - 360;
-	//if (m_Yaw < 0)
-	//	m_Yaw = 360 - m_Yaw;
-
-
-	if (m_Pitch > 89.0f)
-		m_Pitch = 89.0f;
-	if (m_Pitch < -89.0f)
-		m_Pitch = -89.0f;
-
-	Update();
-}
-
-void Camera::NewRotate(glm::vec2 mouse_pos)
-{
-
-}
-
-
 
 void Camera::SetPosition(glm::vec3 pos)
 {

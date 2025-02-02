@@ -605,14 +605,6 @@ void DebugGizmos::DrawFrustum(const Frustum& f, glm::vec3 col, float thickness)
 	//bottom plane
 	DrawTriangle(p6, p7, p2, glm::vec4(col, 0.5f), false);
 	DrawTriangle(p2, p7, p3, glm::vec4(col, 0.5f), false);
-
-	//glVertex3fv(&p1[0]);
-	//glVertex3fv(&p2[0]);
-	//glVertex3fv(&p4[0]);
-
-	//glVertex3fv(&p4[0]);
-	//glVertex3fv(&p2[0]);
-	//glVertex3fv(&p3[0]);
 }
 
 void DebugGizmos::Cleanup()
@@ -639,6 +631,8 @@ void DebugGizmos::Cleanup()
 
 	m_WireSphereInstance.clear();
 	m_SolidSphereInstance.clear();
+
+	active = false;
 }
 
 void DebugGizmos::DrawAllBatches()
@@ -815,16 +809,6 @@ void DebugGizmos::Generate()
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, layout_stride, (void*)layout_offset);
 	layout_offset += 4 * sizeof(float); // start colour
-
-	////end point
-	//glEnableVertexAttribArray(2); // <--- Need enable vertex index attribute
-	//glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, layout_stride, (void*)layout_offset);
-	//layout_offset += 3 * sizeof(float); // end point
-
-	////end colour
-	//glEnableVertexAttribArray(3); // <--- Need enable vertex index attribute
-	//glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, layout_stride, (void*)layout_offset);
-	//layout_offset += 3 * sizeof(float); // end colour
 
 
 	ShaderFilePath debug_shader_file_path3

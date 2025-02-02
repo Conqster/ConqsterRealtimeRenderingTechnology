@@ -22,6 +22,8 @@ public:
 
 	static void PollEvents();
 	static void WaitPollEvents();
+
+	static void Flush();
 	
 private: 
 	static void HandleKeys(GLFWwindow* window, int key, int code, int action, int mode);

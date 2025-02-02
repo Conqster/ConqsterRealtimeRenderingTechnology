@@ -1328,8 +1328,8 @@ void ExperimentScene::EditTopViewUI()
 	if (ImGui::DragFloat3("Cam pos", &temp[0], 0.1f))
 		m_TopDownCamera.SetPosition(temp);
 
-	ImGui::DragFloat("Cam Yaw", m_TopDownCamera.New_Yaw());
-	ImGui::DragFloat("Cam Pitch", m_TopDownCamera.New_Pitch());
+	ImGui::DragFloat("Cam Yaw", m_TopDownCamera.Ptr_Yaw());
+	ImGui::DragFloat("Cam Pitch", m_TopDownCamera.Ptr_Pitch());
 
 
 	if (ImGui::TreeNode("Extra Camera Properties"))

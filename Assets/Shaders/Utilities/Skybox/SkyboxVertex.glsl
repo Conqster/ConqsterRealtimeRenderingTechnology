@@ -6,7 +6,9 @@ out vec3 v_TexCoords;
 
 layout (std140)  uniform u_CameraMat
 {
-	mat4 projection;
+	vec3 viewPos;
+	float far;
+	mat4 proj;
 	mat4 view;
 };
 
@@ -14,5 +16,5 @@ void main()
 {
 	v_TexCoords = pos.xyz;
 	mat4 sky_view = mat4(mat3(view));//remove position column 3
-	gl_Position = (projection * sky_view * pos).xyww;
+	gl_Position = (proj * sky_view * pos).xyww;
 }

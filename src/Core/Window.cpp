@@ -65,7 +65,6 @@ bool Window::Init()
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-	//glfwWindowHint(GLFW_SAMPLES, 4);
 
 	m_Window = glfwCreateWindow(m_InitProp.width, m_InitProp.height, m_ProgramName, NULL, NULL);
 
@@ -77,28 +76,22 @@ bool Window::Init()
 	}
 
 	glfwMakeContextCurrent(m_Window);
-	std::cout << "[GRAPHICS INFO]: openGL Version: " << glGetString(GL_VERSION) << "\n";
+	std::cout << "[GRAPHICS INFO]: OpenGL Version: " << glGetString(GL_VERSION) << "\n";
 
 	//Enable Vsync
-	///glfwSwapInterval(1);
-	//Disable Vsync
-	//glfwSwapInterval(0);
-	//glfwSwapInterval((int)m_VSync);
 	SetVSync(true);
 
 	//Set glfw callbacks  
 	EventHandle::CreateCallBacks(m_Window);
 
 	//To-do: a quick fix to assign handle for window size call back
-	// had to make it static
-	//glfwSetWindowSizeCallback(m_Window, HandleWindowResizeCallback);
 	glfwSetFramebufferSizeCallback(m_Window, HandleWindowResizeCallback);
 
 	//allow modern extension features
 	glewExperimental = GL_TRUE;
 
-	GLenum GlewInitResult = glewInit();
 
+	GLenum GlewInitResult = glewInit();
 	if (GlewInitResult != GLEW_OK)
 	{
 		std::cout << "Glew Init failed, ERROR: " << glewGetErrorString(GlewInitResult) << "\n";
@@ -106,12 +99,6 @@ bool Window::Init()
 		glfwTerminate();
 		return false;
 	}
-
-
-	//glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	//glfwSetCursorPos(m_Window, center_x, center_y);
-	glfwWindowHint(GLFW_CENTER_CURSOR, GL_TRUE);
-	//m_LockCursor = true;
 
 	m_Initilised = true;
 	return true;
@@ -132,7 +119,6 @@ void Window::ToggleLockCursor()
 {
 	m_LockCursor = !m_LockCursor;
 	unsigned int cursor_state = (m_LockCursor) ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL;
-	glfwWindowHint(GLFW_CENTER_CURSOR, GL_TRUE);
 	glfwSetInputMode(m_Window, GLFW_CURSOR, cursor_state);
 }
 
