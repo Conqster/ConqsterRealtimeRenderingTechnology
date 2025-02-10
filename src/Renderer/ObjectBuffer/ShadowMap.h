@@ -15,6 +15,7 @@ public:
 	void Write();
 	virtual void Read(unsigned int slot = 0);
 	void BindMapTexture(unsigned int slot = 0);
+	inline unsigned int GetColourAttachment() { return m_TexMapId; }
 	virtual void UnBindMap();
 	void UnBind();
 	void Clear();

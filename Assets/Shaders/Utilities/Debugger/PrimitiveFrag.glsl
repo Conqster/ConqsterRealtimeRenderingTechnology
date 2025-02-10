@@ -16,4 +16,6 @@ void main()
 	
 	if(u_DebugVertexCol)
 		FragColour = vec4(fs_in.colour, 1.0f);
+		
+	FragColour = vec4(1.0f, 0.0f, 1.0f, 1.0f);
 }

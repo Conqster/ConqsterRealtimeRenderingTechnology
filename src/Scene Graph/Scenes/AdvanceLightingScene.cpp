@@ -488,6 +488,9 @@ void AdvanceLightingScene::OnRender()
 		aabb.Encapsulate(aabb2);//combine tehe two AABB
 		DebugGizmos::DrawBox(aabb, glm::vec3(0.4f, 0.2f, 1.0f), 1.5f);
 	}
+
+
+	DebugGizmos::DrawAllBatches();
 }
 
 void AdvanceLightingScene::OnRenderUI()
@@ -982,8 +985,8 @@ void AdvanceLightingScene::CreateObjects()
 	//DirectionalLight dirLight;
 	//PointLight pointLights[MAX_POINT_LIGHTS];
 	long long int light_buffer_size = 0;
-	light_buffer_size += DirectionalLight::GetGPUSize();		//get the size of a directional light
-	light_buffer_size += MAX_LIGHT * PointLight::GetGPUSize();				//get the size of a point light
+	light_buffer_size += DirectionalLight::GetSimpleGPUSize();		//get the size of a directional light
+	light_buffer_size += MAX_LIGHT * PointLight::GetSimpleGPUSize();				//get the size of a point light
 
 	m_LightDataUBO.Generate(light_buffer_size);
 	m_LightDataUBO.BindBufferRndIdx(1, light_buffer_size, 0);

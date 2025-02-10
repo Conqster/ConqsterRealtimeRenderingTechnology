@@ -1,14 +1,11 @@
 #pragma once
 
-#include "MainScene.h"
-#include "Light&ModelScene.h"
-#include "AdvanceOpenGLScene.h"
-#include "FaceCullingScene.h"
-#include "Textures_FrameBufferScene.h"
-#include "GeometryScene.h"
-#include "InstancingScene.h"
-#include "AntiAliasingScene.h"
-#include "AdvanceLightingScene.h"
-#include "ParallaxExperimentalScene.h"
-#include "ExperimentScene.h"
+
+
+#include "MainScene.h"						//<-- keep for history, first lighting scene
+#include "InstancingScene.h"				//<-- need to organise
+#include "AdvanceLightingScene.h"           //<-- texture mapping & post processing 
 #include "ForwardVsDeferredRenderingScene.h"
+//new 
+#include "LightingModelingScene.h"
+#include "ShadowMappingScene.h"

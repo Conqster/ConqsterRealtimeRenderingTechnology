@@ -8,14 +8,26 @@ Scene* SceneManager::LoadScene(const std::string name, Window* window)
 
 	if (it != m_SceneRegister.end())
 	{
+		m_LastLoadedScene = name;
 		it->second->OnInit(window);
 		return it->second.get();
 	}
 
 	//Log
-	printf("Scene '%s' does not exist or is not registered!!!\n", name);
+	printf("Scene '%s' does not exist or is not registered!!!\n", name.c_str());
 
 	return nullptr;
+}
+
+int SceneManager::GetCurrentLoadedScene()
+{
+	if (m_LastLoadedScene.empty())
+		return -1;
+	auto it = std::find(m_sceneNames.begin(), m_sceneNames.end(), m_LastLoadedScene);
+	if (it != m_sceneNames.end())
+		return std::distance(m_sceneNames.begin(), it);
+
+	return -1;
 }
 
 const char** SceneManager::ScenesByNamePtr()
@@ -41,4 +53,5 @@ void SceneManager::Cleanup()
 	m_SceneRegister.clear();
 	m_sceneNames.clear();
 	m_sceneNamesPtr.clear();
+	m_LastLoadedScene.clear();
 }

@@ -424,9 +424,9 @@ void ForwardVsDeferredRenderingScene::CreateGPUDatas()
 	//DirectionalLight dirLight;
 	//PointLight pointLights[MAX_POINT_LIGHTS];
 	long long int light_buffer_size = 0;
-	light_buffer_size += DirectionalLight::GetGPUSize();
+	light_buffer_size += DirectionalLight::GetSimpleGPUSize();
 	//Point Light
-	light_buffer_size += PointLight::GetGPUSize() * MAX_POINT_LIGHT;
+	light_buffer_size += PointLight::GetSimpleGPUSize() * MAX_POINT_LIGHT;
 	m_LightDataUBO.Generate(light_buffer_size);
 	m_LightDataUBO.BindBufferRndIdx(1, light_buffer_size, 0);
 

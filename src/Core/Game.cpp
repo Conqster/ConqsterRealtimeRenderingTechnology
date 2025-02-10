@@ -24,7 +24,7 @@ void Game::OnStart()
 	m_WindowProp.width = 1000;
 	m_WindowProp.height = 700;
 
-	if (m_UseFullScreen)
+	if (b_UseFullScreen)
 		m_WindowProp.width = GetSystemMetrics(SM_CXSCREEN), m_WindowProp.height = GetSystemMetrics(SM_CYSCREEN);
 
 
@@ -51,7 +51,7 @@ void Game::OnStart()
 
 
 
-	m_Running = true;
+	b_Running = true;
 	std::cout << "[GAME INIT]: Complete!!\n";
 }
 
@@ -63,7 +63,7 @@ void Game::OnLoadSceneUI(const char* label, bool can_load)
 	/////////////////////////////////////////////
 	ImGui::Begin(label);
 
-	static int cur_sel = 0;
+	static int cur_sel = m_SceneManager->GetCurrentLoadedScene();
 	ImGui::Combo("Scenes", &cur_sel, m_SceneManager->ScenesByNamePtr(), m_SceneManager->SceneCount());
 
 	if (ImGui::Button(label))
@@ -92,13 +92,15 @@ void Game::OnLoadSceneUI(const char* label, bool can_load)
 
 	ImGui::Text("Mouse Change X: %.1f, Y: %.1f", EventHandle::MouseXChange(), EventHandle::MouseYChange());
 
+	ImGui::Text("Toggle 'H' Current Scene UI!!!");
+
 	ImGui::End();
 }
 
 
 void Game::Run()
 {
-	while (m_Running)
+	while (b_Running)
 	{
 		m_Time.Update();
 
@@ -121,7 +123,8 @@ void Game::Run()
 			m_CurrentScene->OnUpdate(m_Time.DeltaTime());
 
 			m_UI->OnStartFrame();
-			m_CurrentScene->OnRenderUI();
+			if(b_EnableSceneUI)
+				m_CurrentScene->OnRenderUI();
 			OnLoadSceneUI("switch scene", false);
 			m_UI->OnEndFrame();
 
@@ -172,11 +175,12 @@ void Game::Input()
 
 
 	if ((keys[GLFW_KEY_LEFT_ALT] && keys[GLFW_KEY_F4]) || program_should_close)
-		m_Running = false;
+		b_Running = false;
 
 
 	if(m_CurrentScene)
 	{
+
 		static float cooldown;
 		if (keys[GLFW_KEY_T] && cooldown <= 0)
 		{
@@ -194,6 +198,14 @@ void Game::Input()
 		}
 		else
 			lock_cooldown -= m_Time.DeltaTime();
+
+		if (keys[GLFW_KEY_H] && cooldown <= 0)
+		{
+			cooldown = 0.2f;
+			b_EnableSceneUI = !b_EnableSceneUI;
+		}
+		else
+			cooldown -= m_Time.DeltaTime();
 
 
 		if(*m_Window->Ptr_LockCursorFlag())
@@ -247,19 +259,15 @@ void Game::SceneSetup()
 	//Register scenes
 	m_SceneManager = new SceneManager();
 	m_SceneManager->RegisterNewScene<MainScene>("Main Scene");
-	m_SceneManager->RegisterNewScene<Texture_FrameBufferScene>("Texture_FrameBufferScene");
-	m_SceneManager->RegisterNewScene<AdvanceOpenGLScene>("Advance Scene");
-	m_SceneManager->RegisterNewScene<FaceCullingScene>("Face Culling");
-	m_SceneManager->RegisterNewScene<GeometryScene>("Geometry Scene");
 	m_SceneManager->RegisterNewScene<InstancingScene>("Instance Scene");
-	m_SceneManager->RegisterNewScene<AntiAliasingScene>("AntiAliasing Scene");
 	m_SceneManager->RegisterNewScene<AdvanceLightingScene>("Advance Lighting Scene");
-	m_SceneManager->RegisterNewScene<ParallaxExperimentalScene>("Parallax Scene");
-	m_SceneManager->RegisterNewScene<ExperimentScene>("ReWorking_Scene_Rendering");
 	m_SceneManager->RegisterNewScene<ForwardVsDeferredRenderingScene>("ForwardVsDeferredRendering_Scene");
 
+	m_SceneManager->RegisterNewScene<LightingModelingScene>("LightingModelingScene");
+	m_SceneManager->RegisterNewScene<ShadowMappingScene>("ShadowMappingScene");
+
 	//Load
-	m_CurrentScene = m_SceneManager->LoadScene("ForwardVsDeferredRendering_Scene", m_Window);
+	m_CurrentScene = m_SceneManager->LoadScene("ShadowMappingScene", m_Window);
 }
 
 void Game::RegisterFilePaths()

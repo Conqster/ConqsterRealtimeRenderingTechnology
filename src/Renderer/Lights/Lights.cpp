@@ -68,7 +68,7 @@
 	
 
 	PointLight::PointLight(const glm::vec3& pos, const glm::vec3& col, float amb_inten, float diff_inten)
-		: Light(col, amb_inten, diff_inten), position(pos), attenuation{1.0f, 0.2f, 0.03f}
+		: Light(col, amb_inten, diff_inten), position(pos), attenuation{1.0f, 0.1f, 0.01f}
 	{
 		type = LightType::lightType_POINT;
 	}

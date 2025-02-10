@@ -37,15 +37,25 @@ public:
 	static void DrawWireDisc(glm::vec3 center, glm::vec3 right, glm::vec3 up, float radius, int steps = 5, glm::vec3 colour = glm::vec3(1.0f, 0.0f, 1.0f), float thickness = 1.0f);
 	static void DrawWireThreeDisc(glm::vec3 center, float radius, int steps = 5, glm::vec3 colour = glm::vec3(1.0f, 0.0f, 1.0f), float thickness = 1.0f);
 	static void DrawWireCone(glm::vec3 center, glm::vec3 up, glm::vec3 right, float radius = 1.0f, float height = 2.0f, glm::vec3 colour = glm::vec3(1.0f, 0.0f, 1.0f), float thickness = 1.0f);
+	static void DrawWireCone(glm::vec3 center, glm::vec3 up, float radius = 1.0f, float height = 2.0f, glm::vec3 colour = glm::vec3(1.0f, 0.0f, 1.0f), float thickness = 1.0f);
 	static void DrawOrthoCameraFrustrm(glm::vec3 pos, glm::vec3 forward, float cam_near, float cam_far, float size, glm::vec3 colour = glm::vec3(1.0f, 0.0f, 1.0f), float thickness = 1.0f);
 	static void DrawPerspectiveCameraFrustum(glm::vec3 pos, glm::vec3 forward, float fov, float aspect, float cam_near, float cam_far, glm::vec3 colour = glm::vec3(1.0f, 0.0f, 1.0f), float thickness = 1.0f);
 	static void DrawPerspectiveCameraFrustum(glm::vec3 pos, glm::vec3 forward, glm::vec3 up, float fov, float aspect, float cam_near, float cam_far, glm::vec3 colour = glm::vec3(1.0f, 0.0f, 1.0f), float thickness = 1.0f);
 	static void DrawPlane(const class Plane& f, glm::vec2 size = glm::vec2(10.0f, 10.0f), glm::vec3 col = glm::vec3(1.0f, 0.0f, 1.0f), float thickness = 1.0f);
 	static void DrawWirePlane(const Plane& f, glm::vec2 size = glm::vec2(10.0f, 10.0f), glm::vec3 col = glm::vec3(1.0f, 0.0f, 1.0f), float thickness = 1.0f);
 	static void DrawFrustum(const class Frustum& f, glm::vec3 col = glm::vec3(1.0f, 0.0f, 1.0f), float thickness = 1.0f);
+
+	static void DrawSpotLight(glm::vec3 pos, glm::vec3 dir, float range, float inner_cutoff, float outter_cutoff, glm::vec3 colour = glm::vec3(1.0f, 1.0f, 0.0f), int segment = 25.f);
 	static void Cleanup();
 
 	static void DrawAllBatches();
+	static inline Shader& GetDebugMeshShader() 
+	{ 
+		if (!active)
+			Generate();
+
+		return m_DebugMeshShader; 
+	}
 private:
 	static bool active;
 	static bool use;

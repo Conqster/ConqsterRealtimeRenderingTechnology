@@ -298,22 +298,64 @@ void DebugGizmos::DrawWireCone(glm::vec3 center, glm::vec3 up, glm::vec3 right, 
 	//Quick hack
 	//glm::vec3 forward = Perpen(up);
 	//glm::vec3 right = glm::cross(up, forward);
+	//glm::vec3 peak = center + (up * height);
+	//glm::vec3 forward = glm::cross(up, right);
+	//glm::vec3 prev = center + (right * radius);
+	////center to start
+	//DrawLine(center, prev, colour, thickness);
+	//DrawLine(prev, peak, colour, thickness);
+
+	//const int segment = 10;
+	//const float angle_increment = 2.0f * (float)MathsHelper::PI / segment;
+	//for (int i = 1; i <= segment; ++i)
+	//{
+	//	float theta = i * angle_increment;
+	//	glm::vec3 p = center + radius * (right * glm::cos(theta) + forward * glm::sin(theta));
+	//	DrawLine(prev, p, colour, thickness);
+	//	DrawLine(p, peak, colour, thickness);
+	//	prev = p;
+	//}
+
+	////last with first
+	//DrawLine(prev, center + (right * radius), colour, thickness);
+
+
+	//new 
+	up = glm::normalize(up);
 	glm::vec3 peak = center + (up * height);
-	glm::vec3 forward = glm::cross(up, right);
-	glm::vec3 prev = center + (right * radius);
-	//center to start
+
+	glm::vec3 init_dir = glm::normalize(glm::cross(up, glm::vec3(1.0f, 0.0f, 0.0f)));
+	if (glm::length(init_dir) < 0.1f)
+		init_dir = glm::normalize(glm::cross(up, glm::vec3(0.0f, 1.0f, 0.0f)));
+	glm::vec3 prev = center + (init_dir * radius);
+
 	DrawLine(center, prev, colour, thickness);
 	DrawLine(prev, peak, colour, thickness);
-
-	for (float theta = 0.0f; theta < 2.0f * (float)MathsHelper::PI; theta += ((float)MathsHelper::PI / 5.0f))
+	const int segment = 10;
+	const float angle_increment = 2.0f * (float)MathsHelper::PI / segment;
+	for (int i = 1; i <= segment; ++i)
 	{
-		glm::vec3 p = center + radius * (right * glm::cos(theta) + forward * glm::sin(theta));
+		float theta = i * angle_increment;
+		//rotation around axis
+		glm::mat4 rot_mat = glm::rotate(glm::mat4(1.0f), theta, up);
+		glm::vec3 dir = glm::vec3(rot_mat * glm::vec4(init_dir, 1.0f));
+		glm::vec3 p = center + radius * dir;
 		DrawLine(prev, p, colour, thickness);
 		DrawLine(p, peak, colour, thickness);
 		prev = p;
 	}
-	//last with first
-	DrawLine(prev, center + (right * radius), colour, thickness);
+
+}
+
+void DebugGizmos::DrawWireCone(glm::vec3 center, glm::vec3 up, float radius, float height, glm::vec3 colour, float thickness)
+{
+	glm::vec3 arbitrary_vec;
+	if (std::fabs(up.x) > std::fabs(up.z))
+		arbitrary_vec = glm::vec3(-up.y, up.x, 0.0f);
+	else
+		arbitrary_vec = glm::vec3(0.0f, -up.z, up.y);
+
+	DrawWireCone(center, up, arbitrary_vec, radius, height, colour, thickness);
 }
 
 void DebugGizmos::DrawOrthoCameraFrustrm(glm::vec3 pos, glm::vec3 forward, float cam_near, float cam_far, float size, glm::vec3 colour, float thickness)
@@ -605,6 +647,68 @@ void DebugGizmos::DrawFrustum(const Frustum& f, glm::vec3 col, float thickness)
 	//bottom plane
 	DrawTriangle(p6, p7, p2, glm::vec4(col, 0.5f), false);
 	DrawTriangle(p2, p7, p3, glm::vec4(col, 0.5f), false);
+}
+
+void DebugGizmos::DrawSpotLight(glm::vec3 pos, glm::vec3 dir, float range, float inner_cutoff, float outter_cutoff, glm::vec3 colour, int segment)
+{
+
+	dir = glm::normalize(dir);
+
+	glm::vec3 arbitrary_vec;
+	if (std::fabs(dir.x) > std::fabs(dir.z))
+		arbitrary_vec = glm::vec3(-dir.y, dir.x, 0.0f);
+	else
+		arbitrary_vec = glm::vec3(0.0f, -dir.z, dir.y);
+
+
+	//This direction are not normalised (dir needs to be multipled with radius) 
+	glm::vec3 inner_dir = (dir * range) * glm::tan(glm::radians(inner_cutoff));
+	glm::vec3 outter_dir = (dir * range) * glm::tan(glm::radians(outter_cutoff));
+
+	inner_dir = glm::normalize(glm::cross(dir, arbitrary_vec)) * range * glm::tan(glm::radians(inner_cutoff));
+	outter_dir = glm::normalize(glm::cross(dir, arbitrary_vec)) * range * glm::tan(glm::radians(outter_cutoff));
+
+	DrawCross(pos);
+	//return;
+
+	glm::vec3 peak = pos;// -(dir * range);
+	glm::vec3 circle_center = pos + (dir * range);
+	glm::vec3 inner_start = circle_center + inner_dir;
+	glm::vec3 outter_start = circle_center + outter_dir;
+
+	//center to start
+	DrawLine(inner_start, peak, colour * 0.5f);
+	DrawLine(outter_start, peak, colour * 0.7f);
+
+	
+	const float angle_increment = 2.0f * (float)MathsHelper::PI / segment;
+	//inner_dir == outter_dir but != in length/scale
+	glm::vec3 circle_up = glm::cross(dir, glm::normalize(inner_dir));
+	float inner_radius = glm::length(inner_dir);
+	float outer_radius = glm::length(outter_dir);
+	int track_edge = 0;
+	for (int i = 1; i <= segment; ++i)
+	{
+		float theta = i * angle_increment;
+		//point in circle = center point + normalised right 
+		glm::vec3 p_dir = glm::normalize(inner_dir) * glm::cos(theta) + circle_up * glm::sin(theta);
+		glm::vec3 inner_p = circle_center + (p_dir * inner_radius);
+		glm::vec3 outer_p = circle_center + (p_dir * outer_radius);
+
+		DrawLine(inner_start, inner_p, colour * 0.5f);
+		inner_start = inner_p;
+		DrawLine(outter_start, outer_p, colour * 0.7f);
+		outter_start = outer_p;
+
+		//quick hack
+		int mod_value = (int)glm::degrees(theta) / 90;
+		if (track_edge < mod_value)
+		{
+			DrawLine(inner_p, peak, colour * 0.5f);
+			DrawLine(outer_p, peak, colour * 0.7f);
+			track_edge = mod_value;
+		}
+	}
 }
 
 void DebugGizmos::Cleanup()

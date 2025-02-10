@@ -92,6 +92,181 @@ namespace CRRT
 		return root_entity;
 	}
 
+	std::shared_ptr<Mesh> ModelLoader::LoadAsMesh(std::string path, bool flip_uv)
+	{
+
+		Assimp::Importer import;
+		int process_step = aiProcess_Triangulate;
+		if (flip_uv)
+			process_step |= aiProcess_FlipUVs;
+
+		const aiScene* scene = import.ReadFile(path, process_step);
+
+		if (!scene || scene->mFlags && AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
+		{
+			printf("[ASSIMP ERROR]: %s\n", import.GetErrorString());
+			return nullptr;
+		}
+
+		dir = path.substr(0, path.find_last_of('/'));
+
+		printf("%s\n", dir.c_str());
+
+		std::vector<ModelMesh> model_meshes = ProcessNodes(scene->mRootNode, scene);
+		std::shared_ptr<Mesh> _mesh = std::make_shared<Mesh>();
+		_mesh->Generate(model_meshes[0].GetVerties(), model_meshes[0].GetVAO(), 
+					    model_meshes[0].GetVBO(), model_meshes[0].GetIBO());
+		return _mesh;
+	}
+
+	Mesh ModelLoader::LoadAsSingleMesh(std::string path, bool flip_uv)
+	{
+		Assimp::Importer import;
+		int process_step = aiProcess_Triangulate;
+		if (flip_uv)
+			process_step |= aiProcess_FlipUVs;
+
+		const aiScene* scene = import.ReadFile(path, process_step);
+
+		if (!scene || scene->mFlags && AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
+		{
+			printf("[ASSIMP ERROR]: %s\n", import.GetErrorString());
+			//return nullptr;
+			return {};
+		}
+
+		dir = path.substr(0, path.find_last_of('/'));
+
+		printf("%s\n", dir.c_str());
+
+		return ProcessNodeForSingleMesh(scene->mRootNode, scene);
+		//Mesh _mesh = std::make_shared<Mesh>();
+		//_mesh->Generate(model_meshes[0].GetVerties(), model_meshes[0].GetVAO(),
+		//	model_meshes[0].GetVBO(), model_meshes[0].GetIBO());
+		//return _mesh;
+	}
+
+	Mesh ModelLoader::ProcessNodeForSingleMesh(aiNode* node, const aiScene* scene)
+	{
+		///////////////
+		// LOG
+		///////////////
+		printf("[PROCESS NODE] Mesh count: %d from %s\n", node->mNumMeshes, dir.c_str());
+		printf("[PROCESS NODE] Mesh children count: %d from %s\n", node->mNumChildren, dir.c_str());
+
+
+		//process all node in current node
+		for (unsigned int i = 0; i < node->mNumMeshes; i++)
+		{
+			aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
+			ProcessMeshAndBatchData(mesh, scene);
+			//temp_mesh.push_back(ProcessMesh(mesh, scene));
+		}
+
+		//transverse through current nodes children (recursively)
+		for (unsigned int i = 0; i < node->mNumChildren; i++)
+		{
+			//std::vector<ModelMesh> temp = ProcessNodes(node->mChildren[i], scene);
+			//temp_mesh.insert(temp_mesh.end(), temp.begin(), temp.end());
+			ProcessNodeForSingleMesh(node->mChildren[i], scene);
+		}
+
+		if (m_GroupedVertices.size() > 0 && m_GroupedIndices.size())
+		{
+			Mesh _mesh;
+			_mesh.Generate(m_GroupedVertices, m_GroupedIndices);
+			return _mesh;
+		}
+		return {};
+	}
+
+	void ModelLoader::ProcessMeshAndBatchData(aiMesh* mesh, const aiScene* scene)
+	{
+		//data from current mesh
+		std::vector<Vertex> temp_vertices;
+		std::vector<unsigned> temp_indices;
+
+
+		aiVector3D vp;     //position
+		aiVector3D vn;	   //normal
+		aiVector2D st;     //texture coord
+
+		//Later
+		//glm::vec3 tn;   //tangent 
+		//glm::vec3 bt;	  //bitangent
+
+		////////////////////////////
+		// VERTICES
+		////////////////////////////
+		for (unsigned int i = 0; i < mesh->mNumVertices; i++)
+		{
+			vp = mesh->mVertices[i];
+			vn = aiVector3D();
+
+			if (mesh->HasNormals())
+				vn = mesh->mNormals[i];
+
+			if (mesh->mTextureCoords[0])
+			{
+				st.x = mesh->mTextureCoords[0][i].x;
+				st.y = mesh->mTextureCoords[0][i].y;
+			}
+			else
+				st = aiVector2D();
+
+
+			//{ SET UP
+			//	float position[4];
+			//	float colour[4];
+			//	float texCoord[2];
+			//	float normals[3];
+			//}
+
+			Vertex vertex
+			{
+				 {vp.x, vp.y, vp.z, 1.0f},    //layout 0 => pos
+				{1.0f, 0.0f, 1.0f, 1.0f},	//layout 1 => col  //magenta for debugging
+				{st.x, st.y},			   //layout 2 => uv
+				{vn.x, vn.y, vn.z},       //layout 3 => nor
+				{0.0f, 0.0f, 0.0f},       //layout 4 => tan
+				{0.0f, 0.0f, 0.0f},       //layout 5 => bi tan
+			};
+			temp_vertices.push_back(vertex);
+		}
+
+
+		////////////////////////////
+		// INDICES
+		////////////////////////////
+		for (unsigned int i = 0; i < mesh->mNumFaces; i++)
+		{
+			aiFace face = mesh->mFaces[i];
+			for (unsigned int j = 0; j < face.mNumIndices; j++)
+			{
+				temp_indices.push_back(face.mIndices[j]);
+			}
+		}
+
+
+
+		////////////////////////
+		// (Quick Hack): if model doesnt have normal generate from face & its associate vertices
+		////////////////////////
+		if (!mesh->HasNormals())
+		{
+			bool generateWcFace = false;
+
+			if (!generateWcFace)
+				temp_vertices = CalcAverageNormalsWcIndices(temp_vertices, temp_indices);
+			//else
+			//	temp_vertices = CalcNormalsWcMeshFace(temp_vertices, mesh);
+
+		}
+
+
+		m_GroupedVertices.insert(m_GroupedVertices.end(), temp_vertices.begin(), temp_vertices.end());
+		m_GroupedIndices.insert(m_GroupedIndices.end(), temp_indices.begin(), temp_indices.end());
+	}
 
 
 	/// <summary>

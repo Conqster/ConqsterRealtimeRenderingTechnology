@@ -64,6 +64,7 @@ void Camera::Rotate(float dt_x, float dt_y)
 void Camera::SetPosition(glm::vec3 pos)
 {
 	m_Position = pos;
+	Update();
 }
 
 

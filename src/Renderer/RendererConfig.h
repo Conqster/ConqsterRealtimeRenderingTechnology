@@ -24,11 +24,15 @@ struct ShadowConfig
 	int debugCubeFaceIdx = 0;
 };
 
+
+
 struct DirShadowCalculation
 {
 	ShadowConfig config;
 
 	bool debugPara = true;  //debug pos & parameters
+	float cam_offset = 5.0f;
+	glm::vec3 sampleWorldPos = glm::vec3(0.0f);
 
 	//Cache Matrix
 	glm::mat4 proj;

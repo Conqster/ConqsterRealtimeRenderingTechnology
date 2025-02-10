@@ -66,6 +66,7 @@ void ModelLoader::Clean()
 }
 
 
+
 /// <summary>
 /// Process Node, processes starting from the root node:
 /// 1: Check number of meshes in node, if any process each mesh

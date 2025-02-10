@@ -10,7 +10,7 @@ void main()
 {
     if(u_IsOmnidir)
     {
-                float light_dist = length(FragPos.xyz - u_LightPos);
+        float light_dist = length(FragPos.xyz - u_LightPos);
     
         //remap to [0;1] range
         light_dist = light_dist / u_FarPlane;

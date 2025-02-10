@@ -23,6 +23,8 @@ public:
 	template<class T>
 	void RegisterNewScene(const std::string& name);
 	Scene* LoadScene(const std::string name, Window* window);
+	//expense to call
+	int GetCurrentLoadedScene();
 	const char** ScenesByNamePtr();
 	inline int SceneCount() { return static_cast<int>(m_sceneNamesPtr.size()); }
 
@@ -33,6 +35,7 @@ private:
 	std::vector<std::string> m_sceneNames;
 	std::vector<const char*> m_sceneNamesPtr; //Cache pointer to scene names for ImGui use
 	bool sceneNamesUpdated = false;
+	std::string m_LastLoadedScene;
 
 	void Cleanup();
 };

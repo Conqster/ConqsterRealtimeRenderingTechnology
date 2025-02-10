@@ -156,6 +156,19 @@ void Mesh::Generate(std::vector<Vertex> vertices, std::vector<unsigned int> indi
 	VAO.AddBufferLayout(VBO, vbLayout);
 }
 
+void Mesh::Generate(std::vector<Vertex> vertices, VertexArray vao, VertexBuffer vbo, IndexBuffer ibo)
+{
+	m_Vertices = vertices;
+	//to recenter AABB as mesh origin/center is not 0,0,0
+	aabb = AABB(glm::vec3(vertices[0].position[0], vertices[0].position[1], vertices[0].position[2]));
+	for (auto& v : vertices)
+		UpdateAABB(glm::vec3(v.position[0], v.position[1], v.position[2]));
+
+	VAO = vao;
+	VBO = vbo;
+	IBO = ibo;
+}
+
 Mesh::~Mesh()
 {
 	//Clear();

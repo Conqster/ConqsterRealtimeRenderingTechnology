@@ -49,6 +49,7 @@ public:
 		}
 
 	void Generate(std::vector<Vertex> vertices, std::vector<unsigned int> indices);
+	void Generate(std::vector<Vertex> vertices, VertexArray vao, VertexBuffer vbo, IndexBuffer ibo);
 	~Mesh();
 
 	//remove when ModelMesh class is removed 

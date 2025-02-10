@@ -27,8 +27,17 @@ namespace CRRT
 
 		std::shared_ptr<Model> Load(std::string path, bool flip_uv = false);
 		std::shared_ptr<Entity> LoadAsEntity(std::string path, bool flip_uv = false);
+		std::shared_ptr<Mesh> LoadAsMesh(std::string path, bool flip_uv = false);
+
+		Mesh LoadAsSingleMesh(std::string path, bool flip_uv = false);
 	private:
 		void Clean();
+
+		std::vector<Vertex> m_GroupedVertices;
+		std::vector<unsigned> m_GroupedIndices;
+		Mesh ProcessNodeForSingleMesh(aiNode* node, const aiScene* scene);
+		void ProcessMeshAndBatchData(aiMesh* mesh, const aiScene* scene);
+
 
 		//std::vector<Mesh>ProcessNode(aiNode* node, const aiScene* scene);
 		std::vector<ModelMesh> ProcessNodes(aiNode* node, const aiScene* scene);
@@ -39,6 +48,7 @@ namespace CRRT
 		std::vector<Texture> cacheLoadedTextures;
 
 		unsigned int idx = 50;
+
 
 
 		//Based on Assimp node-hierarchy

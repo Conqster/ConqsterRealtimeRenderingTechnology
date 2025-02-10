@@ -25,8 +25,9 @@ private:
 	SceneManager* m_SceneManager = nullptr;
 	UIManager* m_UI = nullptr;
 
-	bool m_Running = false;
-	bool m_UseFullScreen = true;
+	bool b_Running = false;
+	bool b_UseFullScreen = true;
+	bool b_EnableSceneUI = true;
 
 	State m_GameState;
 public:

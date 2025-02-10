@@ -58,7 +58,7 @@ struct DirectionalLight : public Light
 
 	DirectionalLight(const glm::vec3& dir = glm::vec3(-1.0f, 1.0f, 1.0f), const glm::vec3& col = glm::vec3(1.0f), float amb_inten = 0.5f, float diff_inten = 0.6f);
 
-	static long long int GetGPUSize()
+	static long long int GetSimpleGPUSize()
 	{
 		return (2 * sizeof(glm::vec3) +	
 				sizeof(int) + 
@@ -98,7 +98,7 @@ struct PointLight : public Light
 	float shadow_far = 150.0f;
 	PointLight(const glm::vec3& pos = glm::vec3(0.0f), const glm::vec3& col = glm::vec3(1.0f), float amb_inten = 0.5f, float diff_inten = 0.6f);
 
-	static long long int GetGPUSize()
+	static long long int GetSimpleGPUSize()
 	{
 		return (3 * sizeof(glm::vec3)+
 				sizeof(int) + 
@@ -127,9 +127,10 @@ struct SpotLight : public PointLight
 	//		later convert to have
 	//      innerCutoffAngle &
 	//      outerCutoffAngle
-	float innerCutoffAngle = 12.5f;
-	float outerCutoffAngle = 17.5f;
-	SpotLight(const glm::vec3& dir = glm::vec3(-0.2f, -1.0f, -0.3f), float cutoffAngle = 17.5f, 
+	float innerCutoffAngle = 25.0f;
+	float outerCutoffAngle = 33.0f;
+	bool debug = false;
+	SpotLight(const glm::vec3& dir = glm::vec3(-0.2f, -1.0f, -0.3f), float cutoffAngle = 33.0f, 
 		const glm::vec3& pos = glm::vec3(0.0f), const glm::vec3& col = glm::vec3(1.0f), float amb_inten = 0.5f, float diff_inten = 0.6f);
 };
 
